@@ -22,9 +22,9 @@
     --primary: 0 0% 8%;
     --primary-foreground: 0 0% 98%;
     
-    /* Elegant gold accent */
-    --accent: 38 78% 55%;
-    --accent-foreground: 0 0% 8%;
+    /* Vibrant orange accent */
+    --accent: 24 100% 60%;
+    --accent-foreground: 0 0% 98%;
     
     /* Subtle secondary */
     --secondary: 0 0% 96%;
@@ -40,14 +40,14 @@
     
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 38 78% 55%;
+    --ring: 24 100% 60%;
 
     --radius: 0.375rem;
     
     /* Photography-specific design tokens */
     --hero-gradient: linear-gradient(135deg, hsl(0 0% 8% / 0.9), hsl(0 0% 8% / 0.7));
-    --accent-gradient: linear-gradient(135deg, hsl(38 78% 55%), hsl(43 84% 65%));
-    --subtle-glow: 0 0 40px hsl(38 78% 55% / 0.1);
+    --accent-gradient: linear-gradient(135deg, hsl(24 100% 60%), hsl(30 100% 65%));
+    --subtle-glow: 0 0 40px hsl(24 100% 60% / 0.15);
     --elegant-shadow: 0 20px 40px hsl(0 0% 0% / 0.1);
     --photo-shadow: 0 8px 30px hsl(0 0% 0% / 0.15);
     
@@ -60,10 +60,10 @@
     --sidebar-foreground: 0 0% 15%;
     --sidebar-primary: 0 0% 8%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 38 78% 55%;
-    --sidebar-accent-foreground: 0 0% 8%;
+    --sidebar-accent: 24 100% 60%;
+    --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 38 78% 55%;
+    --sidebar-ring: 24 100% 60%;
   }
 
   .dark {
@@ -79,8 +79,8 @@
     --primary: 0 0% 95%;
     --primary-foreground: 0 0% 8%;
     
-    --accent: 38 78% 55%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 24 100% 60%;
+    --accent-foreground: 0 0% 98%;
     
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 95%;
@@ -93,7 +93,7 @@
     
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 38 78% 55%;
+    --ring: 24 100% 60%;
     
     --hero-gradient: linear-gradient(135deg, hsl(0 0% 10% / 0.95), hsl(0 0% 15% / 0.9));
     --elegant-shadow: 0 20px 40px hsl(0 0% 0% / 0.3);
