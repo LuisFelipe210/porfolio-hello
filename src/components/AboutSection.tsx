@@ -11,14 +11,14 @@ const AboutSection = () => {
               Sobre Mim
             </h2>
             <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-              Sou uma fotógrafa apaixonada por capturar a essência de cada momento. 
-              Com anos de experiência, especializo-me em retratos, casamentos, ensaios 
-              familiares e maternidade, sempre buscando contar histórias únicas através 
-              de imagens atemporais.
+              Olá! Sou Hellô Borges, fotógrafa do Nordeste brasileiro, com base em Piatã, 
+              Salvador, Bahia. Especializo-me em eventos, retratos e fotografia gastronômica, 
+              transformando cada momento em "sentimento em forma de foto".
             </p>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              Minha abordagem combina técnica refinada com sensibilidade artística, 
-              criando fotografias que não apenas documentam, mas emocionam e inspiram.
+              Além da fotografia, sou enfermeira formada pela UPE e aprimoranda em UTI, 
+              o que me dá uma sensibilidade especial para capturar emoções genuínas e 
+              cuidar de cada detalhe dos seus momentos mais importantes.
             </p>
             
             {/* Stats */}

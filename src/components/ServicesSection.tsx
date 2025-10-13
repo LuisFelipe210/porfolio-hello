@@ -1,33 +1,33 @@
-import { Camera, Heart, Baby, Users, Clock, MapPin } from "lucide-react";
+import { Camera, Heart, Baby, Users, Clock, MapPin, UtensilsCrossed } from "lucide-react";
 
 const services = [
   {
     icon: Camera,
-    title: "Ensaios Individuais",
+    title: "Ensaios e Retratos",
     description: "Retratos profissionais que capturam sua personalidade única",
     features: ["Direção de pose", "Edição profissional", "Galeria online"],
-    price: "A partir de R$ 350"
+    price: "Consultar valores"
   },
   {
     icon: Heart,
     title: "Casamentos",
     description: "Cobertura completa do seu grande dia com estilo documental",
     features: ["Pre-wedding", "Cerimônia e festa", "Álbum personalizado"],
-    price: "A partir de R$ 2.500"
+    price: "Consultar valores"
   },
   {
-    icon: Baby,
-    title: "Maternidade",
-    description: "Registrando a beleza e expectativa deste momento especial",
-    features: ["Studio ou externo", "Figurino incluído", "Sessão relaxada"],
-    price: "A partir de R$ 450"
+    icon: UtensilsCrossed,
+    title: "Fotografia Gastronômica",
+    description: "Imagens que despertam o apetite e valorizam seus pratos",
+    features: ["Cardápios", "Redes sociais", "Material publicitário"],
+    price: "Consultar valores"
   },
   {
     icon: Users,
-    title: "Família",
-    description: "Momentos autênticos e conexões familiares genuínas",
-    features: ["Todas as idades", "Ambiente natural", "Múltiplas combinações"],
-    price: "A partir de R$ 400"
+    title: "Eventos",
+    description: "Cobertura completa de eventos corporativos e sociais",
+    features: ["Todas as idades", "Momentos espontâneos", "Entrega rápida"],
+    price: "Consultar valores"
   }
 ];
 
@@ -102,8 +102,8 @@ const ServicesSection = () => {
               <h4 className="text-lg font-light">Atendimento</h4>
             </div>
             <ul className="space-y-2 text-muted-foreground">
-              <li>• Região metropolitana de São Paulo</li>
-              <li>• Studio próprio disponível</li>
+              <li>• Base em Piatã, Salvador, Bahia</li>
+              <li>• Atendimento em todo o Nordeste</li>
               <li>• Sessões externas em locais especiais</li>
               <li>• Deslocamento para outras cidades (consultar valores)</li>
               <li>• Disponibilidade para finais de semana</li>

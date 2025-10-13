@@ -60,17 +60,25 @@ const ContactSection = () => {
             <h3 className="text-2xl font-light mb-8">Entre em Contato</h3>
             
             <div className="space-y-6 mb-8">
-              <div className="flex items-center">
+              <a 
+                href="https://wa.me/5574991248392"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center hover:opacity-80 transition-opacity"
+              >
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
                   <Phone className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <div className="font-light">Telefone</div>
-                  <div className="text-muted-foreground">(11) 99999-9999</div>
+                  <div className="font-light">WhatsApp</div>
+                  <div className="text-muted-foreground">(74) 99124-8392</div>
                 </div>
-              </div>
+              </a>
               
-              <div className="flex items-center">
+              <a 
+                href="mailto:contato@helloborges.com.br"
+                className="flex items-center hover:opacity-80 transition-opacity"
+              >
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
                   <Mail className="w-5 h-5 text-accent" />
                 </div>
@@ -78,9 +86,14 @@ const ContactSection = () => {
                   <div className="font-light">Email</div>
                   <div className="text-muted-foreground">contato@helloborges.com.br</div>
                 </div>
-              </div>
+              </a>
               
-              <div className="flex items-center">
+              <a 
+                href="https://www.instagram.com/hello.borges.fotografia"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center hover:opacity-80 transition-opacity"
+              >
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
                   <Instagram className="w-5 h-5 text-accent" />
                 </div>
@@ -88,7 +101,7 @@ const ContactSection = () => {
                   <div className="font-light">Instagram</div>
                   <div className="text-muted-foreground">@hello.borges.fotografia</div>
                 </div>
-              </div>
+              </a>
               
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
@@ -96,7 +109,7 @@ const ContactSection = () => {
                 </div>
                 <div>
                   <div className="font-light">Localização</div>
-                  <div className="text-muted-foreground">São Paulo - SP</div>
+                  <div className="text-muted-foreground">Piatã, Salvador - Bahia</div>
                 </div>
               </div>
             </div>
@@ -168,10 +181,10 @@ const ContactSection = () => {
                     className="w-full px-3 py-2 border border-input rounded-md bg-background font-light focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     <option value="">Tipo de sessão</option>
-                    <option value="portrait">Ensaio Individual</option>
+                    <option value="portrait">Ensaio/Retrato</option>
                     <option value="wedding">Casamento</option>
-                    <option value="maternity">Maternidade</option>
-                    <option value="family">Família</option>
+                    <option value="event">Evento</option>
+                    <option value="gastronomy">Fotografia Gastronômica</option>
                     <option value="other">Outro</option>
                   </select>
                 </div>

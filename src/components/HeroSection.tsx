@@ -28,7 +28,7 @@ const HeroSection = () => {
           Hello Borges
         </h1>
         <p className="text-xl md:text-2xl font-light mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: "0.2s"}}>
-          Capturando momentos únicos com elegância e sensibilidade artística
+          Sentimento em forma de foto 🧡✨
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up" style={{animationDelay: "0.4s"}}>
           <Button 

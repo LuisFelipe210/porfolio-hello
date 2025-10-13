@@ -49,18 +49,31 @@ const Footer = () => {
           <div>
             <h4 className="font-light mb-4">Contato</h4>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center">
+              <a 
+                href="https://wa.me/5574991248392"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center hover:text-accent transition-colors"
+              >
                 <Phone className="w-4 h-4 mr-2 text-accent" />
-                <span>(11) 99999-9999</span>
-              </div>
-              <div className="flex items-center">
+                <span>(74) 99124-8392</span>
+              </a>
+              <a 
+                href="mailto:contato@helloborges.com.br"
+                className="flex items-center hover:text-accent transition-colors"
+              >
                 <Mail className="w-4 h-4 mr-2 text-accent" />
                 <span>contato@helloborges.com.br</span>
-              </div>
-              <div className="flex items-center">
+              </a>
+              <a 
+                href="https://www.instagram.com/hello.borges.fotografia"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center hover:text-accent transition-colors"
+              >
                 <Instagram className="w-4 h-4 mr-2 text-accent" />
                 <span>@hello.borges.fotografia</span>
-              </div>
+              </a>
             </div>
           </div>
         </div>
