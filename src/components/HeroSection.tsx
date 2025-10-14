@@ -17,7 +17,7 @@ const HeroSection = () => {
         <img 
           src={heroImage} 
           alt="Hello Borges - Fotógrafa Profissional"
-          className="w-full h-full object-cover"
+          className="w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
       </div>
@@ -25,7 +25,7 @@ const HeroSection = () => {
       {/* Content */}
       <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
         <h1 className="hero-text mb-6 animate-fade-in-up">
-          Hello Borges
+          Hellô Borges
         </h1>
         <p className="text-xl md:text-2xl font-light mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: "0.2s"}}>
           Sentimento em forma de foto 🧡✨
@@ -42,7 +42,7 @@ const HeroSection = () => {
             size="lg"
             variant="outline"
             onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-            className="border-white text-white hover:bg-white hover:text-primary font-light tracking-wide"
+            className="border-white text-black hover:bg-white hover:text-primary font-light tracking-wide"
           >
             Entre em Contato
           </Button>

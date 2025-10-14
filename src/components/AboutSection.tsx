@@ -27,21 +27,21 @@ const AboutSection = () => {
                 <div className="flex justify-center mb-2">
                   <Camera className="w-6 h-6 text-accent" />
                 </div>
-                <div className="text-2xl font-light text-foreground">500+</div>
+                <div className="text-2xl font-light text-foreground">5s0+</div>
                 <div className="text-sm text-muted-foreground">Sessões</div>
               </div>
               <div className="text-center">
                 <div className="flex justify-center mb-2">
                   <Heart className="w-6 h-6 text-accent" />
                 </div>
-                <div className="text-2xl font-light text-foreground">100+</div>
+                <div className="text-2xl font-light text-foreground">1+</div>
                 <div className="text-sm text-muted-foreground">Casamentos</div>
               </div>
               <div className="text-center">
                 <div className="flex justify-center mb-2">
                   <Users className="w-6 h-6 text-accent" />
                 </div>
-                <div className="text-2xl font-light text-foreground">300+</div>
+                <div className="text-2xl font-light text-foreground">3+</div>
                 <div className="text-sm text-muted-foreground">Famílias</div>
               </div>
             </div>
@@ -52,31 +52,31 @@ const AboutSection = () => {
             <div className="space-y-4">
               <div className="elegant-border overflow-hidden photo-hover">
                 <img 
-                  src="/api/placeholder/300/400" 
-                  alt="Fotografia de retrato" 
+                  src="https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?crop=entropy&cs=tinysrgb&fit=max&h=300&w=400"
+                  alt="Fotografia de retrato"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="elegant-border overflow-hidden photo-hover">
-                <img 
-                  src="/api/placeholder/300/250" 
-                  alt="Fotografia de família" 
+                <img
+                  src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?crop=entropy&cs=tinysrgb&fit=max&h=250&w=300"
+                  alt="Fotografia de família"
                   className="w-full h-full object-cover"
                 />
               </div>
             </div>
             <div className="space-y-4 pt-8">
               <div className="elegant-border overflow-hidden photo-hover">
-                <img 
-                  src="/api/placeholder/300/350" 
-                  alt="Fotografia de casamento" 
+                <img
+                  src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?crop=entropy&cs=tinysrgb&fit=max&h=350&w=300"
+                  alt="Fotografia de casamento"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="elegant-border overflow-hidden photo-hover">
-                <img 
-                  src="/api/placeholder/300/280" 
-                  alt="Fotografia de maternidade" 
+                <img
+                  src="https://images.unsplash.com/photo-1533090161767-e6ffed986c88?crop=entropy&cs=tinysrgb&fit=max&h=280&w=300"
+                  alt="Fotografia de maternidade"
                   className="w-full h-full object-cover"
                 />
               </div>

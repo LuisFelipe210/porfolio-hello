@@ -42,14 +42,14 @@ const ContactSection = () => {
   };
 
   return (
-    <section id="contact" className="section-padding bg-secondary/20">
+    <section id="contact" className="section-padding bg-orange-200">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-light mb-4 animate-fade-in">
             Vamos Conversar
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
-            Entre em contato para discutirmos como posso capturar 
+            Entre em contato para discutirmos como posso capturar
             os seus momentos especiais de forma única e inesquecível.
           </p>
         </div>
@@ -58,54 +58,54 @@ const ContactSection = () => {
           {/* Contact Info */}
           <div className="animate-fade-in">
             <h3 className="text-2xl font-light mb-8">Entre em Contato</h3>
-            
+
             <div className="space-y-6 mb-8">
-              <a 
+              <a
                 href="https://wa.me/5574991248392"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center hover:opacity-80 transition-opacity"
               >
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
-                  <Phone className="w-5 h-5 text-accent" />
+                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                  <Phone className="w-5 h-5 text-black" />
                 </div>
                 <div>
                   <div className="font-light">WhatsApp</div>
                   <div className="text-muted-foreground">(74) 99124-8392</div>
                 </div>
               </a>
-              
-              <a 
+
+              <a
                 href="mailto:contato@helloborges.com.br"
                 className="flex items-center hover:opacity-80 transition-opacity"
               >
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
-                  <Mail className="w-5 h-5 text-accent" />
+                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                  <Mail className="w-5 h-5 text-black" />
                 </div>
                 <div>
                   <div className="font-light">Email</div>
                   <div className="text-muted-foreground">contato@helloborges.com.br</div>
                 </div>
               </a>
-              
-              <a 
+
+              <a
                 href="https://www.instagram.com/hello.borges.fotografia"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center hover:opacity-80 transition-opacity"
               >
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
-                  <Instagram className="w-5 h-5 text-accent" />
+                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                  <Instagram className="w-5 h-5 text-black" />
                 </div>
                 <div>
                   <div className="font-light">Instagram</div>
                   <div className="text-muted-foreground">@hello.borges.fotografia</div>
                 </div>
               </a>
-              
+
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
-                  <MapPin className="w-5 h-5 text-accent" />
+                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                  <MapPin className="w-5 h-5 text-black" />
                 </div>
                 <div>
                   <div className="font-light">Localização</div>
@@ -160,7 +160,7 @@ const ContactSection = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Input
@@ -189,7 +189,7 @@ const ContactSection = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <Textarea
                   name="message"
@@ -201,11 +201,11 @@ const ContactSection = () => {
                   className="font-light resize-none"
                 />
               </div>
-              
+
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-accent hover:bg-accent/90 text-primary font-light tracking-wide"
+                className="w-full bg-white hover:bg-orange-100 text-black font-medium tracking-wide"
               >
                 <Send className="w-4 h-4 mr-2" />
                 Enviar Mensagem

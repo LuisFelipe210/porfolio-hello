@@ -103,7 +103,7 @@ const ServicesSection = () => {
             </div>
             <ul className="space-y-2 text-muted-foreground">
               <li>• Base em Piatã, Salvador, Bahia</li>
-              <li>• Atendimento em todo o Nordeste</li>
+              <li>• Atendimento em Campo Formoso e região, Petrolina e Juazeiro, Salvador e Região</li>
               <li>• Sessões externas em locais especiais</li>
               <li>• Deslocamento para outras cidades (consultar valores)</li>
               <li>• Disponibilidade para finais de semana</li>

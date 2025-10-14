@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Brand */}
           <div>
-            <div className="text-2xl font-light mb-4">Hello Borges</div>
+            <div className="text-2xl font-light mb-4">Hellõ Borges</div>
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
               Fotografia profissional com sensibilidade artística, 
               capturando momentos únicos e emocionantes.
@@ -81,7 +81,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-primary-foreground/20 pt-8 text-center">
           <p className="text-sm text-primary-foreground/60">
-            © 2024 Hello Borges Fotografia. Todos os direitos reservados.
+            © 2025 Hellô Borges Fotografia. Todos os direitos reservados.
           </p>
         </div>
       </div>
