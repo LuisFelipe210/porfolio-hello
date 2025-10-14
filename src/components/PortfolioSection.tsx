@@ -35,7 +35,8 @@ const portfolioItems = [
     category: "family",
     image: familyImage,
     description: "Conexões e amor em família"
-  },{
+  },
+    {
         id: 5,
         title: "Família",
         category: "family",
@@ -62,7 +63,8 @@ const categories = [
   { id: "portrait", name: "Retratos" },
   { id: "wedding", name: "Casamentos" },
   { id: "maternity", name: "Maternidade" },
-  { id: "family", name: "Família" }
+  { id: "family", name: "Família" },
+  { id: "maternity-family", name: "Gestante e Família" }
 ];
 
 const PortfolioSection = () => {
@@ -108,6 +110,16 @@ const PortfolioSection = () => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedIndex, filteredItems.length]);
+
+  // Força repaint no carregamento inicial (corrige bug visual de renderização)
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      document.body.style.transform = "translateZ(0)";
+      setTimeout(() => {
+        document.body.style.transform = "";
+      }, 50);
+    });
+  }, []);
 
   return (
     <section id="portfolio" className="section-padding bg-secondary/20">
@@ -155,12 +167,14 @@ const PortfolioSection = () => {
               {visibleItems.map((item, index) => (
                 <div key={item.id} className="p-2">
                   <div
-                    className="relative overflow-hidden elegant-border w-full h-40 md:h-52 group cursor-pointer"
+                    className="relative overflow-hidden elegant-border w-full h-36 md:h-48 group cursor-pointer"
                     onClick={() => setSelectedIndex(currentStart + index)}
                   >
                     <img
                       src={item.image}
                       alt={item.title}
+                      loading="eager"
+                      decoding="sync"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
