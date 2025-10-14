@@ -17,7 +17,7 @@ const HeroSection = () => {
         <img 
           src={heroImage} 
           alt="Hello Borges - Fotógrafa Profissional"
-          className="w-full object-cover"
+          className="w-full h-full min-h-screen object-cover sm:object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
       </div>
