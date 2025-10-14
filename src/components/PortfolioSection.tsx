@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import portraitImage from "@/assets/portfolio-portrait.jpg";
 import weddingImage from "@/assets/portfolio-wedding.jpg";
 import maternityImage from "@/assets/portfolio-maternity.jpg";
@@ -67,6 +67,66 @@ const PortfolioSection = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedIndex, filteredItems.length]);
 
+  // Ref and state for mobile scroll snap carousel arrows
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [activeDotIndex, setActiveDotIndex] = useState(0);
+
+  useEffect(() => {
+    const scrollEl = scrollContainerRef.current;
+    if (!scrollEl) return;
+
+    const updateScrollArrows = () => {
+      setCanScrollLeft(scrollEl.scrollLeft > 0);
+      setCanScrollRight(scrollEl.scrollLeft + scrollEl.clientWidth < scrollEl.scrollWidth - 1);
+      // Calculate active dot based on scrollLeft and card width
+      const cardWidth = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0")?.offsetWidth ?? 1;
+      const scrollLeft = scrollEl.scrollLeft;
+      const index = Math.round(scrollLeft / (cardWidth + 8)); // 8px gap approx
+      setActiveDotIndex(index);
+    };
+
+    updateScrollArrows();
+
+    scrollEl.addEventListener("scroll", updateScrollArrows);
+    window.addEventListener("resize", updateScrollArrows);
+
+    return () => {
+      scrollEl.removeEventListener("scroll", updateScrollArrows);
+      window.removeEventListener("resize", updateScrollArrows);
+    };
+  }, [pagedItems, activeCategory, currentPage]);
+
+  const scrollByCardWidth = (direction: "left" | "right") => {
+    const scrollEl = scrollContainerRef.current;
+    if (!scrollEl) return;
+    const cardWidth = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0")?.offsetWidth ?? 0;
+    const scrollAmount = direction === "left" ? -cardWidth - 8 : cardWidth + 8; // 8px gap approx
+    scrollEl.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
+
+  // Ref for categories scroll container (mobile)
+  const categoriesScrollRef = useRef<HTMLDivElement>(null);
+
+  // Function to scroll to the clicked category button in mobile scroll container
+  const scrollToCategory = (categoryId: string, index: number) => {
+    setActiveCategory(categoryId);
+    setCurrentPage(0);
+    const scrollEl = categoriesScrollRef.current;
+    if (!scrollEl) return;
+    const button = scrollEl.children[index] as HTMLElement;
+    if (!button) return;
+    const scrollLeft = scrollEl.scrollLeft;
+    const buttonLeft = button.offsetLeft;
+    const buttonWidth = button.offsetWidth;
+    const containerWidth = scrollEl.offsetWidth;
+
+    // Scroll so that the clicked button is centered if possible
+    const targetScrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
+    scrollEl.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
+  };
+
   return (
     <section id="portfolio" className="section-padding bg-secondary/20">
       <div className="container mx-auto max-w-6xl">
@@ -94,14 +154,14 @@ const PortfolioSection = () => {
             </button>
           ))}
         </div>
-        {/* Mobile: Horizontal scrollable buttons with gradients */}
+        {/* Mobile: Horizontal scrollable buttons with scroll snap */}
         <div className="relative md:hidden">
-          <div className="flex gap-2 mb-12 animate-fade-in overflow-x-auto no-scrollbar px-1 -mx-1">
-            {categories.map((category) => (
+          <div ref={categoriesScrollRef} className="flex gap-2 mb-2 overflow-x-auto no-scrollbar px-1 -mx-1 snap-x snap-mandatory">
+            {categories.map((category, index) => (
               <button
                 key={category.id}
-                onClick={() => { setActiveCategory(category.id); setCurrentPage(0); }}
-                className={`flex-shrink-0 px-2 py-2 text-sm font-light tracking-wide transition-all ${
+                onClick={() => scrollToCategory(category.id, index)}
+                className={`flex-shrink-0 px-2 py-2 text-sm font-light tracking-wide transition-all snap-center ${
                   activeCategory === category.id
                     ? "text-accent border-b-2 border-accent"
                     : "text-muted-foreground hover:text-foreground"
@@ -112,13 +172,11 @@ const PortfolioSection = () => {
               </button>
             ))}
           </div>
-          <div className="pointer-events-none absolute top-0 left-0 h-full w-12 bg-gradient-to-r from-white/90 to-transparent md:hidden" />
-          <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-white/90 to-transparent md:hidden" />
         </div>
 
         {/* Portfolio Carousel */}
         <div className="relative overflow-hidden">
-          {/* Navigation Arrows */}
+          {/* Navigation Arrows desktop */}
           {currentPage > 0 && (
             <button
               onClick={handlePrevPage}
@@ -136,7 +194,60 @@ const PortfolioSection = () => {
             </button>
           )}
 
-          <div className="flex md:grid md:grid-cols-3 gap-2 md:gap-2 md:mx-auto overflow-x-auto">
+          {/* Mobile scroll snap carousel with dots */}
+          <div className="md:hidden relative">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-2"
+            >
+              {pagedItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="flex-shrink-0 w-72 snap-center p-1 mx-auto cursor-pointer"
+                  onClick={() => setSelectedIndex(currentPage * ITEMS_PER_PAGE + index)}
+                >
+                  <div className="relative overflow-hidden elegant-border w-full aspect-[4/3] group">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute bottom-4 left-4 right-4 text-white">
+                        <h3 className="text-lg font-light mb-1">{item.title}</h3>
+                        <p className="text-xs text-white/80">{item.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-center mt-3 space-x-2">
+              {pagedItems.map((_, index) => (
+                <button
+                  key={index}
+                  aria-label={`Go to slide ${index + 1}`}
+                  onClick={() => {
+                    const scrollEl = scrollContainerRef.current;
+                    if (!scrollEl) return;
+                    const cardWidth = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0")?.offsetWidth ?? 0;
+                    const scrollTo = index * (cardWidth + 8); // 8px gap approx
+                    scrollEl.scrollTo({ left: scrollTo, behavior: "smooth" });
+                  }}
+                  className={`text-2xl leading-none select-none ${
+                    index === activeDotIndex ? "text-accent" : "text-muted-foreground"
+                  }`}
+                  style={{ lineHeight: 1 }}
+                  type="button"
+                >
+                  {index === activeDotIndex ? "●" : "○"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop grid carousel */}
+          <div className="hidden md:grid md:grid-cols-3 gap-2 md:gap-2 md:mx-auto overflow-x-auto">
             {pagedItems.map((item, index) => (
               <div
                 key={item.id}

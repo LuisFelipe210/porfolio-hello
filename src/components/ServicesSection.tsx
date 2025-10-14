@@ -1,4 +1,5 @@
 import { Camera, Heart, Baby, Users, Clock, MapPin, UtensilsCrossed } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 const services = [
   {
@@ -32,6 +33,40 @@ const services = [
 ];
 
 const ServicesSection = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  // Handler for scroll event to update activeIndex
+  const onScroll = () => {
+    if (!carouselRef.current) return;
+    const scrollLeft = carouselRef.current.scrollLeft;
+    const cardWidth = carouselRef.current.firstElementChild?.clientWidth || 1;
+    const index = Math.round(scrollLeft / (cardWidth + 16)); // 16 is the margin-right (mr-4)
+    setActiveIndex(index);
+  };
+
+  // Scroll to card when clicking dots
+  const scrollToIndex = (index: number) => {
+    if (!carouselRef.current) return;
+    const cardWidth = carouselRef.current.firstElementChild?.clientWidth || 1;
+    carouselRef.current.scrollTo({
+      left: index * (cardWidth + 16),
+      behavior: "smooth"
+    });
+  };
+
+  useEffect(() => {
+    const refCurrent = carouselRef.current;
+    if (refCurrent) {
+      refCurrent.addEventListener("scroll", onScroll, { passive: true });
+    }
+    return () => {
+      if (refCurrent) {
+        refCurrent.removeEventListener("scroll", onScroll);
+      }
+    };
+  }, []);
+
   return (
     <section id="services" className="section-padding bg-background">
       <div className="container mx-auto max-w-6xl">
@@ -40,7 +75,7 @@ const ServicesSection = () => {
             Serviços
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
-            Oferecendo diferentes tipos de sessões fotográficas, 
+            Oferecendo diferentes tipos de sessões fotográficas,
             cada uma pensada para capturar o que há de mais especial em cada momento.
           </p>
         </div>
@@ -91,11 +126,14 @@ const ServicesSection = () => {
             ))}
           </div>
           <div className="relative md:hidden">
-            <div className="flex overflow-x-auto px-4 no-scrollbar mb-16">
+            <div
+              ref={carouselRef}
+              className="flex overflow-x-auto px-4 no-scrollbar mb-4 snap-x snap-mandatory"
+            >
               {services.map((service, index) => (
                 <div
                   key={service.title}
-                  className="flex-shrink-0 w-72 elegant-border p-8 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in mr-4 last:mr-0"
+                  className="flex-shrink-0 w-72 elegant-border p-8 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in mr-4 last:mr-0 snap-center"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center mb-4">
@@ -134,8 +172,19 @@ const ServicesSection = () => {
                 </div>
               ))}
             </div>
-            <div className="pointer-events-none absolute top-0 left-0 h-full w-12 bg-gradient-to-r from-background/100 to-transparent"></div>
-            <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-background/100 to-transparent"></div>
+            {/* Pontinhos abaixo do carrossel */}
+            <div className="flex justify-center space-x-2">
+              {services.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === activeIndex ? "bg-accent" : "bg-accent/40"
+                  }`}
+                  onClick={() => scrollToIndex(index)}
+                  aria-label={`Ir para o serviço ${services[index].title}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
