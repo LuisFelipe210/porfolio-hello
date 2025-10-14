@@ -157,7 +157,7 @@ const PortfolioSection = () => {
             {canPrev && (
               <button
                 onClick={handlePrev}
-                className="absolute left-0 top-1/2 transform -translate-y-1/2 p-3 text-accent text-3xl font-bold drop-shadow-lg hover:text-accent/70"
+                className="absolute left-0 inset-y-0 flex items-center px-3 text-accent text-3xl font-bold drop-shadow-lg hover:text-accent/70"
               >
                 ❮
               </button>
@@ -191,7 +191,7 @@ const PortfolioSection = () => {
             {canNext && (
               <button
                 onClick={handleNext}
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 p-3 text-accent text-3xl font-bold drop-shadow-lg hover:text-accent/70"
+                className="absolute right-0 inset-y-0 flex items-center px-3 text-accent text-3xl font-bold drop-shadow-lg hover:text-accent/70"
               >
                 ❯
               </button>
