@@ -67,11 +67,15 @@ const PortfolioSection = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedIndex, filteredItems.length]);
 
-  // Ref and state for mobile scroll snap carousel arrows
+  // Ref and state for mobile scroll snap carousel arrows and dots
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [activeDotIndex, setActiveDotIndex] = useState(0);
+
+  // Exclusive ref for modal mobile scroll
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+  const [modalActiveDotIndex, setModalActiveDotIndex] = useState(0);
 
   useEffect(() => {
     const scrollEl = scrollContainerRef.current;
@@ -82,8 +86,9 @@ const PortfolioSection = () => {
       setCanScrollRight(scrollEl.scrollLeft + scrollEl.clientWidth < scrollEl.scrollWidth - 1);
       // Calculate active dot based on scrollLeft and card width
       const cardWidth = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0")?.offsetWidth ?? 1;
+      const gap = 8;
       const scrollLeft = scrollEl.scrollLeft;
-      const index = Math.round(scrollLeft / (cardWidth + 8)); // 8px gap approx
+      const index = Math.round(scrollLeft / (cardWidth + gap));
       setActiveDotIndex(index);
     };
 
@@ -97,14 +102,6 @@ const PortfolioSection = () => {
       window.removeEventListener("resize", updateScrollArrows);
     };
   }, [pagedItems, activeCategory, currentPage]);
-
-  const scrollByCardWidth = (direction: "left" | "right") => {
-    const scrollEl = scrollContainerRef.current;
-    if (!scrollEl) return;
-    const cardWidth = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0")?.offsetWidth ?? 0;
-    const scrollAmount = direction === "left" ? -cardWidth - 8 : cardWidth + 8; // 8px gap approx
-    scrollEl.scrollBy({ left: scrollAmount, behavior: "smooth" });
-  };
 
   // Ref for categories scroll container (mobile)
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
@@ -278,6 +275,7 @@ const PortfolioSection = () => {
             className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setSelectedIndex(null)}
           >
+            {/* Modal content */}
             <div
               className="relative bg-transparent rounded-lg w-full max-w-3xl mx-auto h-[90vh] md:h-auto flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
@@ -288,28 +286,88 @@ const PortfolioSection = () => {
               >
                 ×
               </button>
-
-              <button
-                onClick={() => setSelectedIndex(prev => (prev! > 0 ? prev! - 1 : prev))}
-                disabled={selectedIndex === 0}
-                className={`text-white text-4xl font-bold drop-shadow-lg absolute left-2 top-1/2 -translate-y-1/2 md:static md:translate-y-0 ${selectedIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:text-accent/70"}`}
-              >
-                ❮
-              </button>
-
-              <img
-                src={filteredItems[selectedIndex].image}
-                alt="Modal"
-                className="max-w-full max-h-[90vh] md:max-h-[80vh] object-contain rounded-lg mx-auto"
-              />
-
-              <button
-                onClick={() => setSelectedIndex(prev => (prev! < filteredItems.length - 1 ? prev! + 1 : prev))}
-                disabled={selectedIndex === filteredItems.length - 1}
-                className={`text-white text-4xl font-bold drop-shadow-lg absolute right-2 top-1/2 -translate-y-1/2 md:static md:translate-y-0 ${selectedIndex === filteredItems.length - 1 ? "opacity-30 cursor-not-allowed" : "hover:text-accent/70"}`}
-              >
-                ❯
-              </button>
+              {/* Mobile: draggable horizontal carousel with scroll snap and dots */}
+              <div className="flex flex-col w-full h-full md:hidden">
+                <div
+                  ref={modalScrollRef}
+                  className="flex-1 flex flex-row gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-2"
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                  onScroll={() => {
+                    const scrollEl = modalScrollRef.current;
+                    if (!scrollEl) return;
+                    const card = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0");
+                    const cardWidth = card?.offsetWidth ?? 1;
+                    const gap = 8;
+                    const scrollLeft = scrollEl.scrollLeft;
+                    const idx = Math.round(scrollLeft / (cardWidth + gap));
+                    setModalActiveDotIndex(idx);
+                  }}
+                >
+                  {filteredItems.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="flex-shrink-0 w-72 snap-center flex items-center justify-center"
+                      style={{ maxWidth: "22rem" }}
+                      onClick={() => setSelectedIndex(idx)}
+                    >
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-[60vh] object-contain rounded-lg"
+                        draggable={false}
+                        style={{ background: "none", margin: "0 auto" }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-center mt-3 space-x-2">
+                  {filteredItems.map((_, idx) => (
+                    <button
+                      key={idx}
+                      aria-label={`Go to slide ${idx + 1}`}
+                      onClick={() => {
+                        // Scroll to the image
+                        const scrollEl = modalScrollRef.current;
+                        if (!scrollEl) return;
+                        const card = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0");
+                        const cardWidth = card?.offsetWidth ?? 0;
+                        const scrollTo = idx * (cardWidth + 8);
+                        scrollEl.scrollTo({ left: scrollTo, behavior: "smooth" });
+                        setSelectedIndex(idx);
+                      }}
+                      className={`text-2xl leading-none select-none ${
+                        idx === modalActiveDotIndex ? "text-accent" : "text-muted-foreground"
+                      }`}
+                      style={{ lineHeight: 1 }}
+                      type="button"
+                    >
+                      {idx === modalActiveDotIndex ? "●" : "○"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Desktop: show arrows and single image */}
+              <div className="hidden md:flex items-center w-full h-full">
+                <button
+                  onClick={() => setSelectedIndex(prev => (prev! > 0 ? prev! - 1 : prev))}
+                  disabled={selectedIndex === 0}
+                  className={`text-white text-4xl font-bold drop-shadow-lg absolute left-2 top-1/2 -translate-y-1/2 md:static md:translate-y-0 ${selectedIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:text-accent/70"}`}
+                >
+                  ❮
+                </button>
+                <img
+                  src={filteredItems[selectedIndex].image}
+                  alt="Modal"
+                  className="max-w-full max-h-[90vh] md:max-h-[80vh] object-contain rounded-lg mx-auto"
+                />
+                <button
+                  onClick={() => setSelectedIndex(prev => (prev! < filteredItems.length - 1 ? prev! + 1 : prev))}
+                  disabled={selectedIndex === filteredItems.length - 1}
+                  className={`text-white text-4xl font-bold drop-shadow-lg absolute right-2 top-1/2 -translate-y-1/2 md:static md:translate-y-0 ${selectedIndex === filteredItems.length - 1 ? "opacity-30 cursor-not-allowed" : "hover:text-accent/70"}`}
+                >
+                  ❯
+                </button>
+              </div>
             </div>
           </div>
         )}

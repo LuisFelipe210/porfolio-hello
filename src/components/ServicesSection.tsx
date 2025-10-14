@@ -103,7 +103,6 @@ const ServicesSection = () => {
                 <ul className="space-y-2 mb-6">
                   {service.features.map((feature) => (
                     <li key={feature} className="text-sm text-muted-foreground flex items-center">
-                      <div className="w-1.5 h-1.5 bg-accent rounded-full mr-3"></div>
                       {feature}
                     </li>
                   ))}
@@ -150,7 +149,6 @@ const ServicesSection = () => {
                   <ul className="space-y-2 mb-6">
                     {service.features.map((feature) => (
                       <li key={feature} className="text-sm text-muted-foreground flex items-center">
-                        <div className="w-1.5 h-1.5 bg-accent rounded-full mr-3"></div>
                         {feature}
                       </li>
                     ))}
@@ -177,8 +175,8 @@ const ServicesSection = () => {
               {services.map((_, index) => (
                 <button
                   key={index}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === activeIndex ? "bg-accent" : "bg-accent/40"
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === activeIndex ? "bg-orange-500" : "bg-orange-300"
                   }`}
                   onClick={() => scrollToIndex(index)}
                   aria-label={`Ir para o serviço ${services[index].title}`}
@@ -189,32 +187,54 @@ const ServicesSection = () => {
         </div>
 
         {/* Additional Info */}
-        <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-border/30">
-          <div className="animate-fade-in">
+        <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-border/30 space-y-6 md:space-y-0">
+          <div className="animate-fade-in py-4 md:py-0">
             <div className="flex items-center mb-4">
-              <Clock className="w-5 h-5 text-accent mr-3" />
-              <h4 className="text-lg font-light">Processo</h4>
+              <Clock className="w-8 h-8 text-accent mr-3" />
+              <h4 className="font-semibold text-lg md:text-xl">Processo</h4>
             </div>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>• Consulta inicial para entender suas necessidades</li>
-              <li>• Planejamento da sessão e locações</li>
-              <li>• Sessão fotográfica relaxada e dirigida</li>
-              <li>• Edição cuidadosa de todas as imagens</li>
-              <li>• Entrega via galeria online em até 15 dias</li>
+            <ul className="list-disc pl-5">
+              <li className="mt-2 leading-relaxed">
+                Consulta inicial para entender suas necessidades
+              </li>
+              <li className="mt-2 leading-relaxed">
+                Planejamento da sessão e locações
+              </li>
+              <li className="mt-2 leading-relaxed">
+                Sessão fotográfica relaxada e dirigida
+              </li>
+              <li className="mt-2 leading-relaxed">
+                Edição cuidadosa de todas as imagens
+              </li>
+              <li className="mt-2 leading-relaxed">
+                Entrega via galeria online em até 15 dias
+              </li>
             </ul>
           </div>
-          
-          <div className="animate-fade-in">
+
+          <div className="animate-fade-in pt-4 md:pt-0 md:border-l md:border-border/30 md:pl-4 py-4 md:py-0">
             <div className="flex items-center mb-4">
-              <MapPin className="w-5 h-5 text-accent mr-3" />
-              <h4 className="text-lg font-light">Atendimento</h4>
+              <MapPin className="w-8 h-8 text-accent mr-3" />
+              <h4 className="font-semibold text-lg md:text-xl">Atendimento</h4>
             </div>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>• Base em Piatã, Salvador, Bahia</li>
-              <li>• Atendimento em Campo Formoso e região, Petrolina e Juazeiro, Salvador e Região</li>
-              <li>• Sessões externas em locais especiais</li>
-              <li>• Deslocamento para outras cidades (consultar valores)</li>
-              <li>• Disponibilidade para finais de semana</li>
+            <ul className="list-disc pl-5">
+              <li className="mt-2 leading-relaxed">
+                Base em Piatã, Salvador, Bahia
+              </li>
+              <li className="mt-2 leading-relaxed">
+                Atendimento em:
+                <ul className="pl-5">
+                  <li className="leading-relaxed">Campo Formoso e região</li>
+                  <li className="leading-relaxed">Petrolina/Juazeiro</li>
+                  <li className="leading-relaxed">Salvador e Região</li>
+                </ul>
+              </li>
+              <li className="mt-2 leading-relaxed">
+                Sessões externas em locais especiais
+              </li>
+              <li className="mt-2 leading-relaxed">
+                Disponibilidade para finais de semana
+              </li>
             </ul>
           </div>
         </div>

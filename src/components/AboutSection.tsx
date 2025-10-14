@@ -22,12 +22,12 @@ const AboutSection = () => {
             </p>
             
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="flex justify-center gap-8">
               <div className="text-center">
                 <div className="flex justify-center mb-2">
                   <Camera className="w-6 h-6 text-accent" />
                 </div>
-                <div className="text-2xl font-light text-foreground">5s0+</div>
+                <div className="text-2xl font-light text-foreground">50+</div>
                 <div className="text-sm text-muted-foreground">Sessões</div>
               </div>
               <div className="text-center">

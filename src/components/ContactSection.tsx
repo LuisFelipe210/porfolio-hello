@@ -160,8 +160,9 @@ const ContactSection = () => {
                     </div>
 
                     {/* Contact Form */}
-                    <div className="animate-slide-in-right">
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="flex justify-center">
+                        <div className="animate-slide-in-right px-4 sm:px-0 w-full sm:max-w-md overflow-y-auto">
+                            <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
                                     <Input
@@ -171,7 +172,7 @@ const ContactSection = () => {
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        className="font-light"
+                                        className="font-light w-full px-4 py-3"
                                         disabled={isSubmitting}
                                     />
                                 </div>
@@ -183,7 +184,7 @@ const ContactSection = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         required
-                                        className="font-light"
+                                        className="font-light w-full px-4 py-3"
                                         disabled={isSubmitting}
                                     />
                                 </div>
@@ -197,7 +198,7 @@ const ContactSection = () => {
                                         placeholder="Telefone (opcional)"
                                         value={formData.phone}
                                         onChange={handleChange}
-                                        className="font-light"
+                                        className="font-light w-full px-4 py-3"
                                         disabled={isSubmitting}
                                     />
                                 </div>
@@ -207,7 +208,7 @@ const ContactSection = () => {
                                         value={formData.service}
                                         onChange={handleChange}
                                         required
-                                        className="w-full h-10 px-3 py-2 border border-input rounded-md bg-background font-light focus:outline-none focus:ring-2 focus:ring-accent"
+                                        className="w-full h-10 px-4 py-3 border border-input rounded-md bg-background font-light focus:outline-none focus:ring-2 focus:ring-accent"
                                         disabled={isSubmitting}
                                     >
                                         <option value="">Tipo de sessão</option>
@@ -228,21 +229,22 @@ const ContactSection = () => {
                                     onChange={handleChange}
                                     required
                                     rows={5}
-                                    className="font-light resize-none"
+                                    className="font-light resize-none w-full px-4 py-3"
                                     disabled={isSubmitting}
                                 />
                             </div>
 
-                            <Button
-                                type="submit"
-                                size="lg"
-                                className="w-full bg-white hover:bg-orange-100 text-black font-medium tracking-wide"
-                                disabled={isSubmitting}
-                            >
-                                <Send className="w-4 h-4 mr-2" />
-                                {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
-                            </Button>
-                        </form>
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    className="w-full bg-white hover:bg-orange-100 text-black font-medium tracking-wide py-3"
+                                    disabled={isSubmitting}
+                                >
+                                    <Send className="w-4 h-4 mr-2" />
+                                    {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
+                                </Button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
