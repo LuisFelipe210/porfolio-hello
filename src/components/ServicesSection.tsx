@@ -46,48 +46,97 @@ const ServicesSection = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          {services.map((service, index) => (
-            <div
-              key={service.title}
-              className="elegant-border p-8 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
-                  <service.icon className="w-6 h-6 text-accent" />
+        <div>
+          <div className="hidden md:grid md:grid-cols-2 gap-8 mb-16">
+            {services.map((service, index) => (
+              <div
+                key={service.title}
+                className="elegant-border p-8 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
+                    <service.icon className="w-6 h-6 text-accent" />
+                  </div>
+                  <h3 className="text-2xl font-light">{service.title}</h3>
                 </div>
-                <h3 className="text-2xl font-light">{service.title}</h3>
+
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  {service.description}
+                </p>
+
+                <ul className="space-y-2 mb-6">
+                  {service.features.map((feature) => (
+                    <li key={feature} className="text-sm text-muted-foreground flex items-center">
+                      <div className="w-1.5 h-1.5 bg-accent rounded-full mr-3"></div>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="text-lg font-light text-accent">
+                  <a
+                    href="#contact"
+                    className="underline hover:text-accent/80 transition-colors"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const section = document.querySelector("#contact");
+                      section?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                  >
+                    {service.price}
+                  </a>
+                </div>
               </div>
-              
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                {service.description}
-              </p>
-              
-              <ul className="space-y-2 mb-6">
-                {service.features.map((feature) => (
-                  <li key={feature} className="text-sm text-muted-foreground flex items-center">
-                    <div className="w-1.5 h-1.5 bg-accent rounded-full mr-3"></div>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              
-              <div className="text-lg font-light text-accent">
-                <a
-                  href="#contact"
-                  className="underline hover:text-accent/80 transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const section = document.querySelector("#contact");
-                    section?.scrollIntoView({ behavior: "smooth" });
-                  }}
+            ))}
+          </div>
+          <div className="relative md:hidden">
+            <div className="flex overflow-x-auto px-4 no-scrollbar mb-16">
+              {services.map((service, index) => (
+                <div
+                  key={service.title}
+                  className="flex-shrink-0 w-72 elegant-border p-8 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in mr-4 last:mr-0"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  {service.price}
-                </a>
-              </div>
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
+                      <service.icon className="w-6 h-6 text-accent" />
+                    </div>
+                    <h3 className="text-2xl font-light">{service.title}</h3>
+                  </div>
+
+                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                    {service.description}
+                  </p>
+
+                  <ul className="space-y-2 mb-6">
+                    {service.features.map((feature) => (
+                      <li key={feature} className="text-sm text-muted-foreground flex items-center">
+                        <div className="w-1.5 h-1.5 bg-accent rounded-full mr-3"></div>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="text-lg font-light text-accent">
+                    <a
+                      href="#contact"
+                      className="underline hover:text-accent/80 transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const section = document.querySelector("#contact");
+                        section?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                    >
+                      {service.price}
+                    </a>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+            <div className="pointer-events-none absolute top-0 left-0 h-full w-12 bg-gradient-to-r from-background/100 to-transparent"></div>
+            <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-background/100 to-transparent"></div>
+          </div>
         </div>
 
         {/* Additional Info */}
