@@ -64,7 +64,7 @@ const categories = [
   { id: "wedding", name: "Casamentos" },
   { id: "maternity", name: "Maternidade" },
   { id: "family", name: "Família" },
-  { id: "maternity-family", name: "Gestante e Família" }
+  { id: "gastro", name: "Gastronômico" }
 ];
 
 const PortfolioSection = () => {
