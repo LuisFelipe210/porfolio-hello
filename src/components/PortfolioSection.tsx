@@ -396,31 +396,24 @@ export default PortfolioSection;
     .custom-scrollbar {
       scrollbar-width: thin;
       scrollbar-color: transparent transparent;
-      transition: scrollbar-color 0.2s;
-    }
-    .custom-scrollbar:hover,
-    .custom-scrollbar:focus,
-    .custom-scrollbar:active {
-      scrollbar-color: #cbd5e1 #f1f5f9; /* accent & bg, or adjust as needed */
     }
     .custom-scrollbar::-webkit-scrollbar {
-      height: 8px;
+      height: 0px; /* inicialmente invisível */
       background: transparent;
-      transition: background 0.2s;
     }
     .custom-scrollbar:hover::-webkit-scrollbar,
-    .custom-scrollbar:focus::-webkit-scrollbar,
-    .custom-scrollbar:active::-webkit-scrollbar {
+    .custom-scrollbar:active::-webkit-scrollbar,
+    .custom-scrollbar:focus::-webkit-scrollbar {
+      height: 8px;
       background: #f1f5f9;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
       background: transparent;
       border-radius: 4px;
-      transition: background 0.2s;
     }
     .custom-scrollbar:hover::-webkit-scrollbar-thumb,
-    .custom-scrollbar:focus::-webkit-scrollbar-thumb,
-    .custom-scrollbar:active::-webkit-scrollbar-thumb {
+    .custom-scrollbar:active::-webkit-scrollbar-thumb,
+    .custom-scrollbar:focus::-webkit-scrollbar-thumb {
       background: #cbd5e1;
     }
   `}
