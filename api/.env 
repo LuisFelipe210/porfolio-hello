@@ -1,4 +1,4 @@
-EMAIL_HOST=https://www.google.com/search?q=smtp.gmail.com
+EMAIL_HOST=https://www.google.com/url?sa=E&source=gmail&q=smtp.gmail.com
 EMAIL_PORT=465
 EMAIL_USER=luisfelipe.rb2104@gmail.com
 EMAIL_PASS=lqqkmbricdlnutfa
