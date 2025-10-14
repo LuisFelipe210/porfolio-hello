@@ -155,7 +155,7 @@ const PortfolioSection = () => {
         <div className="relative md:hidden">
           <div
             ref={categoriesScrollRef}
-            className="flex gap-2 mb-2 overflow-x-auto custom-scrollbar px-1 -mx-1 snap-x snap-mandatory"
+            className="flex gap-2 mb-2 overflow-x-auto no-scrollbar px-1 -mx-1 snap-x snap-mandatory"
           >
             {categories.map((category, index) => (
               <button
@@ -415,6 +415,13 @@ export default PortfolioSection;
     .custom-scrollbar:active::-webkit-scrollbar-thumb,
     .custom-scrollbar:focus::-webkit-scrollbar-thumb {
       background: #cbd5e1;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;  /* Chrome, Safari, Opera */
     }
   `}
 </style>
