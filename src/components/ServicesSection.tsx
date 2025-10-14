@@ -86,7 +86,7 @@ const ServicesSection = () => {
             {services.map((service, index) => (
               <div
                 key={service.title}
-                className="elegant-border p-8 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in"
+                className="elegant-border p-6 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="flex items-center mb-4">
@@ -133,7 +133,7 @@ const ServicesSection = () => {
               {services.map((service, index) => (
                 <div
                   key={service.title}
-                  className="flex-shrink-0 w-72 elegant-border p-8 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in mr-4 last:mr-0 snap-center"
+                  className="flex-shrink-0 w-64 elegant-border p-6 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in mr-4 last:mr-0 snap-center"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center mb-4">
