@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import portraitImage from "@/assets/portfolio-portrait.jpg";
-import weddingImage from "@/assets/portfolio-wedding.jpg";
-import maternityImage from "@/assets/portfolio-maternity.jpg";
-import familyImage from "@/assets/portfolio-family.jpg";
-import galinha1 from "@/assets/1.jpg"
-import galinha2 from "@/assets/2.jpg"
-import galinha3 from "@/assets/3.jpg"
+import portraitImage from "../assets/portfolio-portrait.jpg";
+import weddingImage from "../assets/portfolio-wedding.jpg";
+import maternityImage from "../assets/portfolio-maternity.jpg";
+import familyImage from "../assets/portfolio-family.jpg";
+import galinha1 from "../assets/1.jpg"
+import galinha2 from "../assets/2.jpg"
+import galinha3 from "../assets/3.jpg"
 import {getAngledRectangleWidth} from "recharts/types/util/CartesianUtils";
 const portfolioItems = [
   {
