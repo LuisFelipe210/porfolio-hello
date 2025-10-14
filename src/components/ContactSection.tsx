@@ -211,11 +211,11 @@ const ContactSection = () => {
                                         disabled={isSubmitting}
                                     >
                                         <option value="">Tipo de sessão</option>
-                                        <option value="portrait">Ensaio/Retrato</option>
-                                        <option value="wedding">Casamento</option>
-                                        <option value="event">Evento</option>
-                                        <option value="gastronomy">Fotografia Gastronômica</option>
-                                        <option value="other">Outro</option>
+                                        <option value="retrato">Ensaio/Retrato</option>
+                                        <option value="casamento">Casamento</option>
+                                        <option value="evento">Evento</option>
+                                        <option value="gastronomia">Fotografia Gastronômica</option>
+                                        <option value="outro">Outro</option>
                                     </select>
                                 </div>
                             </div>
