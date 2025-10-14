@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/send-email.js": {
+      "memory": 128
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/send-email",
+      "destination": "/api/send-email.js"
+    }
+  ]
+}
