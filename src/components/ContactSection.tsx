@@ -161,7 +161,7 @@ const ContactSection = () => {
 
                     {/* Contact Form */}
                     <div className="flex justify-center">
-                        <div className="animate-slide-in-right px-4 sm:px-0 w-full sm:max-w-lg overflow-y-auto mx-auto">
+                        <div className="animate-slide-in-right px-4 sm:px-0 w-full sm:max-w-2xl mx-auto">
                             <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
@@ -172,7 +172,15 @@ const ContactSection = () => {
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        className="font-light w-full px-4 py-4"
+                                        className="
+                                          box-border
+                                          font-light w-full px-3 py-2
+                                          border border-gray-300
+                                          rounded-md
+                                          focus:outline-none
+                                          focus:ring-2 focus:ring-orange-500
+                                          focus:border-orange-500
+                                        "
                                         disabled={isSubmitting}
                                     />
                                 </div>
@@ -184,7 +192,15 @@ const ContactSection = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         required
-                                        className="font-light w-full px-4 py-4"
+                                        className="
+                                          box-border
+                                          font-light w-full px-3 py-2
+                                          border border-gray-300
+                                          rounded-md
+                                          focus:outline-none
+                                          focus:ring-2 focus:ring-orange-500
+                                          focus:border-orange-500
+                                        "
                                         disabled={isSubmitting}
                                     />
                                 </div>
@@ -198,25 +214,43 @@ const ContactSection = () => {
                                         placeholder="Telefone (opcional)"
                                         value={formData.phone}
                                         onChange={handleChange}
-                                        className="font-light w-full px-4 py-4"
+                                        className="
+                                          box-border
+                                          font-light w-full px-3 py-2
+                                          border border-gray-300
+                                          rounded-md
+                                          focus:outline-none
+                                          focus:ring-2 focus:ring-orange-500
+                                          focus:border-orange-500
+                                        "
                                         disabled={isSubmitting}
                                     />
                                 </div>
                                 <div>
                                     <select
-                                        name="service"
-                                        value={formData.service}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full h-10 px-4 py-4 border border-input rounded-md bg-background font-light focus:outline-none focus:ring-2 focus:ring-accent"
-                                        disabled={isSubmitting}
+                                      name="service"
+                                      value={formData.service}
+                                      onChange={handleChange}
+                                      required
+                                      className="
+                                        box-border
+                                        w-full px-3 py-2
+                                        border border-gray-300
+                                        rounded-md
+                                        bg-white text-black font-light
+                                        focus:outline-none
+                                        focus:ring-2 focus:ring-orange-500
+                                        focus:border-orange-500
+                                        appearance-auto
+                                      "
+                                      disabled={isSubmitting}
                                     >
-                                        <option value="">Tipo de sessão</option>
-                                        <option value="retrato">Ensaio/Retrato</option>
-                                        <option value="casamento">Casamento</option>
-                                        <option value="evento">Evento</option>
-                                        <option value="gastronomia">Fotografia Gastronômica</option>
-                                        <option value="outro">Outro</option>
+                                      <option value="">Tipo de sessão</option>
+                                      <option value="retrato" className="text-black bg-white">Ensaio/Retrato</option>
+                                      <option value="casamento" className="text-black bg-white">Casamento</option>
+                                      <option value="evento" className="text-black bg-white">Evento</option>
+                                      <option value="gastronomia" className="text-black bg-white">Fotografia Gastronômica</option>
+                                      <option value="outro" className="text-black bg-white">Outro</option>
                                     </select>
                                 </div>
                             </div>
@@ -229,7 +263,7 @@ const ContactSection = () => {
                                     onChange={handleChange}
                                     required
                                     rows={5}
-                                    className="font-light resize-none w-full px-4 py-4"
+                                    className="box-border font-light resize-none w-full px-3 py-2"
                                     disabled={isSubmitting}
                                 />
                             </div>
@@ -237,7 +271,7 @@ const ContactSection = () => {
                                 <Button
                                     type="submit"
                                     size="lg"
-                                    className="w-full bg-white hover:bg-orange-100 text-black font-medium tracking-wide py-4"
+                                    className="w-full bg-white hover:bg-orange-100 text-black font-medium tracking-wide py-3 text-base"
                                     disabled={isSubmitting}
                                 >
                                     <Send className="w-4 h-4 mr-2" />
