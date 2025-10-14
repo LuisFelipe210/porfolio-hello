@@ -289,16 +289,18 @@ const ServicesSection = () => {
             })}
           </div>
           {/* Pontinhos abaixo do carrossel */}
-          <div className="flex justify-center space-x-2">
+          <div className="flex justify-center space-x-2 mt-3">
             {services.map((_, index) => (
               <button
                 key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
+                className={`w-3 h-3 rounded-full transition-colors ${
                   index === activeIndex ? "bg-orange-500" : "bg-orange-300"
                 }`}
                 onClick={() => scrollToIndex(index)}
                 aria-label={`Ir para o serviço ${services[index].title}`}
-              />
+              >
+                <span className="sr-only">{index === activeIndex ? "Selecionado" : "Não selecionado"}</span>
+              </button>
             ))}
           </div>
         </div>
