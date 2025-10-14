@@ -74,7 +74,9 @@ const ServicesSection = () => {
               </ul>
               
               <div className="text-lg font-light text-accent">
-                {service.price}
+                <a href="#contact" className="underline hover:text-accent/80 transition-colors">
+                  {service.price}
+                </a>
               </div>
             </div>
           ))}
