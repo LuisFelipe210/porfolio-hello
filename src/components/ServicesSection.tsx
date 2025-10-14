@@ -74,7 +74,15 @@ const ServicesSection = () => {
               </ul>
               
               <div className="text-lg font-light text-accent">
-                <a href="#contact" className="underline hover:text-accent/80 transition-colors">
+                <a
+                  href="#contact"
+                  className="underline hover:text-accent/80 transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const section = document.querySelector("#contact");
+                    section?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
                   {service.price}
                 </a>
               </div>
