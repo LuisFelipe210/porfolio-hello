@@ -187,8 +187,8 @@ const ServicesSection = () => {
         </div>
 
         {/* Additional Info */}
-        <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-border/30 space-y-6 md:space-y-0">
-          <div className="animate-fade-in py-4 md:py-0">
+        <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-border/30 space-y-4 md:space-y-0">
+          <div className="elegant-border p-6 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in py-4 md:py-0">
             <div className="flex items-center mb-4">
               <Clock className="w-8 h-8 text-accent mr-3" />
               <h4 className="font-semibold text-lg md:text-xl">Processo</h4>
@@ -212,7 +212,7 @@ const ServicesSection = () => {
             </ul>
           </div>
 
-          <div className="animate-fade-in pt-4 md:pt-0 md:border-l md:border-border/30 md:pl-4 py-4 md:py-0">
+          <div className="elegant-border p-6 hover:shadow-[var(--elegant-shadow)] transition-all duration-300 animate-fade-in pt-4 md:pt-0 md:border-l md:border-border/30 md:pl-4 py-4 md:py-0">
             <div className="flex items-center mb-4">
               <MapPin className="w-8 h-8 text-accent mr-3" />
               <h4 className="font-semibold text-lg md:text-xl">Atendimento</h4>

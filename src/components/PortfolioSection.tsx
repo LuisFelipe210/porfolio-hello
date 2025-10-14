@@ -153,7 +153,10 @@ const PortfolioSection = () => {
         </div>
         {/* Mobile: Horizontal scrollable buttons with scroll snap */}
         <div className="relative md:hidden">
-          <div ref={categoriesScrollRef} className="flex gap-2 mb-2 overflow-x-auto no-scrollbar px-1 -mx-1 snap-x snap-mandatory">
+          <div
+            ref={categoriesScrollRef}
+            className="flex gap-2 mb-2 overflow-x-auto custom-scrollbar px-1 -mx-1 snap-x snap-mandatory"
+          >
             {categories.map((category, index) => (
               <button
                 key={category.id}
@@ -195,7 +198,7 @@ const PortfolioSection = () => {
           <div className="md:hidden relative">
             <div
               ref={scrollContainerRef}
-              className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-2"
+              className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory custom-scrollbar px-2"
             >
               {pagedItems.map((item, index) => (
                 <div
@@ -387,3 +390,37 @@ const PortfolioSection = () => {
 };
 
 export default PortfolioSection;
+{/* Custom scrollbar styles for horizontal scroll containers */}
+<style jsx global>{`
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s;
+  }
+  .custom-scrollbar:hover,
+  .custom-scrollbar:focus,
+  .custom-scrollbar:active {
+    scrollbar-color: #cbd5e1 #f1f5f9; /* accent & bg, or adjust as needed */
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    background: transparent;
+    transition: background 0.2s;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar,
+  .custom-scrollbar:focus::-webkit-scrollbar,
+  .custom-scrollbar:active::-webkit-scrollbar {
+    background: #f1f5f9;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb,
+  .custom-scrollbar:focus::-webkit-scrollbar-thumb,
+  .custom-scrollbar:active::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+  }
+`}
+</style>

@@ -161,7 +161,7 @@ const ContactSection = () => {
 
                     {/* Contact Form */}
                     <div className="flex justify-center">
-                        <div className="animate-slide-in-right px-4 sm:px-0 w-full sm:max-w-md overflow-y-auto">
+                        <div className="animate-slide-in-right px-4 sm:px-0 w-full sm:max-w-md overflow-y-auto mx-auto">
                             <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>

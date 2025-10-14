@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Brand */}
           <div>
-            <div className="text-2xl font-light mb-4">Hellõ Borges</div>
+            <div className="text-3xl font-light mb-4">Hellô Borges</div>
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
               Fotografia profissional com sensibilidade artística, 
               capturando momentos únicos e emocionantes.
