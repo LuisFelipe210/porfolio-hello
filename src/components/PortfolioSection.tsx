@@ -236,10 +236,10 @@ const PortfolioSection = () => {
                   style={{ transitionProperty: "transform, filter" }}
                 />
                 {/* Overlay */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                   <div className="p-5 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0">
                     <h3 className="text-lg font-medium text-white mb-1 drop-shadow">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <p className="text-sm text-white drop-shadow">{item.description}</p>
                   </div>
                 </div>
               </div>
