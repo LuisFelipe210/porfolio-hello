@@ -30,7 +30,7 @@ const Header = () => {
       ${isScrolled
         ? "bg-background/50 backdrop-blur-xl shadow-md scale-95"
         : "bg-background/80 backdrop-blur-lg shadow-xl scale-100"
-      } border border-border/20 rounded-full w-[70%] md:w-[40%]`}
+      } border border-border/20 rounded-md w-[70%] md:w-[40%]`}
     >
       <nav className="px-4 py-4 md:py-3 flex items-center justify-between gap-6 md:gap-16">
         <div className="text-lg md:text-xl font-semibold tracking-wide">
