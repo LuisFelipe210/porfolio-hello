@@ -7,6 +7,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ShutterPreloader from "./components/ShutterPreloader";
+import ClientLoginPage from "./pages/ClientLoginPage";
+import ClientGalleryPage from "./pages/ClientGalleryPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +39,18 @@ const App = () => {
                 <div className="site-content">
                     <BrowserRouter>
                         <Routes>
+                            {/* Rota Principal */}
                             <Route path="/" element={<Index />} />
+
+                            {/* Rotas da Área do Cliente */}
+                            <Route path="/clientes/login" element={<ClientLoginPage />} />
+                            <Route path="/clientes/galeria" element={<ClientGalleryPage />} />
+
+                            {/* Rotas da Área do Admin */}
+                            <Route path="/admin/login" element={<AdminLoginPage />} />
+                            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+
+                            {/* Rota para Página Não Encontrada */}
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                     </BrowserRouter>
