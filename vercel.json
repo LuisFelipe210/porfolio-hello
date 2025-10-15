@@ -6,8 +6,12 @@
   },
   "rewrites": [
     {
-      "source": "/api/send-email",
-      "destination": "/api/send-email.js"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!api/|.*\\..*).*)/?",
+      "destination": "/index.html"
     }
   ]
 }
