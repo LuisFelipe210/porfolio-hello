@@ -212,7 +212,7 @@ const PortfolioSection = () => {
                 {/* Overlay título e descrição */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                   <h3 className="text-lg font-medium text-white">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <p className="text-sm text-white drop-shadow">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -285,6 +285,10 @@ const PortfolioSection = () => {
                 <div
                   className="flex-1 flex items-center justify-center px-4"
                   onTouchStart={handleTouchStart}
+                  onTouchMove={(e) => {
+                    // prevenir scroll vertical enquanto arrasta
+                    e.preventDefault();
+                  }}
                   onTouchEnd={handleTouchEnd}
                 >
                   <img

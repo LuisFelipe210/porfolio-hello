@@ -71,10 +71,10 @@ const ContactSection = () => {
         <section id="contact" className="px-6 sm:px-4 section-padding bg-orange-200">
             <div className="container mx-auto max-w-6xl">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-light mb-4 animate-fade-in">
+                    <h2 className="text-4xl md:text-5xl font-srrcoes font-semibold mb-4 animate-fade-in">
                         Vamos Conversar
                     </h2>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
+                    <p className="text-lg font-srrcoes font-medium text-muted-foreground max-w-2xl mx-auto animate-fade-in">
                         Entre em contato para discutirmos como posso capturar
                         os seus momentos especiais de forma única e inesquecível.
                     </p>

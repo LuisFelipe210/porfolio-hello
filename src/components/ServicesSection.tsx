@@ -134,14 +134,18 @@ const ServicesSection = () => {
                                 >
                                     <div>
                                         <div className="flex items-center mb-4">
-                                            <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4 shadow-md">
-                                                <Icon className="w-6 h-6 text-orange-500" />
+                                            <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center mr-4 shadow-md">
+                                                <Icon className="w-5 h-5 text-orange-500" />
                                             </div>
-                                            <h3 className="text-2xl font-medium">{service.title}</h3>
+                                            <h3 className="text-xl font-medium">{service.title}</h3>
                                         </div>
                                         <p className="text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
                                         <ul className="space-y-2 mb-6">
-                                            {service.features.map(f => <li key={f} className="text-sm text-muted-foreground flex items-center">✓&nbsp; {f}</li>)}
+                                            {service.features.map(f => (
+                                                <li key={f} className="text-sm text-muted-foreground flex items-center">
+                                                    ✓&nbsp; {f}
+                                                </li>
+                                            ))}
                                         </ul>
                                     </div>
                                     <a
