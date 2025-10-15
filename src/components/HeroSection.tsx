@@ -24,25 +24,30 @@ const HeroSection = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
-        <h1 className="hero-text mb-6 animate-fade-in-up">
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold font-serif mb-6 animate-fade-in-up">
           Hellô Borges
         </h1>
         <p className="text-xl md:text-2xl font-light mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: "0.2s"}}>
-          Sentimento em forma de foto 🧡✨
+          Sentimento em forma de foto 🧡
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up" style={{animationDelay: "0.4s"}}>
-          <Button 
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center animate-fade-in-up" style={{animationDelay: "0.4s"}}>
+          {/* Botão Principal */}
+          <Button
             size="lg"
             onClick={scrollToPortfolio}
-            className="bg-accent hover:bg-accent/90 text-primary font-light tracking-wide"
+            className="bg-accent text-primary font-medium tracking-wide py-3 px-8 rounded-lg shadow-lg hover:bg-accent/90 hover:scale-105 transition-transform duration-200"
+            aria-label="Ver portfolio de fotografias"
           >
             Ver Portfolio
           </Button>
-          <Button 
+
+          {/* Botão Secundário */}
+          <Button
             size="lg"
             variant="outline"
             onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-            className="border-white text-black hover:bg-white hover:text-primary font-light tracking-wide"
+            className="border-white text-primary font-medium tracking-wide py-3 px-8 rounded-lg hover:bg-white hover:text-primary hover:scale-105 transition-all duration-200"
+            aria-label="Entrar em contato com Hellô Borges"
           >
             Entre em Contato
           </Button>

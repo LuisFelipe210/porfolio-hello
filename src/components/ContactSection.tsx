@@ -68,7 +68,7 @@ const ContactSection = () => {
     };
 
     return (
-        <section id="contact" className="section-padding bg-orange-200">
+        <section id="contact" className="px-6 sm:px-4 section-padding bg-orange-200">
             <div className="container mx-auto max-w-6xl">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-light mb-4 animate-fade-in">
@@ -83,7 +83,7 @@ const ContactSection = () => {
                 <div className="grid lg:grid-cols-2 gap-12">
                     {/* Contact Info */}
                     <div className="animate-fade-in">
-                        <h3 className="text-2xl font-light mb-8">Entre em Contato</h3>
+                        <h3 className="text-2xl font-medium mb-8">Entre em Contato</h3>
 
                         <div className="space-y-6 mb-8">
                             <a
@@ -92,12 +92,12 @@ const ContactSection = () => {
                                 rel="noopener noreferrer"
                                 className="flex items-center hover:opacity-80 transition-opacity"
                             >
-                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
                                     <Phone className="w-5 h-5 text-black" />
                                 </div>
                                 <div>
-                                    <div className="font-light">WhatsApp</div>
-                                    <div className="text-muted-foreground">(74) 99124-8392</div>
+                                    <div className="font-medium">WhatsApp</div>
+                                    <div className="text-muted-foreground font-medium">(74) 99124-8392</div>
                                 </div>
                             </a>
 
@@ -105,12 +105,12 @@ const ContactSection = () => {
                                 href="mailto:contato@helloborges.com.br"
                                 className="flex items-center hover:opacity-80 transition-opacity"
                             >
-                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
                                     <Mail className="w-5 h-5 text-black" />
                                 </div>
                                 <div>
-                                    <div className="font-light">Email</div>
-                                    <div className="text-muted-foreground">contato@helloborges.com.br</div>
+                                    <div className="font-medium">Email</div>
+                                    <div className="text-muted-foreground font-medium">contato@helloborges.com.br</div>
                                 </div>
                             </a>
 
@@ -120,38 +120,38 @@ const ContactSection = () => {
                                 rel="noopener noreferrer"
                                 className="flex items-center hover:opacity-80 transition-opacity"
                             >
-                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
                                     <Instagram className="w-5 h-5 text-black" />
                                 </div>
                                 <div>
-                                    <div className="font-light">Instagram</div>
-                                    <div className="text-muted-foreground">@hello.borges.fotografia</div>
+                                    <div className="font-medium">Instagram</div>
+                                    <div className="text-muted-foreground font-medium">@hello.borges.fotografia</div>
                                 </div>
                             </a>
 
                             <div className="flex items-center">
-                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4">
+                                <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
                                     <MapPin className="w-5 h-5 text-black" />
                                 </div>
                                 <div>
-                                    <div className="font-light">Localização</div>
-                                    <div className="text-muted-foreground">Piatã, Salvador - Bahia</div>
+                                    <div className="font-medium">Localização</div>
+                                    <div className="text-muted-foreground font-medium">Piatã, Salvador - Bahia</div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="elegant-border p-6 bg-background/50">
-                            <h4 className="font-light mb-3">Horário de Atendimento</h4>
+                            <h4 className="font-medium mb-3">Horário de Atendimento</h4>
                             <div className="space-y-2 text-sm text-muted-foreground">
-                                <div className="flex justify-between">
+                                <div className="flex justify-between font-medium">
                                     <span>Segunda a Sexta</span>
                                     <span>9h às 18h</span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between font-medium">
                                     <span>Sábados</span>
                                     <span>9h às 14h</span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between font-medium">
                                     <span>Domingos</span>
                                     <span>Mediante agendamento</span>
                                 </div>
@@ -174,7 +174,7 @@ const ContactSection = () => {
                                         required
                                         className="
                                           box-border
-                                          font-light w-full px-3 py-2
+                                          font-medium w-full px-3 py-2
                                           border border-gray-300
                                           rounded-md
                                           focus:outline-none
@@ -194,7 +194,7 @@ const ContactSection = () => {
                                         required
                                         className="
                                           box-border
-                                          font-light w-full px-3 py-2
+                                          font-medium w-full px-3 py-2
                                           border border-gray-300
                                           rounded-md
                                           focus:outline-none
@@ -216,7 +216,7 @@ const ContactSection = () => {
                                         onChange={handleChange}
                                         className="
                                           box-border
-                                          font-light w-full px-3 py-2
+                                          font-medium w-full px-3 py-2
                                           border border-gray-300
                                           rounded-md
                                           focus:outline-none
@@ -237,7 +237,7 @@ const ContactSection = () => {
                                         w-full px-3 py-2
                                         border border-gray-300
                                         rounded-md
-                                        bg-white text-black font-light
+                                        bg-white text-black font-medium
                                         focus:outline-none
                                         focus:ring-2 focus:ring-orange-500
                                         focus:border-orange-500
@@ -263,7 +263,7 @@ const ContactSection = () => {
                                     onChange={handleChange}
                                     required
                                     rows={5}
-                                    className="box-border font-light resize-none w-full px-3 py-2"
+                                    className="box-border font-medium resize-none w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                                     disabled={isSubmitting}
                                 />
                             </div>
@@ -271,7 +271,7 @@ const ContactSection = () => {
                                 <Button
                                     type="submit"
                                     size="lg"
-                                    className="w-full bg-white hover:bg-orange-100 text-black font-medium tracking-wide py-3 text-base"
+                                    className="w-full bg-white hover:bg-orange-100 text-black font-medium tracking-wide py-4 sm:py-3 text-base shadow-md hover:scale-105 transition-transform duration-200"
                                     disabled={isSubmitting}
                                 >
                                     <Send className="w-4 h-4 mr-2" />

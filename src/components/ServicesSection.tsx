@@ -88,7 +88,7 @@ const ServicesSection = () => {
         <section id="services" className="py-16 md:py-24 bg-background">
             <div className="container mx-auto max-w-6xl">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-light mb-4 animate-fade-in">Serviços</h2>
+                    <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in">Serviços</h2>
                     <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
                         Oferecendo diferentes tipos de sessões fotográficas, cada uma pensada para capturar o que há de mais especial em cada momento.
                     </p>
@@ -122,23 +122,22 @@ const ServicesSection = () => {
                     {/* O contêiner de scroll */}
                     <div
                         ref={carouselRef}
-                        className="flex overflow-x-auto px-4 no-scrollbar snap-x snap-mandatory gap-6"
+                        className="flex md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible overflow-x-auto px-4 no-scrollbar snap-x snap-mandatory gap-6"
                     >
                         {services.map((service, idx) => {
                             const Icon = service.icon;
                             return (
                                 <div
                                     key={service.title}
-                                    // Largura responsiva: 80% no mobile, 320px (w-80) no desktop
-                                    className="flex-shrink-0 w-[80vw] max-w-xs md:w-80 p-8 min-h-[400px] border border-gray-200/50 rounded-lg hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex flex-col justify-between animate-fade-in snap-center"
+                                    className="flex-shrink-0 md:flex-shrink md:w-auto w-[80vw] p-8 min-h-[400px] border border-gray-200/50 rounded-lg hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex flex-col justify-between animate-fade-in snap-center"
                                     style={{ animationDelay: `${idx * 0.1}s` }}
                                 >
                                     <div>
                                         <div className="flex items-center mb-4">
-                                            <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4">
+                                            <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mr-4 shadow-md">
                                                 <Icon className="w-6 h-6 text-orange-500" />
                                             </div>
-                                            <h3 className="text-2xl font-light">{service.title}</h3>
+                                            <h3 className="text-2xl font-medium">{service.title}</h3>
                                         </div>
                                         <p className="text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
                                         <ul className="space-y-2 mb-6">
@@ -148,7 +147,7 @@ const ServicesSection = () => {
                                     <a
                                         href="#contact"
                                         onClick={handlePriceClick}
-                                        className="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors inline-block self-start"
+                                        className="bg-orange-500 text-white px-4 py-1.5 rounded-md hover:bg-orange-600 transition-colors inline-block self-start text-sm"
                                     >
                                         {service.price}
                                     </a>
@@ -157,8 +156,8 @@ const ServicesSection = () => {
                         })}
                     </div>
 
-                    {/* Pontos (Dots) - Visíveis em todos os tamanhos */}
-                    <div className="flex justify-center space-x-2 mt-6">
+                    {/* Pontos (Dots) - Escondidos em md+ */}
+                    <div className="flex justify-center space-x-2 mt-6 md:hidden">
                         {services.map((_, idx) => (
                             <button
                                 key={idx}
