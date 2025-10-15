@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Logo from "@/assets/logo.svg";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,8 +34,9 @@ const Header = () => {
       } border border-border/20 rounded-md w-[70%] md:w-[40%]`}
     >
       <nav className="px-4 py-2 md:py-3 flex items-center justify-between gap-6 md:gap-16">
-        <div className="text-lg md:text-xl font-semibold tracking-wide">
-          Hellô Borges
+        <div className="flex items-center space-x-2">
+          <img src={Logo} alt="Hellô Borges" className="h-8 md:h-10 w-auto" />
+          <span className="text-lg md:text-xl font-semibold tracking-wide">Hellô</span>
         </div>
 
         {/* Navegação Desktop */}

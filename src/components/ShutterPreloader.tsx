@@ -1,14 +1,13 @@
 // src/components/ShutterPreloader.tsx
 
-import { Camera } from 'lucide-react';
+import Logo from "@/assets/logo.svg";
 import './ShutterPreloader.css';
 
 const ShutterPreloader = () => {
     return (
         <div className="preloader-container">
             <div className="logo-container">
-                {/* Trocamos o texto pelo ícone da câmera */}
-                <Camera className="h-16 w-16 text-white" />
+                <img src={Logo} alt="Hellô Borges" className="h-36 w-auto" />
             </div>
             <svg className="shutter-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
                 <g>

@@ -1,3 +1,4 @@
+import Logo from "@/assets/logo.svg";
 import { Instagram, Mail } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -8,7 +9,10 @@ const Footer = () => {
                 <div className="grid md:grid-cols-3 gap-8 mb-8">
                     {/* Brand */}
                     <div>
-                        <div className="text-3xl font-light mb-4">Hellô Borges</div>
+                        <div className="flex items-center mb-4 space-x-3">
+                            <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
+                            <span className="text-2xl font-light">Hellô Borges</span>
+                        </div>
                         <p className="text-primary-foreground/80 text-sm leading-relaxed">
                             Fotografia profissional com sensibilidade artística,
                             capturando momentos únicos e emocionantes.
