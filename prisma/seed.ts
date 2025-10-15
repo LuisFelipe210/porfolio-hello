@@ -20,8 +20,8 @@ async function main() {
     console.log('Verificando o usuário administrador...');
 
     // --- COLOQUE SUAS CREDENCIAIS AQUI ---
-    const myAdminEmail = 'hello@adimin.com';
-    const myAdminPassword = 'of426619052br';
+    const myAdminEmail = 'helloborges@admin.com';
+    const myAdminPassword = 'hf5316533ha';
     const myAdminName = 'Hellô Borges';
     // ------------------------------------
 
