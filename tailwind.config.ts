@@ -94,6 +94,11 @@ export default {
         "float": {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" }
+        },
+        "teleportScroll": {
+          "0%": { transform: "translateY(0%)" },
+          "50%": { transform: "translateY(-50%)" },
+          "100%": { transform: "translateY(0%)" }
         }
       },
       animation: {
@@ -103,7 +108,8 @@ export default {
         "fade-in-up": "fade-in-up 0.8s ease-out",
         "slide-in-right": "slide-in-right 0.6s ease-out",
         "scale-in": "scale-in 0.4s ease-out",
-        "float": "float 3s ease-in-out infinite"
+        "float": "float 3s ease-in-out infinite",
+        "teleportScroll": "teleportScroll 70s linear infinite"
       },
     },
   },

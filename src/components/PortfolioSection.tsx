@@ -195,19 +195,27 @@ const PortfolioSection = () => {
 
         {/* Portfolio Grid */}
         <div className="overflow-visible">
-          {/* Mobile: grid 2 columns */}
-          <div className="grid grid-cols-2 gap-2 md:hidden">
+          {/* Mobile: grid 1 coluna para melhor legibilidade */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
             {pagedItems.map((item, index) => (
               <div
                 key={item.id}
-                className="w-full aspect-[4/3] rounded-lg overflow-hidden shadow-sm cursor-pointer"
+                className="relative w-full aspect-[4/3] rounded-lg overflow-hidden shadow-sm cursor-pointer"
                 onClick={() => setSelectedIndex(currentPage * ITEMS_PER_PAGE + index)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
               >
                 <img
                   src={item.image}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 rounded-lg"
                 />
+                {/* Overlay +N se houver mais fotos que os visíveis */}
+                {index === pagedItems.length - 1 && filteredItems.length > ITEMS_PER_PAGE && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold rounded-lg">
+                    +{filteredItems.length - ITEMS_PER_PAGE}
+                  </div>
+                )}
               </div>
             ))}
           </div>
