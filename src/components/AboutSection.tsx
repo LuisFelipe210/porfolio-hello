@@ -45,7 +45,7 @@ const AboutSection = () => {
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     {/* Content */}
                     <div className="animate-fade-in">
-                        <h2 className="text-4xl md:text-5xl font-light mb-6 text-foreground">
+                        <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-foreground">
                             Sobre Mim
                         </h2>
                         <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
@@ -65,21 +65,21 @@ const AboutSection = () => {
                                 <div className="flex justify-center mb-2">
                                     <Camera className="w-6 h-6 text-accent" />
                                 </div>
-                                <div className="text-2xl font-light text-foreground">50+</div>
+                                <div className="text-2xl font-medium text-foreground">50+</div>
                                 <div className="text-sm text-muted-foreground">Sessões</div>
                             </div>
                             <div className="text-center">
                                 <div className="flex justify-center mb-2">
                                     <Heart className="w-6 h-6 text-accent" />
                                 </div>
-                                <div className="text-2xl font-light text-foreground">1+</div>
+                                <div className="text-2xl font-medium text-foreground">1+</div>
                                 <div className="text-sm text-muted-foreground">Casamentos</div>
                             </div>
                             <div className="text-center">
                                 <div className="flex justify-center mb-2">
                                     <Users className="w-6 h-6 text-accent" />
                                 </div>
-                                <div className="text-2xl font-light text-foreground">3+</div>
+                                <div className="text-2xl font-medium text-foreground">3+</div>
                                 <div className="text-sm text-muted-foreground">Famílias</div>
                             </div>
                         </div>

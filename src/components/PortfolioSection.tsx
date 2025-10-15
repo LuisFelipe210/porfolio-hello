@@ -150,7 +150,7 @@ const PortfolioSection = () => {
     <section id="portfolio" className="section-padding bg-secondary/20">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-light mb-4 animate-fade-in">Portfólio</h2>
+          <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in">Portfólio</h2>
         </div>
 
         {/* Category Filter */}
@@ -216,6 +216,11 @@ const PortfolioSection = () => {
                     +{filteredItems.length - ITEMS_PER_PAGE}
                   </div>
                 )}
+                {/* Overlay título e descrição */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <h3 className="text-lg font-medium text-white">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -240,8 +245,8 @@ const PortfolioSection = () => {
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                   <div className="p-5 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0">
-                    <h3 className="text-lg font-light text-white mb-1 drop-shadow">{item.title}</h3>
-                    <p className="text-sm text-white/80">{item.description}</p>
+                    <h3 className="text-lg font-medium text-white mb-1 drop-shadow">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
               </div>
