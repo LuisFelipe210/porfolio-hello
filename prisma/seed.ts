@@ -6,11 +6,9 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Iniciando o script para garantir o usuário admin...');
 
-    // --- COLOQUE SUAS CREDENCIAIS AQUI ---
     const myAdminEmail = 'hello@admin.com';
-    const myAdminPassword = 'of426619052br'; // Troque por uma senha forte
+    const myAdminPassword = 'of426619052br';
     const myAdminName = 'Hellô Borges';
-    // ------------------------------------
 
     if (!myAdminEmail || !myAdminPassword || !myAdminName) {
         throw new Error("Por favor, preencha os dados do administrador (myAdminEmail, myAdminPassword, myAdminName) no arquivo prisma/seed.ts");
