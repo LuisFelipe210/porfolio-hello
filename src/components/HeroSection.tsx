@@ -1,5 +1,6 @@
 import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Logo from "@/assets/logo.svg";
 import heroImage from "@/assets/hero-portrait.jpg";
 
 const HeroSection = () => {
@@ -24,7 +25,8 @@ const HeroSection = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold font-serif mb-6 animate-fade-in-up">
+        <h1 className="flex items-center justify-center gap-3 text-4xl sm:text-6xl md:text-7xl font-bold font-serif mb-6 animate-fade-in-up">
+          <img src={Logo} alt="Hellô Borges Logo" className="h-12 sm:h-16 md:h-20 w-auto" />
           Hellô Borges
         </h1>
         <p className="text-xl md:text-2xl font-light mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: "0.2s"}}>
