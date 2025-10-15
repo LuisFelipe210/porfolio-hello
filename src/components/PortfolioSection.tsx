@@ -10,15 +10,19 @@ import galinha3 from "@/assets/3.jpg";
 const portfolioItems = [
   { id: 1, title: "Retratos", category: "portrait", image: portraitImage, description: "Retratos elegantes e atemporais" },
   { id: 2, title: "Casamentos", category: "wedding", image: weddingImage, description: "Momentos únicos do seu grande dia" },
-  { id: 3, title: "Maternidade", category: "maternity", image: maternityImage, description: "A beleza da expectativa" },
-  { id: 4, title: "Família", category: "family", image: familyImage, description: "Conexões e amor em família" },
-  { id: 5, title: "Família", category: "family", image: galinha1, description: "Conexões e amor em família" },
-  { id: 6, title: "Família", category: "family", image: galinha2, description: "Conexões e amor em família" },
-  { id: 7, title: "Maternidade", category: "maternity", image: galinha3, description: "A beleza da expectativa" },
+  { id: 3, title: "Maternidade", category: "wedding", image: maternityImage, description: "A beleza da expectativa" },
+  { id: 4, title: "Família", category: "portrait", image: familyImage, description: "Conexões e amor em família" },
+  { id: 5, title: "Família", category: "portrait", image: galinha1, description: "Conexões e amor em família" },
+  { id: 6, title: "Família", category: "maternity", image: galinha2, description: "Conexões e amor em família" },
+  { id: 7, title: "Maternidade", category: "wedding", image: galinha3, description: "A beleza da expectativa" },
   { id: 8, title: "Maternidade", category: "maternity", image: galinha3, description: "A beleza da expectativa" },
   { id: 9, title: "Maternidade", category: "maternity", image: galinha3, description: "A beleza da expectativa" },
-  { id: 10, title: "Maternidade", category: "maternity", image: galinha3, description: "A beleza da expectativa" },
-  { id: 11, title: "Maternidade", category: "maternity", image: galinha3, description: "A beleza da expectativa" },
+  { id: 10, title: "Maternidade", category: "family", image: galinha3, description: "A beleza da expectativa" },
+  { id: 11, title: "Maternidade", category: "family", image: galinha3, description: "A beleza da expectativa" },
+    { id: 12, title: "Maternidade", category: "family", image: maternityImage, description: "A beleza da expectativa" },
+    { id: 13, title: "Família", category: "gastro", image: galinha2, description: "Conexões e amor em família" },
+    { id: 14, title: "Família", category: "gastro", image: galinha2, description: "Conexões e amor em família" },
+    { id: 15, title: "Família", category: "gastro", image: galinha2, description: "Conexões e amor em família" },
 ];
 
 const categories = [
@@ -124,14 +128,29 @@ const PortfolioSection = () => {
     scrollEl.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
   };
 
+  // Suporte a gestos de toque no modal (mobile)
+  const touchStartX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diff = e.changedTouches[0].clientX - touchStartX.current;
+    if (diff > 50 && selectedIndex > 0) {
+      setSelectedIndex(selectedIndex - 1); // swipe para direita → imagem anterior
+    } else if (diff < -50 && selectedIndex < filteredItems.length - 1) {
+      setSelectedIndex(selectedIndex + 1); // swipe para esquerda → próxima imagem
+    }
+    touchStartX.current = null;
+  };
+
   return (
     <section id="portfolio" className="section-padding bg-secondary/20">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-light mb-4 animate-fade-in">Portfólio</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
-            Uma seleção dos meus trabalhos mais recentes, capturando diferentes momentos e estilos fotográficos.
-          </p>
         </div>
 
         {/* Category Filter */}
@@ -151,20 +170,20 @@ const PortfolioSection = () => {
             </button>
           ))}
         </div>
-        {/* Mobile: Horizontal scrollable buttons with scroll snap */}
+        {/* Mobile: Horizontal scrollable buttons styled as pills */}
         <div className="relative md:hidden">
           <div
             ref={categoriesScrollRef}
-            className="flex gap-2 mb-2 overflow-x-auto scrollbar-none px-1 -mx-1 snap-x snap-mandatory"
+            className="flex gap-2 mb-4 overflow-x-auto category-scrollbar px-1 -mx-1 snap-x snap-mandatory"
           >
             {categories.map((category, index) => (
               <button
                 key={category.id}
                 onClick={() => scrollToCategory(category.id, index)}
-                className={`flex-shrink-0 px-2 py-2 text-sm font-light tracking-wide transition-all snap-center ${
+                className={`flex-shrink-0 px-4 py-2 text-sm font-light tracking-wide transition-all snap-center rounded-full border ${
                   activeCategory === category.id
-                    ? "text-accent border-b-2 border-accent"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-accent text-white border-accent shadow"
+                    : "bg-white text-muted-foreground border-zinc-200 hover:bg-accent/10"
                 }`}
                 style={{ minWidth: "fit-content" }}
               >
@@ -174,97 +193,47 @@ const PortfolioSection = () => {
           </div>
         </div>
 
-        {/* Portfolio Carousel */}
-        <div className="relative overflow-hidden">
-          {/* Navigation Arrows desktop */}
-          {currentPage > 0 && (
-            <button
-              onClick={handlePrevPage}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 text-4xl text-orange-500 hover:text-orange-400 hidden md:block"
-            >
-              ❮
-            </button>
-          )}
-          {currentPage < totalPages - 1 && (
-            <button
-              onClick={handleNextPage}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 text-4xl text-orange-500 hover:text-orange-400 hidden md:block"
-            >
-              ❯
-            </button>
-          )}
-
-          {/* Mobile scroll snap carousel with dots */}
-          <div className="md:hidden relative">
-            <div
-              ref={scrollContainerRef}
-              className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory custom-scrollbar px-2"
-            >
-              {pagedItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="flex-shrink-0 w-72 snap-center p-1 mx-auto cursor-pointer"
-                  onClick={() => setSelectedIndex(currentPage * ITEMS_PER_PAGE + index)}
-                >
-                  <div className="relative overflow-hidden elegant-border w-full aspect-[4/3] group">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-4 left-4 right-4 text-white">
-                        <h3 className="text-lg font-light mb-1">{item.title}</h3>
-                        <p className="text-xs text-white/80">{item.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center mt-3 space-x-2">
-              {pagedItems.map((_, index) => (
-                <button
-                  key={index}
-                  aria-label={`Go to slide ${index + 1}`}
-                  onClick={() => {
-                    const scrollEl = scrollContainerRef.current;
-                    if (!scrollEl) return;
-                    const cardWidth = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0")?.offsetWidth ?? 0;
-                    const scrollTo = index * (cardWidth + 8); // 8px gap approx
-                    scrollEl.scrollTo({ left: scrollTo, behavior: "smooth" });
-                  }}
-                  className={`text-2xl leading-none select-none ${
-                    index === activeDotIndex ? "text-accent" : "text-muted-foreground"
-                  }`}
-                  style={{ lineHeight: 1 }}
-                  type="button"
-                >
-                  {index === activeDotIndex ? "●" : "○"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Desktop grid carousel */}
-          <div className="hidden md:grid md:grid-cols-3 gap-2 md:gap-2 md:mx-auto overflow-x-auto">
+        {/* Portfolio Grid */}
+        <div className="overflow-visible">
+          {/* Mobile: grid 2 columns */}
+          <div className="grid grid-cols-2 gap-2 md:hidden">
             {pagedItems.map((item, index) => (
               <div
                 key={item.id}
-                className="flex-shrink-0 w-72 md:w-80 p-1 mx-auto cursor-pointer"
+                className="w-full aspect-[4/3] rounded-lg overflow-hidden shadow-sm cursor-pointer"
                 onClick={() => setSelectedIndex(currentPage * ITEMS_PER_PAGE + index)}
               >
-                <div className="relative overflow-hidden elegant-border w-full aspect-[4/3] group">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h3 className="text-lg font-light mb-1">{item.title}</h3>
-                      <p className="text-xs text-white/80">{item.description}</p>
-                    </div>
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 rounded-lg"
+                />
+              </div>
+            ))}
+          </div>
+          {/* Desktop & Tablet: Responsive grid */}
+          <div
+            className="hidden md:grid gap-4 mb-12
+              md:grid-cols-2
+              lg:grid-cols-3"
+          >
+            {filteredItems.map((item, index) => (
+              <div
+                key={item.id}
+                className="relative group cursor-pointer aspect-[4/3] rounded-xl overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg"
+                onClick={() => setSelectedIndex(index)}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
+                  style={{ transitionProperty: "transform, filter" }}
+                />
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                  <div className="p-5 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0">
+                    <h3 className="text-lg font-light text-white mb-1 drop-shadow">{item.title}</h3>
+                    <p className="text-sm text-white/80">{item.description}</p>
                   </div>
                 </div>
               </div>
@@ -275,101 +244,69 @@ const PortfolioSection = () => {
         {/* Modal */}
         {selectedIndex !== null && (
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setSelectedIndex(null)}
+            aria-modal="true"
+            role="dialog"
+            tabIndex={-1}
           >
-            {/* Modal content */}
             <div
-              className="relative bg-transparent rounded-lg w-full max-w-3xl mx-auto h-[90vh] md:h-auto flex items-center justify-center"
+              className="relative w-full max-w-4xl h-full md:h-auto bg-transparent"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Botão fechar */}
               <button
                 onClick={() => setSelectedIndex(null)}
-                className="absolute -top-3 -right-3 text-white text-3xl bg-accent rounded-full px-2 py-1 hover:bg-accent/80 transition-colors"
+                className="absolute top-2 right-2 text-white text-3xl z-10 hover:text-accent transition-colors"
+                aria-label="Fechar visualização"
               >
                 ×
               </button>
-              {/* Mobile: draggable horizontal carousel with scroll snap and dots */}
-              <div className="flex flex-col w-full h-full md:hidden">
-                <div
-                  ref={modalScrollRef}
-                  className="flex-1 flex flex-row gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-2"
-                  style={{ WebkitOverflowScrolling: "touch" }}
-                  onScroll={() => {
-                    const scrollEl = modalScrollRef.current;
-                    if (!scrollEl) return;
-                    const card = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0");
-                    const cardWidth = card?.offsetWidth ?? 1;
-                    const gap = 8;
-                    const scrollLeft = scrollEl.scrollLeft;
-                    const idx = Math.round(scrollLeft / (cardWidth + gap));
-                    setModalActiveDotIndex(idx);
-                  }}
-                >
-                  {filteredItems.map((item, idx) => (
-                    <div
-                      key={item.id}
-                      className="flex-shrink-0 w-72 snap-center flex items-center justify-center"
-                      style={{ maxWidth: "22rem" }}
-                      onClick={() => setSelectedIndex(idx)}
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-[60vh] object-contain rounded-lg"
-                        draggable={false}
-                        style={{ background: "none", margin: "0 auto" }}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-center mt-3 space-x-2">
-                  {filteredItems.map((_, idx) => (
-                    <button
-                      key={idx}
-                      aria-label={`Go to slide ${idx + 1}`}
-                      onClick={() => {
-                        // Scroll to the image
-                        const scrollEl = modalScrollRef.current;
-                        if (!scrollEl) return;
-                        const card = scrollEl.querySelector<HTMLDivElement>("div.flex-shrink-0");
-                        const cardWidth = card?.offsetWidth ?? 0;
-                        const scrollTo = idx * (cardWidth + 8);
-                        scrollEl.scrollTo({ left: scrollTo, behavior: "smooth" });
-                        setSelectedIndex(idx);
-                      }}
-                      className={`text-2xl leading-none select-none ${
-                        idx === modalActiveDotIndex ? "text-accent" : "text-muted-foreground"
-                      }`}
-                      style={{ lineHeight: 1 }}
-                      type="button"
-                    >
-                      {idx === modalActiveDotIndex ? "●" : "○"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Desktop: show arrows and single image */}
-              <div className="hidden md:flex items-center w-full h-full">
+
+              {/* Imagem + navegação */}
+              <div className="flex items-center justify-between h-full">
                 <button
-                  onClick={() => setSelectedIndex(prev => (prev! > 0 ? prev! - 1 : prev))}
+                  onClick={() => setSelectedIndex(i => (i! > 0 ? i! - 1 : i))}
                   disabled={selectedIndex === 0}
-                  className={`text-white text-4xl font-bold drop-shadow-lg absolute left-2 top-1/2 -translate-y-1/2 md:static md:translate-y-0 ${selectedIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:text-accent/70"}`}
+                  className={`text-white text-4xl p-2 z-10 ${
+                    selectedIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:text-accent"
+                  }`}
+                  aria-label="Imagem anterior"
                 >
                   ❮
                 </button>
-                <img
-                  src={filteredItems[selectedIndex].image}
-                  alt="Modal"
-                  className="max-w-full max-h-[90vh] md:max-h-[80vh] object-contain rounded-lg mx-auto"
-                />
+
+                <div
+                  className="flex-1 flex items-center justify-center px-4"
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  <img
+                    src={filteredItems[selectedIndex].image}
+                    alt={filteredItems[selectedIndex].title}
+                    className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300"
+                  />
+                </div>
+
                 <button
-                  onClick={() => setSelectedIndex(prev => (prev! < filteredItems.length - 1 ? prev! + 1 : prev))}
+                  onClick={() => setSelectedIndex(i => (i! < filteredItems.length - 1 ? i! + 1 : i))}
                   disabled={selectedIndex === filteredItems.length - 1}
-                  className={`text-white text-4xl font-bold drop-shadow-lg absolute right-2 top-1/2 -translate-y-1/2 md:static md:translate-y-0 ${selectedIndex === filteredItems.length - 1 ? "opacity-30 cursor-not-allowed" : "hover:text-accent/70"}`}
+                  className={`text-white text-4xl p-2 z-10 ${
+                    selectedIndex === filteredItems.length - 1
+                      ? "opacity-30 cursor-not-allowed"
+                      : "hover:text-accent"
+                  }`}
+                  aria-label="Próxima imagem"
                 >
                   ❯
                 </button>
+              </div>
+
+              {/* Indicador inferior */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 px-3 py-1 rounded text-white text-sm flex items-center space-x-2">
+                <span>{selectedIndex + 1}</span>
+                <span>/</span>
+                <span>{filteredItems.length}</span>
               </div>
             </div>
           </div>
@@ -425,5 +362,22 @@ export default PortfolioSection;
     }
     .scrollbar-none::-webkit-scrollbar { display: none; }
     .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+    .category-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
+    .category-scrollbar::-webkit-scrollbar {
+      height: 4px;
+    }
+    .category-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .category-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
+    .category-scrollbar::-webkit-scrollbar-thumb:hover {
+      background-color: #94a3b8;
+    }
   `}
 </style>
