@@ -1,16 +1,24 @@
 {
-  "functions": {
-    "api/send-email.js": {
-      "memory": 128
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
-  },
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
     {
-      "source": "/((?!api/|.*\\..*).*)/?",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
