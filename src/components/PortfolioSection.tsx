@@ -1,28 +1,21 @@
 import { useState, useEffect, useRef } from "react";
-import portraitImage from "@/assets/portfolio-portrait.jpg";
-import weddingImage from "@/assets/portfolio-wedding.jpg";
-import maternityImage from "@/assets/portfolio-maternity.jpg";
-import familyImage from "@/assets/portfolio-family.jpg";
-import galinha1 from "@/assets/1.jpg";
-import galinha2 from "@/assets/2.jpg";
-import galinha3 from "@/assets/3.jpg";
 
 const portfolioItems = [
-  { id: 1, title: "Retratos", category: "portrait", image: portraitImage, description: "Retratos elegantes e atemporais" },
-  { id: 2, title: "Casamentos", category: "wedding", image: weddingImage, description: "Momentos únicos do seu grande dia" },
-  { id: 3, title: "Maternidade", category: "wedding", image: maternityImage, description: "A beleza da expectativa" },
-  { id: 4, title: "Família", category: "portrait", image: familyImage, description: "Conexões e amor em família" },
-  { id: 5, title: "Família", category: "portrait", image: galinha1, description: "Conexões e amor em família" },
-  { id: 6, title: "Família", category: "maternity", image: galinha2, description: "Conexões e amor em família" },
-  { id: 7, title: "Maternidade", category: "wedding", image: galinha3, description: "A beleza da expectativa" },
-  { id: 8, title: "Maternidade", category: "maternity", image: galinha3, description: "A beleza da expectativa" },
-  { id: 9, title: "Maternidade", category: "maternity", image: galinha3, description: "A beleza da expectativa" },
-  { id: 10, title: "Maternidade", category: "family", image: galinha3, description: "A beleza da expectativa" },
-  { id: 11, title: "Maternidade", category: "family", image: galinha3, description: "A beleza da expectativa" },
-    { id: 12, title: "Maternidade", category: "family", image: maternityImage, description: "A beleza da expectativa" },
-    { id: 13, title: "Família", category: "gastro", image: galinha2, description: "Conexões e amor em família" },
-    { id: 14, title: "Família", category: "gastro", image: galinha2, description: "Conexões e amor em família" },
-    { id: 15, title: "Família", category: "gastro", image: galinha2, description: "Conexões e amor em família" },
+  { id: 1, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542520/portfolio-maternity_y7g4eo.png", description: "Retratos elegantes e atemporais" },
+  { id: 2, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/main-sample.png", description: "Momentos únicos do seu grande dia" },
+  { id: 3, title: "Maternidade", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/cld-sample-4.jpg", description: "A beleza da expectativa" },
+  { id: 4, title: "Família", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542519/portfolio-family_ahgjtv.png", description: "Conexões e amor em família" },
+  { id: 5, title: "Família", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample.jpg", description: "Conexões e amor em família" },
+  { id: 6, title: "Família", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample-2.jpg", description: "Conexões e amor em família" },
+  { id: 7, title: "Maternidade", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542516/portfolio-wedding_cwccvx.png", description: "A beleza da expectativa" },
+  { id: 8, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542097/samples/coffee.jpg", description: "A beleza da expectativa" },
+  { id: 9, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542093/samples/balloons.jpg", description: "A beleza da expectativa" },
+  { id: 10, title: "Maternidade", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/portfolio-portrait_tgafrx.png", description: "A beleza da expectativa" },
+  { id: 11, title: "Maternidade", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542091/samples/two-ladies.jpg", description: "A beleza da expectativa" },
+    { id: 12, title: "Maternidade", category: "family", image:"https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542083/samples/people/jazz.jpg", description: "A beleza da expectativa" },
+    { id: 13, title: "Família", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/3_pvr2ee.jpg", description: "Conexões e amor em família" },
+    { id: 14, title: "Família", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/2_j7azko.jpg", description: "Conexões e amor em família" },
+    { id: 15, title: "Família", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/1_ltqoke.jpg", description: "Conexões e amor em família" },
 ];
 
 const categories = [

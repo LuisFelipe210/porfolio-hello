@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -13,48 +14,47 @@ const Header = () => {
     }
   };
 
+  // Detecta rolagem para aplicar efeito
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/40 backdrop-blur-md border-b border-border/20">
-      <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="text-xl font-semibold tracking-wide">
+    <header
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 
+      ${isScrolled
+        ? "bg-background/50 backdrop-blur-xl shadow-md scale-95"
+        : "bg-background/80 backdrop-blur-lg shadow-xl scale-100"
+      } border border-border/20 rounded-full w-[70%] md:w-[40%]`}
+    >
+      <nav className="px-4 py-4 md:py-3 flex items-center justify-between gap-6 md:gap-16">
+        <div className="text-lg md:text-xl font-semibold tracking-wide">
           Hellô Borges
         </div>
 
-        {/* Desktop Navigation */}
+        {/* Navegação Desktop */}
         <div className="hidden md:flex space-x-8">
-          <button
-            onClick={() => scrollToSection("home")}
-            className="text-sm font-medium hover:text-accent transition-colors"
-          >
-            Início
-          </button>
-          <button
-            onClick={() => scrollToSection("about")}
-            className="text-sm font-medium hover:text-accent transition-colors"
-          >
-            Sobre
-          </button>
-          <button
-            onClick={() => scrollToSection("portfolio")}
-            className="text-sm font-medium hover:text-accent transition-colors"
-          >
-            Portfolio
-          </button>
-          <button
-            onClick={() => scrollToSection("services")}
-            className="text-sm font-medium hover:text-accent transition-colors"
-          >
-            Serviços
-          </button>
-          <button
-            onClick={() => scrollToSection("contact")}
-            className="text-sm font-medium hover:text-accent transition-colors"
-          >
-            Contato
-          </button>
+          {["home", "about", "portfolio", "services", "contact"].map((id, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToSection(id)}
+              className="text-sm font-medium hover:text-accent transition-colors"
+            >
+              {id === "home" && "Início"}
+              {id === "about" && "Sobre"}
+              {id === "portfolio" && "Portfolio"}
+              {id === "services" && "Serviços"}
+              {id === "contact" && "Contato"}
+            </button>
+          ))}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Botão Mobile */}
         <Button
           variant="ghost"
           size="icon"
@@ -64,40 +64,23 @@ const Header = () => {
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </Button>
 
-        {/* Mobile Navigation */}
+        {/* Menu Mobile */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-background border-b border-border/20 md:hidden">
+          <div className="absolute top-full left-0 right-0 bg-background border border-border/20 rounded-b-2xl shadow-md md:hidden">
             <div className="flex flex-col space-y-4 p-6">
-              <button
-                onClick={() => scrollToSection("home")}
-                className="text-left text-sm font-medium hover:text-accent transition-colors"
-              >
-                Início
-              </button>
-              <button
-                onClick={() => scrollToSection("about")}
-                className="text-left text-sm font-medium hover:text-accent transition-colors"
-              >
-                Sobre
-              </button>
-              <button
-                onClick={() => scrollToSection("portfolio")}
-                className="text-left text-sm font-medium hover:text-accent transition-colors"
-              >
-                Portfolio
-              </button>
-              <button
-                onClick={() => scrollToSection("services")}
-                className="text-left text-sm font-medium hover:text-accent transition-colors"
-              >
-                Serviços
-              </button>
-              <button
-                onClick={() => scrollToSection("contact")}
-                className="text-left text-sm font-medium hover:text-accent transition-colors"
-              >
-                Contato
-              </button>
+              {["home", "about", "portfolio", "services", "contact"].map((id, index) => (
+                <button
+                  key={index}
+                  onClick={() => scrollToSection(id)}
+                  className="text-left text-sm font-medium hover:text-accent transition-colors"
+                >
+                  {id === "home" && "Início"}
+                  {id === "about" && "Sobre"}
+                  {id === "portfolio" && "Portfolio"}
+                  {id === "services" && "Serviços"}
+                  {id === "contact" && "Contato"}
+                </button>
+              ))}
             </div>
           </div>
         )}

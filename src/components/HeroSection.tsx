@@ -14,8 +14,8 @@ const HeroSection = () => {
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <img 
-          src={heroImage} 
+        <img
+          src={"https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"}
           alt="Hello Borges - Fotógrafa Profissional"
           className="w-full h-full min-h-screen object-cover sm:object-cover"
         />
