@@ -5,13 +5,18 @@ const authenticateAdmin = (handler) => async (req, res) => {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Token de autenticação não fornecido.' });
     }
+
     const token = authHeader.split(' ')[1];
+
     try {
+        // Tipagem segura do JWT
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // Verifica se o token é de um administrador
-        if (decoded.role !== 'admin') {
+
+        // Valida se o decoded é objeto e possui a propriedade role
+        if (!decoded || typeof decoded !== 'object' || decoded.role !== 'admin') {
             return res.status(403).json({ error: 'Acesso negado.' });
         }
+
         req.user = decoded;
         return handler(req, res);
     } catch (error) {

@@ -22,6 +22,7 @@ async function main() {
     // --- COLOQUE SUAS CREDENCIAIS AQUI ---
     const myAdminEmail = 'helloborges@admin.com';
     const myAdminPassword = 'hf5316533ha';
+    const hashedPassword = bcrypt.hashSync(myAdminPassword, 10);
     const myAdminName = 'Hellô Borges';
     // ------------------------------------
 
@@ -29,7 +30,7 @@ async function main() {
         throw new Error("Por favor, preencha as credenciais do admin no arquivo prisma/seed.ts antes de continuar.");
     }
 
-    const hashedPassword = bcrypt.hashSync(myAdminPassword, 10);
+
 
     const adminUser = await prisma.admin.upsert({
         where: { email: myAdminEmail },
