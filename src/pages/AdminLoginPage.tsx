@@ -16,7 +16,7 @@ const AdminLoginPage = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const response = await fetch('/api/admin/auth/login', {
+            const response = await fetch('/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -27,10 +27,10 @@ const AdminLoginPage = () => {
             const { token } = await response.json();
             localStorage.setItem('adminAuthToken', token);
             navigate('/admin/dashboard');
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({
                 title: "Erro de Acesso",
-                description: error.message,
+                description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido.",
                 variant: "destructive",
             });
         } finally {

@@ -9,9 +9,9 @@ async function main() {
     // 1. Testar a conexão com o banco de dados
     try {
         await prisma.$connect();
-        console.log('✅ Conexão com o banco de dados bem-sucedida!');
+        console.log(' Conexão com o banco de dados bem-sucedida!');
     } catch (e) {
-        console.error('❌ ERRO FATAL: Não foi possível conectar ao banco de dados.');
+        console.error('ERRO FATAL: Não foi possível conectar ao banco de dados.');
         console.error('Verifique se a variável DATABASE_URL no seu arquivo .env está correta.');
         throw e; // Interrompe a execução se a conexão falhar
     }
@@ -21,8 +21,8 @@ async function main() {
 
 
     // --- COLOQUE SUAS CREDENCIAIS AQUI ---
-    const myAdminEmail = 'helloborges@admin.com';
-    const myAdminPassword = 'hf5316533ha';
+    const myAdminEmail = 'helloadmin@gmail.com';
+    const myAdminPassword = '11156021';
     const hashedPassword = bcrypt.hashSync(myAdminPassword, 10);
     const myAdminName = 'Hellô Borges';
     // ------------------------------------
@@ -47,7 +47,7 @@ async function main() {
         },
     });
 
-    console.log(`✅ Administrador "${adminUser.name}" (${adminUser.email}) foi criado/atualizado com sucesso.`);
+    console.log(`Administrador "${adminUser.name}" (${adminUser.email}) foi criado/atualizado com sucesso.`);
     console.log('--- Script finalizado com sucesso! ---');
 
 }
