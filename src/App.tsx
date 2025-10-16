@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+// import { Toaster as Sonner } from "@/components/ui/sonner"; // <-- APAGUE ESTA LINHA
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ShutterPreloader from "./components/ShutterPreloader";
@@ -25,8 +25,8 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
             <TooltipProvider>
                 <Toaster />
-                <Sonner />
                 {isLoading && <ShutterPreloader />}
+
                 <div className="site-content">
                     <BrowserRouter>
                         <Routes>
