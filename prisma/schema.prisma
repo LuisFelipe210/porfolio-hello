@@ -1,59 +1,59 @@
-// File: prisma/schema.prisma
+    // File: prisma/schema.prisma
 
-generator client {
-  provider = "prisma-client-js"
-}
+    generator client {
+      provider = "prisma-client-js"
+    }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL") // Esta variável virá da Vercel
-}
+    datasource db {
+      provider = "postgresql"
+      url      = env("DATABASE_URL") // Esta variável virá da Vercel
+    }
 
-// Modelo para seus clientes
-model Client {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  password  String    // Armazenaremos a senha criptografada
-  galleries Gallery[]
-}
+    // Modelo para seus clientes
+    model Client {
+      id        String    @id @default(cuid())
+      name      String
+      email     String    @unique
+      password  String    // Armazenaremos a senha criptografada
+      galleries Gallery[]
+    }
 
-// Modelo para as galerias de fotos
-model Gallery {
-  id          String      @id @default(cuid())
-  title       String
-  createdAt   DateTime    @default(now())
-  client      Client      @relation(fields: [clientId], references: [id])
-  clientId    String
-  photos      Photo[]
-  selections  Selection[]
-}
+    // Modelo para as galerias de fotos
+    model Gallery {
+      id          String      @id @default(cuid())
+      title       String
+      createdAt   DateTime    @default(now())
+      client      Client      @relation(fields: [clientId], references: [id])
+      clientId    String
+      photos      Photo[]
+      selections  Selection[]
+    }
 
-// Modelo para cada foto individual
-model Photo {
-  id        String      @id @default(cuid())
-  url       String
-  publicId  String      @unique // ID público do Cloudinary
-  gallery   Gallery     @relation(fields: [galleryId], references: [id])
-  galleryId String
-  selections Selection[]
-}
+    // Modelo para cada foto individual
+    model Photo {
+      id        String      @id @default(cuid())
+      url       String
+      publicId  String      @unique // ID público do Cloudinary
+      gallery   Gallery     @relation(fields: [galleryId], references: [id])
+      galleryId String
+      selections Selection[]
+    }
 
-// Modelo para armazenar as seleções do cliente
-model Selection {
-    id        String   @id @default(cuid())
-    gallery   Gallery  @relation(fields: [galleryId], references: [id])
-    galleryId String
-    photo     Photo    @relation(fields: [photoId], references: [id])
-    photoId   String
+    // Modelo para armazenar as seleções do cliente
+    model Selection {
+        id        String   @id @default(cuid())
+        gallery   Gallery  @relation(fields: [galleryId], references: [id])
+        galleryId String
+        photo     Photo    @relation(fields: [photoId], references: [id])
+        photoId   String
 
-    @@unique([galleryId, photoId])
-}
+        @@unique([galleryId, photoId])
+    }
 
-model Admin {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  createdAt DateTime @default(now())
-}
+    model Admin {
+      id        String   @id @default(cuid())
+      email     String   @unique
+      name      String
+      password  String
+      createdAt DateTime @default(now())
+    }

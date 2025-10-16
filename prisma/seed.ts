@@ -19,12 +19,14 @@ async function main() {
     // 2. Definir e criar/atualizar o usuário administrador
     console.log('Verificando o usuário administrador...');
 
+
     // --- COLOQUE SUAS CREDENCIAIS AQUI ---
     const myAdminEmail = 'helloborges@admin.com';
     const myAdminPassword = 'hf5316533ha';
     const hashedPassword = bcrypt.hashSync(myAdminPassword, 10);
     const myAdminName = 'Hellô Borges';
     // ------------------------------------
+
 
     if (!myAdminEmail.includes('@')) {
         throw new Error("Por favor, preencha as credenciais do admin no arquivo prisma/seed.ts antes de continuar.");
@@ -47,6 +49,7 @@ async function main() {
 
     console.log(`✅ Administrador "${adminUser.name}" (${adminUser.email}) foi criado/atualizado com sucesso.`);
     console.log('--- Script finalizado com sucesso! ---');
+
 }
 
 main()

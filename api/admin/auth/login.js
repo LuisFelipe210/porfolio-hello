@@ -1,6 +1,10 @@
-import prisma from '../../_lib/prisma';
+// pages/api/login.js
+
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -9,28 +13,44 @@ export default async function handler(req, res) {
 
     const { email, password } = req.body;
 
+    // Validação simples
+    if (!email || !password) {
+        return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
+    }
+
     try {
-        const admin = await prisma.admin.findUnique({ where: { email } });
-
-        if (!admin) {
-            return res.status(401).json({ error: 'Credenciais inválidas.' });
+        const user = await prisma.admin.findUnique({ where: { email } });
+        if (!user) {
+            return res.status(401).json({ error: 'Usuário não encontrado.' });
         }
 
-        const isPasswordValid = await bcrypt.compare(password, admin.password);
-
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Credenciais inválidas.' });
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: 'Senha incorreta.' });
         }
 
+        // Gerar token JWT
         const token = jwt.sign(
-            { adminId: admin.id, email: admin.email, role: 'admin' }, // Adiciona um 'role'
+            {
+                id: user.id,
+                email: user.email,
+                role: 'admin'
+            },
             process.env.JWT_SECRET,
-            { expiresIn: '8h' } // Token para admin dura 8 horas
+            { expiresIn: '1h' }
         );
 
-        res.status(200).json({ token });
-
+        return res.status(200).json({
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: 'admin'
+            }
+        });
     } catch (error) {
-        res.status(500).json({ error: 'Falha ao fazer login.' });
+        console.error('Erro ao tentar login:', error);
+        return res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 }
