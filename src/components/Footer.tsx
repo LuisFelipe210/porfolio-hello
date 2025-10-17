@@ -1,4 +1,4 @@
-import Logo from "../assets/logo.svg";
+    import Logo from "../assets/logo.svg";
 import { Instagram, Mail } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -55,7 +55,7 @@ const Footer = () => {
                         <h4 className="font-light mb-4">Contato</h4>
                         <div className="space-y-3 text-sm">
                             <a
-                                href="https://wa.me/5574991248392"
+                                href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento%20para%20seus%20serviços%20de%20fotografia."
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center hover:text-accent transition-colors"
