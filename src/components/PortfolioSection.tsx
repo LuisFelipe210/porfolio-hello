@@ -1,21 +1,44 @@
 import { useState, useEffect, useRef } from "react";
 
+const descriptions = {
+  portrait: "Retratos elegantes e atemporais",
+  wedding: "Momentos únicos do seu grande dia",
+  maternity: "A beleza da expectativa",
+  family: "Conexões e amor em família",
+  gastro: "Detalhes que despertam o apetite",
+};
+
 const portfolioItems = [
-  { id: 1, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542520/portfolio-maternity_y7g4eo.png", description: "Retratos elegantes e atemporais" },
-  { id: 2, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/main-sample.png", description: "Momentos únicos do seu grande dia" },
-  { id: 3, title: "Maternidade", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/cld-sample-4.jpg", description: "A beleza da expectativa" },
-  { id: 4, title: "Família", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542519/portfolio-family_ahgjtv.png", description: "Conexões e amor em família" },
-  { id: 5, title: "Família", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample.jpg", description: "Conexões e amor em família" },
-  { id: 6, title: "Família", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample-2.jpg", description: "Conexões e amor em família" },
-  { id: 7, title: "Maternidade", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542516/portfolio-wedding_cwccvx.png", description: "A beleza da expectativa" },
-  { id: 8, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542097/samples/coffee.jpg", description: "A beleza da expectativa" },
-  { id: 9, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542093/samples/balloons.jpg", description: "A beleza da expectativa" },
-  { id: 10, title: "Maternidade", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/portfolio-portrait_tgafrx.png", description: "A beleza da expectativa" },
-  { id: 11, title: "Maternidade", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542091/samples/two-ladies.jpg", description: "A beleza da expectativa" },
-    { id: 12, title: "Maternidade", category: "family", image:"https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542083/samples/people/jazz.jpg", description: "A beleza da expectativa" },
-    { id: 13, title: "Família", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/3_pvr2ee.jpg", description: "Conexões e amor em família" },
-    { id: 14, title: "Família", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/2_j7azko.jpg", description: "Conexões e amor em família" },
-    { id: 15, title: "Família", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/1_ltqoke.jpg", description: "Conexões e amor em família" },
+  { id: 1, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542520/portfolio-maternity_y7g4eo.png", description: descriptions.portrait },
+  { id: 2, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/main-sample.png", description: descriptions.wedding },
+  { id: 3, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/cld-sample-4.jpg", description: descriptions.wedding },
+  { id: 4, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542519/portfolio-family_ahgjtv.png", description: descriptions.portrait },
+  { id: 5, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample.jpg", description: descriptions.portrait },
+  { id: 6, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample-2.jpg", description: descriptions.maternity },
+  { id: 7, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542516/portfolio-wedding_cwccvx.png", description: descriptions.wedding },
+  { id: 8, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542097/samples/coffee.jpg", description: descriptions.maternity },
+  { id: 9, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542093/samples/balloons.jpg", description: descriptions.maternity },
+  { id: 10, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/portfolio-portrait_tgafrx.png", description: descriptions.family },
+  { id: 11, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542091/samples/two-ladies.jpg", description: descriptions.family },
+  { id: 12, title: "Família", category: "family", image:"https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542083/samples/people/jazz.jpg", description: descriptions.family },
+  { id: 13, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/3_pvr2ee.jpg", description: descriptions.gastro },
+  { id: 14, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/2_j7azko.jpg", description: descriptions.gastro },
+  { id: 15, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/1_ltqoke.jpg", description: descriptions.gastro },
+    { id: 16, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542520/portfolio-maternity_y7g4eo.png", description: descriptions.portrait },
+    { id: 17, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/main-sample.png", description: descriptions.wedding },
+    { id: 18, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542103/cld-sample-4.jpg", description: descriptions.wedding },
+    { id: 19, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542519/portfolio-family_ahgjtv.png", description: descriptions.portrait },
+    { id: 20, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample.jpg", description: descriptions.portrait },
+    { id: 21, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542100/cld-sample-2.jpg", description: descriptions.maternity },
+    { id: 22, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542516/portfolio-wedding_cwccvx.png", description: descriptions.wedding },
+    { id: 23, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542097/samples/coffee.jpg", description: descriptions.maternity },
+    { id: 24, title: "Maternidade", category: "maternity", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542093/samples/balloons.jpg", description: descriptions.maternity },
+    { id: 25, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/portfolio-portrait_tgafrx.png", description: descriptions.family },
+    { id: 26, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542091/samples/two-ladies.jpg", description: descriptions.family },
+    { id: 27, title: "Família", category: "family", image:"https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542083/samples/people/jazz.jpg", description: descriptions.family },
+    { id: 28, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/3_pvr2ee.jpg", description: descriptions.gastro },
+    { id: 29, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/2_j7azko.jpg", description: descriptions.gastro },
+    { id: 30, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542514/1_ltqoke.jpg", description: descriptions.gastro },
 ];
 
 const categories = [
@@ -223,7 +246,7 @@ const PortfolioSection = () => {
               md:grid-cols-2
               lg:grid-cols-3"
           >
-            {filteredItems.map((item, index) => (
+            {filteredItems.slice(0, 15).map((item, index) => (
               <div
                 key={item.id}
                 className="relative group cursor-pointer aspect-[4/3] rounded-xl overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg"
@@ -235,6 +258,12 @@ const PortfolioSection = () => {
                   className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
                   style={{ transitionProperty: "transform, filter" }}
                 />
+                {/* Overlay +N se houver mais fotos que os visíveis */}
+                {index === 14 && filteredItems.length > 15 && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold rounded-xl">
+                    +{filteredItems.length - 15}
+                  </div>
+                )}
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                   <div className="p-5 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0">
