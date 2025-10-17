@@ -20,7 +20,12 @@ const HeroSection = () => {
           alt="Hello Borges - Fotógrafa Profissional"
           className="w-full h-full min-h-screen object-cover sm:object-cover"
         />
+
+        {/* Gradiente lateral (já existente) */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
+
+        {/* Gradiente inferior suave (transição cinematográfica) */}
+        <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
       </div>
 
       {/* Content */}

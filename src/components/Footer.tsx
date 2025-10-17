@@ -1,12 +1,12 @@
-    import Logo from "../assets/logo.svg";
-import { Instagram, Mail } from "lucide-react";
+import Logo from "../assets/logo.svg";
+import { Instagram, Mail, MapPin } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 const Footer = () => {
     return (
         <footer className="bg-primary text-primary-foreground py-12">
             <div className="container mx-auto px-6 max-w-6xl">
-                <div className="grid md:grid-cols-3 gap-8 mb-8">
+                <div className="grid md:grid-cols-4 gap-8 mb-8">
                     {/* Brand */}
                     <div>
                         <div className="flex items-center mb-4 space-x-3">
@@ -79,6 +79,33 @@ const Footer = () => {
                                 <Instagram className="w-4 h-4 mr-2 text-accent" />
                                 <span>@hello.borges.fotografia</span>
                             </a>
+                        </div>
+                    </div>
+
+                    {/* Location and Hours */}
+                    <div>
+                        <h4 className="font-light mb-4">Atendimento</h4>
+                        <div className="space-y-3 text-sm">
+                            <div className="flex items-center">
+                                <MapPin className="w-4 h-4 mr-2 text-accent" />
+                                <span>Piatã, Salvador - Bahia</span>
+                            </div>
+                            <div className="elegant-border p-3 bg-primary/50">
+                                <div className="space-y-2 text-xs text-primary-foreground/80">
+                                    <div className="flex justify-between font-medium">
+                                        <span>Segunda a Sexta</span>
+                                        <span>9h às 18h</span>
+                                    </div>
+                                    <div className="flex justify-between font-medium">
+                                        <span>Sábados</span>
+                                        <span>9h às 14h</span>
+                                    </div>
+                                    <div className="flex justify-between font-medium">
+                                        <span>Domingos</span>
+                                        <span>Mediante agendamento</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

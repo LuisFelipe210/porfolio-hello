@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
+import { ThemeToggle } from "./ThemeToggle.tsx";
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [textColor, setTextColor] = useState("white");
 
     const scrollToSection = (sectionId: string) => {
         const element = document.getElementById(sectionId);
@@ -15,107 +15,65 @@ const Header = () => {
         }
     };
 
-    useEffect(() => {
-        const sections = ["home", "about", "portfolio", "services", "contact"];
-        const observerOptions = {
-            root: null,
-            rootMargin: "0px",
-            threshold: 0.5,
-        };
-
-        const handleIntersect = (entries: IntersectionObserverEntry[]) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    const target = entry.target as HTMLElement;
-                    const bg = target.getAttribute("data-bg") || "";
-                    if (bg === "dark") {
-                        setTextColor("white");
-                    } else if (bg === "light") {
-                        setTextColor("black");
-                    } else {
-                        if (target.classList.contains("dark")) {
-                            setTextColor("white");
-                        } else {
-                            setTextColor("black");
-                        }
-                    }
-                }
-            });
-        };
-
-        const observer = new IntersectionObserver(handleIntersect, observerOptions);
-
-        sections.forEach((id) => {
-            const section = document.getElementById(id);
-            if (section) {
-                observer.observe(section);
-            }
-        });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, []);
+    const navLinks = [
+        { id: "home", label: "Início" },
+        { id: "about", label: "Sobre" },
+        { id: "portfolio", label: "Portfolio" },
+        { id: "services", label: "Serviços" },
+    ];
 
     return (
         <header
             className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 
-        bg-white/20 backdrop-blur-2xl shadow-inner border border-white/20 rounded-md w-[70%] md:w-auto`}
+        bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-md w-[90%] md:w-auto`}
         >
             <nav className="px-4 py-2 md:py-3 flex items-center justify-between gap-6 md:gap-16">
-                <div className="flex items-center space-x-2" style={{ color: textColor }}>
+                <div className="flex items-center space-x-2">
                     <img src={Logo} alt="Hellô Borges" className="h-10 md:h-11 w-auto" />
                     <span
                         className="text-2xl md:text-3xl font-bold tracking-wide drop-shadow-lg text-orange-500"
                     >
-            Hellô
-          </span>
+                        Hellô
+                    </span>
                 </div>
 
                 {/* Navegação Desktop */}
-                <div className="hidden md:flex items-center space-x-8">
-                    {["home", "about", "portfolio", "services", "contact"].map((id, index) => (
+                <div className="hidden md:flex items-center space-x-6">
+                    {navLinks.map(({ id, label }) => (
                         <button
-                            key={index}
+                            key={id}
                             onClick={() => scrollToSection(id)}
-                            className="drop-shadow-lg font-bold whitespace-nowrap"
-                            style={{ color: textColor }}
+                            className="drop-shadow-lg font-bold whitespace-nowrap text-foreground/80 hover:text-foreground transition-colors"
                         >
-                            {id === "home" && "Início"}
-                            {id === "about" && "Sobre"}
-                            {id === "portfolio" && "Portfolio"}
-                            {id === "services" && "Serviços"}
-                            {id === "contact" && "Contato"}
+                            {label}
                         </button>
                     ))}
+                    <ThemeToggle />
                 </div>
 
-                {/* Botão Mobile */}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="md:hidden"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                >
-                    {isMenuOpen ? <X size={24} className="drop-shadow-lg" style={{ color: textColor }} /> : <Menu size={24} className="drop-shadow-lg" style={{ color: textColor }} />}
-                </Button>
+                {/* Botões Mobile */}
+                <div className="flex items-center gap-2 md:hidden">
+                    <ThemeToggle />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
+                        {isMenuOpen ? <X size={24} className="text-foreground" /> : <Menu size={24} className="text-foreground" />}
+                    </Button>
+                </div>
 
                 {/* Menu Mobile */}
                 {isMenuOpen && (
                     <div className="absolute top-full left-0 right-0 bg-background border border-border/20 rounded-b-2xl shadow-md md:hidden">
                         <div className="flex flex-col space-y-4 p-6">
-                            {["home", "about", "portfolio", "services", "contact"].map((id, index) => (
+                            {navLinks.map(({ id, label }) => (
                                 <button
-                                    key={index}
+                                    key={id}
                                     onClick={() => scrollToSection(id)}
-                                    className="drop-shadow-lg text-left text-sm font-bold hover:text-accent transition-colors"
-                                    style={{ color: textColor }}
+                                    className="drop-shadow-lg text-left text-sm font-bold text-foreground hover:text-accent transition-colors"
                                 >
-                                    {id === "home" && "Início"}
-                                    {id === "about" && "Sobre"}
-                                    {id === "portfolio" && "Portfolio"}
-                                    {id === "services" && "Serviços"}
-                                    {id === "contact" && "Contato"}
+                                    {label}
                                 </button>
                             ))}
                         </div>
