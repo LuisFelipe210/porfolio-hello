@@ -1,5 +1,3 @@
-// src/components/ShutterPreloader.tsx
-
 import Logo from "../assets/logo.svg";
 import './ShutterPreloader.css';
 

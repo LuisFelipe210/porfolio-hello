@@ -68,7 +68,7 @@ const ContactSection = () => {
     };
 
     return (
-        <section id="contact" className="px-6 sm:px-4 section-padding bg-orange-200">
+        <section id="contact" className="px-6 sm:px-4 section-padding bg-orange-300">
             <div className="container mx-auto max-w-6xl flex flex-col items-center md:items-stretch">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-srrcoes font-semibold mb-4 animate-fade-in">
@@ -82,7 +82,7 @@ const ContactSection = () => {
 
                 <div className="grid lg:grid-cols-2 gap-12">
                     {/* Contact Info */}
-                    <div className="animate-fade-in bg-orange-100 p-2 rounded-lg">
+                    <div className="animate-fade-in bg-orange-200 p-2 rounded-lg">
                         <h3 className="text-2xl font-medium mb-8">Entre em Contato</h3>
 
                         <div className="space-y-6 mb-8">
@@ -93,7 +93,7 @@ const ContactSection = () => {
                                 className="flex items-center hover:opacity-80 transition-opacity"
                             >
                                 <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
-                                    <Phone className="w-5 h-5 text-black" />
+                                    <Phone className="w-5 h-5 text-orange-500" />
                                 </div>
                                 <div>
                                     <div className="font-medium">WhatsApp</div>
@@ -106,7 +106,7 @@ const ContactSection = () => {
                                 className="flex items-center hover:opacity-80 transition-opacity"
                             >
                                 <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
-                                    <Mail className="w-5 h-5 text-black" />
+                                    <Mail className="w-5 h-5 text-orange-500" />
                                 </div>
                                 <div>
                                     <div className="font-medium">Email</div>
@@ -121,7 +121,7 @@ const ContactSection = () => {
                                 className="flex items-center hover:opacity-80 transition-opacity"
                             >
                                 <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
-                                    <Instagram className="w-5 h-5 text-black" />
+                                    <Instagram className="w-5 h-5 text-orange-500" />
                                 </div>
                                 <div>
                                     <div className="font-medium">Instagram</div>
@@ -131,7 +131,7 @@ const ContactSection = () => {
 
                             <div className="flex items-center">
                                 <div className="w-12 h-12 bg-white/70 rounded-full flex items-center justify-center mr-4 shadow-md">
-                                    <MapPin className="w-5 h-5 text-black" />
+                                    <MapPin className="w-5 h-5 text-orange-500" />
                                 </div>
                                 <div>
                                     <div className="font-medium">Localização</div>
