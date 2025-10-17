@@ -69,7 +69,7 @@ const ContactSection = () => {
 
     return (
         <section id="contact" className="px-6 sm:px-4 section-padding bg-orange-200">
-            <div className="container mx-auto max-w-6xl">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl flex flex-col items-center">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-srrcoes font-semibold mb-4 animate-fade-in">
                         Vamos Conversar
@@ -82,7 +82,7 @@ const ContactSection = () => {
 
                 <div className="grid lg:grid-cols-2 gap-12">
                     {/* Contact Info */}
-                    <div className="animate-fade-in">
+                    <div className="animate-fade-in p-6 bg-orange-100 rounded-lg shadow-md">
                         <h3 className="text-2xl font-medium mb-8">Entre em Contato</h3>
 
                         <div className="space-y-6 mb-8">
@@ -161,8 +161,8 @@ const ContactSection = () => {
 
                     {/* Contact Form */}
                     <div className="flex justify-center">
-                        <div className="animate-slide-in-right px-4 sm:px-0 w-full sm:max-w-2xl mx-auto">
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="animate-slide-in-right w-full max-w-md sm:max-w-2xl mx-auto px-0 sm:px-0">
+                            <form onSubmit={handleSubmit} className="mx-auto space-y-6">
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
                                     <Input
