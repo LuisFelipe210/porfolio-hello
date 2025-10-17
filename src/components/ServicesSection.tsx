@@ -97,6 +97,40 @@ const ServicesSection = () => {
                 {/* --- Carrossel Unificado --- */}
                 <div className="relative">
 
+                    {/* Seta Esquerda (Aparece apenas em 'md' ou maior) */}
+                    {showLeftArrow && (
+                        <button
+                            onClick={scrollLeft}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-md hover:bg-white text-orange-500 hover:text-orange-400 z-10 transition-all hidden md:flex items-center justify-center"
+                            aria-label="Scroll left"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                    )}
+
+                    {/* Seta Direita (Aparece apenas em 'md' ou maior) */}
+                    {showRightArrow && (
+                        <button
+                            onClick={scrollRight}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-md hover:bg-white text-orange-500 hover:text-orange-400 z-10 transition-all hidden md:flex items-center justify-center"
+                            aria-label="Scroll right"
+                        >
+                            <ChevronRight className="w-6 h-6" />
+                        </button>
+                    )}
+
+                    {/* Indicadores móveis */}
+                    {showLeftArrow && (
+                        <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center md:hidden animate-pulse z-20">
+                            <ChevronLeft className="w-6 h-6 text-orange-500" />
+                        </div>
+                    )}
+                    {showRightArrow && (
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center md:hidden animate-pulse z-20">
+                            <ChevronRight className="w-6 h-6 text-orange-500" />
+                        </div>
+                    )}
+
                     {/* O contêiner de scroll */}
                     <div
                         ref={carouselRef}
@@ -138,54 +172,20 @@ const ServicesSection = () => {
                         })}
                     </div>
 
-                    {/* Setas desktop */}
-                    {showLeftArrow && (
-                        <button
-                            onClick={scrollLeft}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-md hover:bg-white text-orange-500 hover:text-orange-400 z-10 transition-all hidden md:flex items-center justify-center"
-                            aria-label="Scroll left"
-                        >
-                            <ChevronLeft className="w-6 h-6" />
-                        </button>
-                    )}
-
-                    {showRightArrow && (
-                        <button
-                            onClick={scrollRight}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-md hover:bg-white text-orange-500 hover:text-orange-400 z-10 transition-all hidden md:flex items-center justify-center"
-                            aria-label="Scroll right"
-                        >
-                            <ChevronRight className="w-6 h-6" />
-                        </button>
-                    )}
-
-                    {/* Indicadores móveis */}
-                    {showLeftArrow && (
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center md:hidden animate-pulse z-20">
-                        <ChevronLeft className="w-6 h-6 text-orange-500" />
-                      </div>
-                    )}
-                    {showRightArrow && (
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center md:hidden animate-pulse z-20">
-                        <ChevronRight className="w-6 h-6 text-orange-500" />
-                      </div>
-                    )}
+                    {/* Pontos (Dots) - Escondidos em md+ */}
+                    <div className="flex justify-center space-x-2 mt-6 md:hidden">
+                        {services.map((_, idx) => (
+                            <button
+                                key={idx}
+                                // Animação de largura para o ponto ativo
+                                className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? "bg-orange-500 w-6" : "bg-orange-200 w-2.5"}`}
+                                onClick={() => scrollToIndex(idx)}
+                                aria-label={`Ir para o serviço ${services[idx].title}`}
+                            />
+                        ))}
+                    </div>
 
                 </div>
-
-                {/* Pontos (Dots) - Escondidos em md+ */}
-                <div className="flex justify-center space-x-2 mt-6 md:hidden">
-                    {services.map((_, idx) => (
-                        <button
-                            key={idx}
-                            // Animação de largura para o ponto ativo
-                            className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? "bg-orange-500 w-6" : "bg-orange-200 w-2.5"}`}
-                            onClick={() => scrollToIndex(idx)}
-                            aria-label={`Ir para o serviço ${services[idx].title}`}
-                        />
-                    ))}
-                </div>
-
             </div>
         </section>
     );

@@ -102,11 +102,11 @@ const AboutSection = () => {
           {/* Image Grid com rolagem infinita */}
           <div className="flex gap-4">
             {/* Coluna 1 */}
-            <div className="w-1/2 md:w-full h-auto md:h-[600px] overflow-hidden">
+            <div className="w-1/2 md:w-full h-[300px] md:h-[600px] overflow-hidden">
               <div
                 key={keyCol1}
-                className={`hidden md:flex md:flex-col md:space-y-4 ${
-                  animate ? "md:animate-teleportScroll" : ""
+                className={`flex flex-col space-y-4 ${
+                  animate ? "animate-teleportScroll" : ""
                 }`}
               >
                 {[...imagesColumn1, ...imagesColumn1].map(({ src, alt }, index) => (
@@ -118,21 +118,14 @@ const AboutSection = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col space-y-4 md:hidden">
-                {imagesColumn1.slice(0, 2).map(({ src, alt }, index) => (
-                  <div key={index} className="overflow-hidden rounded-lg">
-                    <img src={src} alt={alt} className="w-full h-auto object-cover" />
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* Coluna 2 */}
-            <div className="w-1/2 md:w-full h-auto md:h-[600px] overflow-hidden">
+            <div className="w-1/2 md:w-full h-[300px] md:h-[600px] overflow-hidden">
               <div
                 key={keyCol2}
-                className={`hidden md:flex md:flex-col md:space-y-4 ${
-                  animate ? "md:animate-teleportScroll" : ""
+                className={`flex flex-col space-y-4 ${
+                  animate ? "animate-teleportScroll" : ""
                 }`}
               >
                 {[...imagesColumn2, ...imagesColumn2].map(({ src, alt }, index) => (
@@ -141,13 +134,6 @@ const AboutSection = () => {
                     className="overflow-hidden rounded-lg transition-transform duration-500 md:hover:scale-105 md:hover:brightness-90 md:hover:shadow-lg"
                   >
                     <img src={src} alt={alt} className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-col space-y-4 md:hidden">
-                {imagesColumn2.slice(0, 2).map(({ src, alt }, index) => (
-                  <div key={index} className="overflow-hidden rounded-lg">
-                    <img src={src} alt={alt} className="w-full h-auto object-cover" />
                   </div>
                 ))}
               </div>

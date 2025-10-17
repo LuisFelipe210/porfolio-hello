@@ -5,7 +5,7 @@ import Logo from "../assets/logo.svg";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [textColor, setTextColor] = useState("white");
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -15,28 +15,63 @@ const Header = () => {
     }
   };
 
-  // Detecta rolagem para aplicar efeito
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+    const sections = ["home", "about", "portfolio", "services", "contact"];
+    const observerOptions = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.5,
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const handleIntersect = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const target = entry.target as HTMLElement;
+          const bg = target.getAttribute("data-bg") || "";
+          if (bg === "dark") {
+            setTextColor("white");
+          } else if (bg === "light") {
+            setTextColor("black");
+          } else {
+            // fallback if no data-bg attribute
+            // check class for 'dark' or 'light'
+            if (target.classList.contains("dark")) {
+              setTextColor("white");
+            } else {
+              setTextColor("black");
+            }
+          }
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+
+    sections.forEach((id) => {
+      const section = document.getElementById(id);
+      if (section) {
+        observer.observe(section);
+      }
+    });
+
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   return (
     <header
       className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 
-      ${isScrolled
-        ? "bg-background/50 backdrop-blur-xl shadow-md scale-95"
-        : "bg-background/80 backdrop-blur-lg shadow-xl scale-100"
-      } border border-border/20 rounded-md w-[70%] md:w-[40%]`}
+        bg-white/20 backdrop-blur-2xl shadow-inner border border-white/20 rounded-md w-[70%] md:w-[40%]`}
     >
       <nav className="px-4 py-2 md:py-3 flex items-center justify-between gap-6 md:gap-16">
-        <div className="flex items-center space-x-2">
-          <img src={Logo} alt="Hellô Borges" className="h-8 md:h-10 w-auto" />
-          <span className="text-lg md:text-xl font-semibold tracking-wide">Hellô</span>
+        <div className="flex items-center space-x-2" style={{ color: textColor }}>
+          <img src={Logo} alt="Hellô Borges" className="h-10 md:h-11 w-auto" />
+          <span
+            className="text-2xl md:text-3xl font-bold tracking-wide drop-shadow-lg text-orange-500"
+          >
+            Hellô
+          </span>
         </div>
 
         {/* Navegação Desktop */}
@@ -45,7 +80,8 @@ const Header = () => {
             <button
               key={index}
               onClick={() => scrollToSection(id)}
-              className="text-sm font-medium hover:text-accent transition-colors"
+              className="drop-shadow-lg font-bold"
+              style={{ color: textColor }}
             >
               {id === "home" && "Início"}
               {id === "about" && "Sobre"}
@@ -63,7 +99,7 @@ const Header = () => {
           className="md:hidden"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMenuOpen ? <X size={24} className="drop-shadow-lg" style={{ color: textColor }} /> : <Menu size={24} className="drop-shadow-lg" style={{ color: textColor }} />}
         </Button>
 
         {/* Menu Mobile */}
@@ -74,7 +110,8 @@ const Header = () => {
                 <button
                   key={index}
                   onClick={() => scrollToSection(id)}
-                  className="text-left text-sm font-medium hover:text-accent transition-colors"
+                  className="drop-shadow-lg text-left text-sm font-bold hover:text-accent transition-colors"
+                  style={{ color: textColor }}
                 >
                   {id === "home" && "Início"}
                   {id === "about" && "Sobre"}
