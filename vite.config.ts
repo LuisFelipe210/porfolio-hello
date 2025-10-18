@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
     server: {
         host: "::",
         port: 8080,
+        // A seção 'proxy' foi removida
     },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
     resolve: {
