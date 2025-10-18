@@ -94,19 +94,30 @@ const AdminPortfolio = () => {
             const token = localStorage.getItem('authToken');
 
             if (editingId) {
-                // Editando item existente
+                if (!editingId) throw new Error('ID do item não definido.');
+                console.log("Atualizando item com ID:", editingId);
+
                 const portfolioResponse = await fetch(`/api/portfolio?id=${editingId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                     },
-                    body: JSON.stringify({ title, category, description, ...(imageUrl && { image: imageUrl }) }),
+                    body: JSON.stringify({
+                        title,
+                        category,
+                        description,
+                        ...(file && { image: imageUrl }) // só envia imagem se tiver arquivo novo
+                    }),
                 });
-                if (!portfolioResponse.ok) throw new Error('Falha ao atualizar o item.');
+
+                if (!portfolioResponse.ok) {
+                    const errorData = await portfolioResponse.json();
+                    throw new Error(errorData?.error || 'Falha ao atualizar o item.');
+                }
+
                 toast({ title: 'Sucesso!', description: 'Item atualizado com sucesso.' });
             } else {
-                // Adicionando novo item
                 if (!file) throw new Error('Por favor, selecione uma imagem.');
                 const portfolioResponse = await fetch('/api/portfolio', {
                     method: 'POST',
@@ -116,7 +127,12 @@ const AdminPortfolio = () => {
                     },
                     body: JSON.stringify({ title, category, description, image: imageUrl }),
                 });
-                if (!portfolioResponse.ok) throw new Error('Falha ao adicionar o item ao portfólio.');
+
+                if (!portfolioResponse.ok) {
+                    const errorData = await portfolioResponse.json();
+                    throw new Error(errorData?.error || 'Falha ao adicionar o item ao portfólio.');
+                }
+
                 toast({ title: 'Sucesso!', description: 'Novo item adicionado ao portfólio.' });
             }
 
