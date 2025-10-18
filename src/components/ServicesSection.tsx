@@ -128,7 +128,14 @@ const ServicesSection = () => {
                                                 ))}
                                             </ul>
                                         </div>
-                                        <a href="#contact" onClick={handlePriceClick} className="bg-orange-500 text-white px-4 py-1.5 rounded-md hover:bg-orange-600 transition-colors inline-block self-start text-sm">{service.price}</a>
+                                        <a
+                                          href={`https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20fazer%20um%20orçamento%20para%20o%20serviço%20${encodeURIComponent(service.title)}.`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="bg-orange-500 text-white px-4 py-1.5 rounded-md hover:bg-orange-600 transition-colors inline-block self-start text-sm"
+                                        >
+                                          {service.price}
+                                        </a>
                                     </div>
                                 );
                             })

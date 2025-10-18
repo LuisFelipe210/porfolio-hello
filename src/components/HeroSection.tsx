@@ -55,7 +55,6 @@ const HeroSection = () => {
                 )}
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
                     <Button size="lg" onClick={scrollToPortfolio} className="bg-accent text-primary ...">Ver Portfolio</Button>
-                    <Button size="lg" variant="outline" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })} className="...">Entre em Contato</Button>
                 </div>
             </div>
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-float">
