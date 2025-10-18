@@ -5,7 +5,7 @@ const descriptions = {
   wedding: "Momentos únicos do seu grande dia",
   maternity: "A beleza da expectativa",
   family: "Conexões e amor em família",
-  gastro: "Detalhes que despertam o apetite",
+  events: "Emoções reais, vividas e eternizadas",
 };
 
 const portfolioItems = [
@@ -21,9 +21,9 @@ const portfolioItems = [
   { id: 10, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542103/main-sample.png", description: descriptions.family },
   { id: 11, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542083/samples/people/jazz.jpg", description: descriptions.family },
   { id: 12, title: "Família", category: "family", image:"https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542083/samples/people/boy-snow-hoodie.jpg", description: descriptions.family },
-  { id: 13, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542103/cld-sample-4.jpg", description: descriptions.gastro },
-  { id: 14, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542097/samples/coffee.jpg", description: descriptions.gastro },
-  { id: 15, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542515/portfolio-portrait_tgafrx.png", description: descriptions.gastro },
+  { id: 13, title: "Eventos", category: "events", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542103/cld-sample-4.jpg", description: descriptions.events },
+  { id: 14, title: "Eventos", category: "events", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542097/samples/coffee.jpg", description: descriptions.events },
+  { id: 15, title: "Eventos", category: "events", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542515/portfolio-portrait_tgafrx.png", description: descriptions.events },
   { id: 16, title: "Retratos", category: "portrait", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542520/portfolio-maternity_y7g4eo.png", description: descriptions.portrait },
   { id: 17, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542514/1_ltqoke.jpg", description: descriptions.wedding },
   { id: 18, title: "Casamentos", category: "wedding", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542514/3_pvr2ee.jpg", description: descriptions.wedding },
@@ -36,9 +36,9 @@ const portfolioItems = [
   { id: 25, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542103/main-sample.png", description: descriptions.family },
   { id: 26, title: "Família", category: "family", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542083/samples/people/jazz.jpg", description: descriptions.family },
   { id: 27, title: "Família", category: "family", image:"https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542083/samples/people/boy-snow-hoodie.jpg", description: descriptions.family },
-  { id: 28, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542103/cld-sample-4.jpg", description: descriptions.gastro },
-  { id: 29, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542097/samples/coffee.jpg", description: descriptions.gastro },
-  { id: 30, title: "Gastronômico", category: "gastro", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542515/portfolio-portrait_tgafrx.png", description: descriptions.gastro },
+  { id: 28, title: "Eventos", category: "events", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542103/cld-sample-4.jpg", description: descriptions.events },
+  { id: 29, title: "Eventos", category: "events", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542097/samples/coffee.jpg", description: descriptions.events },
+  { id: 30, title: "Eventos", category: "events", image: "https://res.cloudinary.com/dohdgkzdu/image/upload/l_image:upload:My Brand:logo_yqiqm6/c_scale,fl_relative,w_0.10/o_30/fl_layer_apply,g_south_east,x_0.02,y_0.02/v1760542515/portfolio-portrait_tgafrx.png", description: descriptions.events },
 ];
 
 const categories = [
@@ -47,7 +47,7 @@ const categories = [
   { id: "wedding", name: "Casamentos" },
   { id: "maternity", name: "Maternidade" },
   { id: "family", name: "Família" },
-  { id: "gastro", name: "Gastronômico" },
+  { id: "events", name: "Eventos" },
 ];
 
 const ITEMS_PER_PAGE = 6;
