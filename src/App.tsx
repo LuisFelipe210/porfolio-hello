@@ -14,6 +14,7 @@ import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminLogin from "./pages/Admin/AdminLogin";
 import AdminPortfolio from "./pages/Admin/AdminPortfolio";
 import AdminServices from "./pages/Admin/AdminServices";
+import AdminAbout from "./pages/Admin/AdminAbout";
 
 import ShutterPreloader from "./components/ShutterPreloader";
 import FloatingContact from "./components/FloatingContact";
@@ -53,6 +54,7 @@ const App = () => {
                                     {/* O Outlet em AdminLayout renderizará estas rotas filhas */}
                                     <Route path="portfolio" element={<AdminPortfolio />} />
                                     <Route path="services" element={<AdminServices />} />
+                                    <Route path="about" element={<AdminAbout />} />
                                 </Route>
                             </Routes>
                         </BrowserRouter>

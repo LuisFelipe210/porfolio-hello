@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
+import { User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { LogOut, LayoutDashboard, ImageIcon, Menu } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
-import { useIsMobile } from '@/hooks/use-mobile'; // Hook para detectar se é mobile
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -46,6 +47,15 @@ const AdminLayout = () => {
                 >
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Serviços
+                </Button>
+            </Link>
+            <Link to="/admin/about" onClick={() => setSheetOpen(false)}>
+                <Button
+                    variant={isLinkActive('/admin/about') ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                >
+                    <User className="mr-2 h-4 w-4" />
+                    Sobre Mim
                 </Button>
             </Link>
         </nav>
