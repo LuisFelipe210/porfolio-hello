@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { Skeleton } from './ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile'; // Hook para detetar se é mobile
 
 interface Testimonial {
     _id: string;
@@ -13,6 +14,10 @@ interface Testimonial {
 const TestimonialsSection = () => {
     const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [api, setApi] = useState<CarouselApi>();
+    const [current, setCurrent] = useState(0);
+    const [count, setCount] = useState(0);
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         const fetchTestimonials = async () => {
@@ -29,6 +34,20 @@ const TestimonialsSection = () => {
         fetchTestimonials();
     }, []);
 
+    useEffect(() => {
+        if (!api) {
+            return;
+        }
+
+        setCount(api.scrollSnapList().length);
+        setCurrent(api.selectedScrollSnap() + 1);
+
+        api.on("select", () => {
+            setCurrent(api.selectedScrollSnap() + 1);
+        });
+    }, [api]);
+
+
     if (isLoading) {
         return (
             <section className="py-16 md:py-24 bg-secondary/20">
@@ -42,7 +61,7 @@ const TestimonialsSection = () => {
     }
 
     if (testimonials.length === 0) {
-        return null; // Não mostra a secção se não houver depoimentos
+        return null;
     }
 
     return (
@@ -54,6 +73,7 @@ const TestimonialsSection = () => {
                 </p>
 
                 <Carousel
+                    setApi={setApi} // Precisamos disto para os pontos
                     opts={{ align: "start", loop: true }}
                     className="w-full max-w-2xl mx-auto"
                 >
@@ -62,7 +82,7 @@ const TestimonialsSection = () => {
                             <CarouselItem key={item._id}>
                                 <div className="p-1">
                                     <Card>
-                                        <CardContent className="flex flex-col items-center justify-center p-8 text-center">
+                                        <CardContent className="flex flex-col items-center justify-center p-8 text-center min-h-[250px]">
                                             <p className="mb-4 italic text-muted-foreground">"{item.text}"</p>
                                             <h3 className="font-semibold">{item.author}</h3>
                                             <span className="text-sm text-muted-foreground">{item.role}</span>
@@ -72,9 +92,31 @@ const TestimonialsSection = () => {
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    <CarouselPrevious className="hidden sm:inline-flex" />
-                    <CarouselNext className="hidden sm:inline-flex" />
+
+                    {/* Renderiza as setas apenas se NÃO for mobile */}
+                    {!isMobile && (
+                        <>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                        </>
+                    )}
                 </Carousel>
+
+                {/* Pontos indicadores para mobile */}
+                {isMobile && (
+                    <div className="flex justify-center space-x-2 mt-4">
+                        {Array.from({ length: count }).map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => api?.scrollTo(index)}
+                                className={`h-2.5 rounded-full transition-all duration-300 ${
+                                    index + 1 === current ? 'bg-orange-500 w-6' : 'bg-orange-200 w-2.5'
+                                }`}
+                                aria-label={`Ir para o depoimento ${index + 1}`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     );
