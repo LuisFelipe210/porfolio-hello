@@ -3,7 +3,7 @@ import HeroSection from "../components/HeroSection.tsx";
 import AboutSection from "../components/AboutSection.tsx";
 import PortfolioSection from "../components/PortfolioSection.tsx";
 import ServicesSection from "../components/ServicesSection.tsx";
-import ContactSection from "../components/ContactSection.tsx";
+import TestimonialsSection from "../components/TestimonialsSection.tsx";
 import Footer from "../components/Footer.tsx";
 
 const Index = () => {
@@ -15,6 +15,7 @@ const Index = () => {
         <AboutSection />
         <PortfolioSection />
         <ServicesSection />
+          <TestimonialsSection />
       </main>
       <Footer />
     </div>

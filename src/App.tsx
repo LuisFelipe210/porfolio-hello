@@ -16,6 +16,7 @@ import AdminPortfolio from "./pages/Admin/AdminPortfolio";
 import AdminServices from "./pages/Admin/AdminServices";
 import AdminAbout from "./pages/Admin/AdminAbout";
 import AdminSettings from "./pages/Admin/AdminSettings";
+import AdminTestimonials from "./pages/Admin/AdminTestimonials";
 
 import ShutterPreloader from "./components/ShutterPreloader";
 import FloatingContact from "./components/FloatingContact";
@@ -57,6 +58,8 @@ const App = () => {
                                     <Route path="services" element={<AdminServices />} />
                                     <Route path="about" element={<AdminAbout />} />
                                     <Route path="settings" element={<AdminSettings />} />
+                                    <Route path="testimonials" element={<AdminTestimonials />} />
+
                                 </Route>
                             </Routes>
                         </BrowserRouter>

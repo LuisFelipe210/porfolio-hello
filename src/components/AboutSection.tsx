@@ -78,17 +78,17 @@ const AboutSection = () => {
                         <div className="flex justify-center gap-8 mt-8">
                             <div className="text-center">
                                 <div className="flex justify-center mb-2"><Camera className="w-6 h-6 text-accent" /></div>
-                                <div className="text-2xl font-medium text-foreground">50+</div>
+                                <div className="text-2xl font-medium text-foreground">100+</div>
                                 <div className="text-sm text-muted-foreground">Sessões</div>
                             </div>
                             <div className="text-center">
                                 <div className="flex justify-center mb-2"><Heart className="w-6 h-6 text-accent" /></div>
-                                <div className="text-2xl font-medium text-foreground">1+</div>
+                                <div className="text-2xl font-medium text-foreground">40+</div>
                                 <div className="text-sm text-muted-foreground">Casamentos</div>
                             </div>
                             <div className="text-center">
                                 <div className="flex justify-center mb-2"><Users className="w-6 h-6 text-accent" /></div>
-                                <div className="text-2xl font-medium text-foreground">3+</div>
+                                <div className="text-2xl font-medium text-foreground">20+</div>
                                 <div className="text-sm text-muted-foreground">Famílias</div>
                             </div>
                         </div>
