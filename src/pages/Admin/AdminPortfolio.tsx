@@ -12,7 +12,6 @@ import {
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -26,9 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Edit } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Skeleton } from '@/components/ui/skeleton'; // <-- CORREÇÃO 1: Importação do Skeleton
+import { Skeleton } from '@/components/ui/skeleton';
 
-// CORREÇÃO 2: Definindo um tipo para o item do portfólio
 interface PortfolioItem {
     _id: string;
     title: string;
@@ -49,6 +47,7 @@ const AdminPortfolio = () => {
     const [description, setDescription] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     const fetchItems = async () => {
         setIsLoading(true);
@@ -73,42 +72,60 @@ const AdminPortfolio = () => {
         setCategory('');
         setDescription('');
         setFile(null);
+        setEditingId(null);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!file) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem.' });
-            return;
-        }
         setIsSubmitting(true);
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            let imageUrl = '';
 
-            const uploadResponse = await fetch('/api/upload', { method: 'POST', body: formData });
-            if (!uploadResponse.ok) throw new Error('Falha ao fazer o upload da imagem.');
-            const { url: imageUrl } = await uploadResponse.json();
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                const uploadResponse = await fetch('/api/upload', { method: 'POST', body: formData });
+                if (!uploadResponse.ok) throw new Error('Falha ao fazer o upload da imagem.');
+                const uploadData = await uploadResponse.json();
+                imageUrl = uploadData.url;
+            }
 
             const token = localStorage.getItem('authToken');
-            const portfolioResponse = await fetch('/api/portfolio', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({ title, category, description, image: imageUrl }),
-            });
-            if (!portfolioResponse.ok) throw new Error('Falha ao adicionar o item ao portfólio.');
 
-            toast({ title: 'Sucesso!', description: 'Novo item adicionado ao portfólio.' });
+            if (editingId) {
+                // Editando item existente
+                const portfolioResponse = await fetch(`/api/portfolio?id=${editingId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ title, category, description, ...(imageUrl && { image: imageUrl }) }),
+                });
+                if (!portfolioResponse.ok) throw new Error('Falha ao atualizar o item.');
+                toast({ title: 'Sucesso!', description: 'Item atualizado com sucesso.' });
+            } else {
+                // Adicionando novo item
+                if (!file) throw new Error('Por favor, selecione uma imagem.');
+                const portfolioResponse = await fetch('/api/portfolio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ title, category, description, image: imageUrl }),
+                });
+                if (!portfolioResponse.ok) throw new Error('Falha ao adicionar o item ao portfólio.');
+                toast({ title: 'Sucesso!', description: 'Novo item adicionado ao portfólio.' });
+            }
+
             resetForm();
             setIsDialogOpen(false);
             fetchItems();
-        } catch (error: unknown) { // <-- CORREÇÃO 3 (linha 107): 'any' trocado por 'unknown'
+        } catch (error: unknown) {
             console.error(error);
-            const errorMessage = error instanceof Error ? error.message : 'Não foi possível adicionar o item.';
+            const errorMessage = error instanceof Error ? error.message : 'Não foi possível processar o item.';
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
         } finally {
             setIsSubmitting(false);
@@ -129,6 +146,15 @@ const AdminPortfolio = () => {
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o item.' });
         }
+    };
+
+    const handleEdit = (item: PortfolioItem) => {
+        setTitle(item.title);
+        setCategory(item.category);
+        setDescription(item.description);
+        setFile(null);
+        setEditingId(item._id);
+        setIsDialogOpen(true);
     };
 
     const renderContent = () => {
@@ -161,8 +187,8 @@ const AdminPortfolio = () => {
                                 <div className="flex-1">
                                     <h3 className="font-semibold">{item.title}</h3>
                                     <p className="text-sm text-muted-foreground capitalize">{item.category}</p>
-                                    <div className="mt-2">
-                                        <Button variant="ghost" size="sm" disabled>
+                                    <div className="mt-2 flex gap-2">
+                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
                                             <Edit className="h-4 w-4 mr-1" /> Editar
                                         </Button>
                                         <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(item._id)}>
@@ -186,9 +212,13 @@ const AdminPortfolio = () => {
                         </TableCell>
                         <TableCell className="font-medium">{item.title}</TableCell>
                         <TableCell className="capitalize">{item.category}</TableCell>
-                        <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" disabled><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <TableCell className="text-right flex justify-end gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
                         </TableCell>
                     </TableRow>
                 ))}
@@ -208,12 +238,13 @@ const AdminPortfolio = () => {
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
-                        <DialogHeader><DialogTitle>Adicionar Novo Item</DialogTitle></DialogHeader>
+                        <DialogHeader><DialogTitle>{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle></DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div><Label htmlFor="title">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                             <div>
                                 <Label htmlFor="category">Categoria</Label>
-                                <Select onValueChange={setCategory} value={category}><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                <Select onValueChange={setCategory} value={category}>
+                                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="portrait">Retratos</SelectItem>
                                         <SelectItem value="wedding">Casamentos</SelectItem>
@@ -224,10 +255,10 @@ const AdminPortfolio = () => {
                                 </Select>
                             </div>
                             <div><Label htmlFor="description">Descrição</Label><Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required /></div>
-                            <div><Label htmlFor="file">Imagem</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required /></div>
+                            <div><Label htmlFor="file">Imagem {editingId ? "(opcional)" : ""}</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} /></div>
                             <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar Item'}</Button>
+                                <DialogClose asChild><Button type="button" variant="secondary" onClick={resetForm}>Cancelar</Button></DialogClose>
+                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Salvar Item'}</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>

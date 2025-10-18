@@ -41,6 +41,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/services" onClick={() => setSheetOpen(false)}>
                 <Button
+                    disabled
                     variant={isLinkActive('/admin/services') ? "secondary" : "ghost"}
                     className="w-full justify-start"
                 >
