@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -12,6 +12,7 @@ import {
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -75,13 +76,29 @@ const AdminPortfolio = () => {
         setEditingId(null);
     };
 
+    const handleOpenDialog = (item: PortfolioItem | null = null) => {
+        resetForm();
+        if (item) {
+            setEditingId(item._id);
+            setTitle(item.title);
+            setCategory(item.category);
+            setDescription(item.description);
+        }
+        setIsDialogOpen(true);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!editingId && !file) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem para um novo item.' });
+            return;
+        }
         setIsSubmitting(true);
 
         try {
             let imageUrl = '';
 
+            // 1. Faz o upload da imagem SOMENTE se uma nova foi selecionada
             if (file) {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -92,53 +109,36 @@ const AdminPortfolio = () => {
             }
 
             const token = localStorage.getItem('authToken');
+            const method = editingId ? 'PUT' : 'POST';
+            const url = editingId ? `/api/portfolio?id=${editingId}` : '/api/portfolio';
 
-            if (editingId) {
-                if (!editingId) throw new Error('ID do item não definido.');
-                console.log("Atualizando item com ID:", editingId);
+            const body = {
+                title,
+                category,
+                description,
+                ...(imageUrl && { image: imageUrl }) // Só envia a propriedade 'image' se uma nova imagem foi enviada
+            };
 
-                const portfolioResponse = await fetch(`/api/portfolio?id=${editingId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        title,
-                        category,
-                        description,
-                        ...(file && { image: imageUrl }) // só envia imagem se tiver arquivo novo
-                    }),
-                });
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(body),
+            });
 
-                if (!portfolioResponse.ok) {
-                    const errorData = await portfolioResponse.json();
-                    throw new Error(errorData?.error || 'Falha ao atualizar o item.');
-                }
-
-                toast({ title: 'Sucesso!', description: 'Item atualizado com sucesso.' });
-            } else {
-                if (!file) throw new Error('Por favor, selecione uma imagem.');
-                const portfolioResponse = await fetch('/api/portfolio', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ title, category, description, image: imageUrl }),
-                });
-
-                if (!portfolioResponse.ok) {
-                    const errorData = await portfolioResponse.json();
-                    throw new Error(errorData?.error || 'Falha ao adicionar o item ao portfólio.');
-                }
-
-                toast({ title: 'Sucesso!', description: 'Novo item adicionado ao portfólio.' });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Falha ao salvar o item.');
             }
+
+            toast({ title: 'Sucesso!', description: `Item ${editingId ? 'atualizado' : 'adicionado'} com sucesso.` });
 
             resetForm();
             setIsDialogOpen(false);
             fetchItems();
+
         } catch (error: unknown) {
             console.error(error);
             const errorMessage = error instanceof Error ? error.message : 'Não foi possível processar o item.';
@@ -148,6 +148,7 @@ const AdminPortfolio = () => {
         }
     };
 
+    // ... (resto do seu código, handleDelete e renderContent, continua igual)
     const handleDelete = async (id: string) => {
         if (!window.confirm('Tem certeza que deseja excluir este item?')) return;
         try {
@@ -162,15 +163,6 @@ const AdminPortfolio = () => {
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o item.' });
         }
-    };
-
-    const handleEdit = (item: PortfolioItem) => {
-        setTitle(item.title);
-        setCategory(item.category);
-        setDescription(item.description);
-        setFile(null);
-        setEditingId(item._id);
-        setIsDialogOpen(true);
     };
 
     const renderContent = () => {
@@ -203,8 +195,8 @@ const AdminPortfolio = () => {
                                 <div className="flex-1">
                                     <h3 className="font-semibold">{item.title}</h3>
                                     <p className="text-sm text-muted-foreground capitalize">{item.category}</p>
-                                    <div className="mt-2 flex gap-2">
-                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
+                                    <div className="mt-2">
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(item)}>
                                             <Edit className="h-4 w-4 mr-1" /> Editar
                                         </Button>
                                         <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(item._id)}>
@@ -228,13 +220,9 @@ const AdminPortfolio = () => {
                         </TableCell>
                         <TableCell className="font-medium">{item.title}</TableCell>
                         <TableCell className="capitalize">{item.category}</TableCell>
-                        <TableCell className="text-right flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                                <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                        <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         </TableCell>
                     </TableRow>
                 ))}
@@ -246,15 +234,20 @@ const AdminPortfolio = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl md:text-3xl font-bold">Gerenciar Portfólio</h1>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { setIsDialogOpen(isOpen); if (!isOpen) resetForm(); }}>
                     <DialogTrigger asChild>
-                        <Button size={isMobile ? "sm" : "default"}>
+                        <Button size={isMobile ? "sm" : "default"} onClick={() => handleOpenDialog()}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Adicionar
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
-                        <DialogHeader><DialogTitle>{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle></DialogHeader>
+                        <DialogHeader>
+                            <DialogTitle>{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
+                            <DialogDescription>
+                                {editingId ? "Altere as informações abaixo. Apenas selecione uma nova imagem se desejar substituí-la." : "Preencha os detalhes e faça o upload da imagem."}
+                            </DialogDescription>
+                        </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div><Label htmlFor="title">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                             <div>
@@ -271,10 +264,10 @@ const AdminPortfolio = () => {
                                 </Select>
                             </div>
                             <div><Label htmlFor="description">Descrição</Label><Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required /></div>
-                            <div><Label htmlFor="file">Imagem {editingId ? "(opcional)" : ""}</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} /></div>
+                            <div><Label htmlFor="file">Imagem {editingId ? "(Opcional: selecione para substituir)" : ""}</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required={!editingId} /></div>
                             <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary" onClick={resetForm}>Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Salvar Item'}</Button>
+                                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
+                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Item'}</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
