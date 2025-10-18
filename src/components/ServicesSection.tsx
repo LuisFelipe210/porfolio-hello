@@ -141,7 +141,7 @@ const ServicesSection = () => {
                             return (
                                 <div
                                     key={service.title}
-                                    className="flex-shrink-0 md:flex-shrink md:w-auto w-[80vw] p-8 min-h-[400px] border border-gray-200/60 bg-white/90 dark:bg-gray-900/60 backdrop-blur-sm shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 flex flex-col justify-between animate-fade-in snap-center"
+                                    className="flex-shrink-0 md:flex-shrink md:w-auto w-[80vw] p-8 min-h-[400px] border border-gray-200/60 bg-white/90 dark:bg-gray-900/60 backdrop-blur-sm shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 flex flex-col justify-between animate-fade-in snap-center overflow-hidden"
                                     style={{ animationDelay: `${idx * 0.1}s` }}
                                 >
                                     <div>
