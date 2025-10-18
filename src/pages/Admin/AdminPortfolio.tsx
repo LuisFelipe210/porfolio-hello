@@ -154,9 +154,6 @@ const AdminPortfolio = () => {
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
                 <h1 className="text-3xl font-bold">Gerenciar Portfólio</h1>
                 <div className="flex gap-2">
-                    <Button onClick={toggleTheme} variant="outline" size="icon">
-                        {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    </Button>
                     <Dialog open={isDialogOpen} onOpenChange={(open) => {
                         setIsDialogOpen(open);
                         if (!open) resetForm();

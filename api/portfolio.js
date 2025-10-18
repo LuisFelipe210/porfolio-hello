@@ -43,6 +43,32 @@ export default async function handler(req, res) {
             return res.status(201).json(insertedItem);
         }
 
+        // --- ROTA PROTEGIDA: ATUALIZAR ITEM (PUT) ---
+        if (req.method === 'PUT') {
+            const { id } = req.query;
+            if (!id) return res.status(400).json({ error: 'ID do item não fornecido.' });
+
+            const { title, category, description, image } = req.body;
+            const updatedItem = {
+                ...(title !== undefined && { title }),
+                ...(category !== undefined && { category }),
+                ...(description !== undefined && { description }),
+                ...(image !== undefined && { image }),
+            };
+
+            const result = await collection.findOneAndUpdate(
+                { _id: new ObjectId(id) },
+                { $set: updatedItem },
+                { returnDocument: 'after' }
+            );
+
+            if (!result.value) {
+                return res.status(404).json({ error: 'Item não encontrado.' });
+            }
+
+            return res.status(200).json(result.value);
+        }
+
         // --- ROTA PROTEGIDA: EXCLUIR ITEM (DELETE) ---
         if (req.method === 'DELETE') {
             const { id } = req.query;
