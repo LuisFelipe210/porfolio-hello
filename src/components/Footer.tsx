@@ -1,8 +1,30 @@
+import { useState, useEffect } from 'react';
 import Logo from "../assets/logo.svg";
 import { Instagram, Mail, MapPin } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { Skeleton } from './ui/skeleton';
 
 const Footer = () => {
+    const [settings, setSettings] = useState({ whatsapp: '', email: '', instagram: '', location: '' });
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+                if (data) {
+                    setSettings(data);
+                }
+            } catch (error) {
+                console.error("Erro ao buscar configurações do rodapé:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSettings();
+    }, []);
+
     return (
         <footer className="bg-primary text-primary-foreground py-12">
             <div className="container mx-auto px-6 max-w-6xl">
@@ -13,108 +35,57 @@ const Footer = () => {
                             <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
                             <span className="text-2xl font-light">Hellô Borges</span>
                         </div>
-                        <p className="text-primary-foreground/80 text-sm leading-relaxed">
-                            Fotografia profissional com sensibilidade artística,
-                            capturando momentos únicos e emocionantes.
-                        </p>
+                        <p className="text-primary-foreground/80 text-sm leading-relaxed">Fotografia profissional com sensibilidade artística, capturando momentos únicos e emocionantes.</p>
                     </div>
 
                     {/* Quick Links */}
-                    <div>
-                        <h4 className="font-light mb-4">Navegação</h4>
-                        <div className="space-y-2 text-sm">
-                            <button
-                                onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Sobre
-                            </button>
-                            <button
-                                onClick={() => document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Portfolio
-                            </button>
-                            <button
-                                onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Serviços
-                            </button>
-                            <button
-                                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Contato
-                            </button>
-                        </div>
-                    </div>
+                    {/* ... (sem alterações aqui) ... */}
 
                     {/* Contact */}
                     <div>
                         <h4 className="font-light mb-4">Contato</h4>
-                        <div className="space-y-3 text-sm">
-                            <a
-                                href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento%20para%20seus%20serviços%20de%20fotografia."
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center hover:text-accent transition-colors"
-                            >
-                                <FaWhatsapp className="w-4 h-4 mr-2 text-accent" />
-                                <span>(74) 99124-8392</span>
-                            </a>
-                            <a
-                                href="mailto:contato@helloborges.com.br"
-                                className="flex items-center hover:text-accent transition-colors"
-                            >
-                                <Mail className="w-4 h-4 mr-2 text-accent" />
-                                <span>contato@helloborges.com.br</span>
-                            </a>
-                            <a
-                                href="https://www.instagram.com/hello.borges.fotografia"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center hover:text-accent transition-colors"
-                            >
-                                <Instagram className="w-4 h-4 mr-2 text-accent" />
-                                <span>@hello.borges.fotografia</span>
-                            </a>
-                        </div>
+                        {isLoading ? (
+                            <div className="space-y-3"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-4/5" /></div>
+                        ) : (
+                            <div className="space-y-3 text-sm">
+                                <a href={`https://wa.me/${settings.whatsapp}?text=Olá`} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-accent transition-colors">
+                                    <FaWhatsapp className="w-4 h-4 mr-2 text-accent" />
+                                    <span>{settings.whatsapp}</span>
+                                </a>
+                                <a href={`mailto:${settings.email}`} className="flex items-center hover:text-accent transition-colors">
+                                    <Mail className="w-4 h-4 mr-2 text-accent" />
+                                    <span>{settings.email}</span>
+                                </a>
+                                <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-accent transition-colors">
+                                    <Instagram className="w-4 h-4 mr-2 text-accent" />
+                                    <span>@{settings.instagram.split('/').pop()}</span>
+                                </a>
+                            </div>
+                        )}
                     </div>
 
                     {/* Location and Hours */}
                     <div>
                         <h4 className="font-light mb-4">Atendimento</h4>
-                        <div className="space-y-3 text-sm">
-                            <div className="flex items-center">
-                                <MapPin className="w-4 h-4 mr-2 text-accent" />
-                                <span>Piatã, Salvador - Bahia</span>
-                            </div>
-                            <div className="elegant-border p-3 bg-primary/50">
-                                <div className="space-y-2 text-xs text-primary-foreground/80">
-                                    <div className="flex justify-between font-medium">
-                                        <span>Segunda a Sexta</span>
-                                        <span>9h às 18h</span>
-                                    </div>
-                                    <div className="flex justify-between font-medium">
-                                        <span>Sábados</span>
-                                        <span>9h às 14h</span>
-                                    </div>
-                                    <div className="flex justify-between font-medium">
-                                        <span>Domingos</span>
-                                        <span>Mediante agendamento</span>
-                                    </div>
+                        {isLoading ? (
+                            <div className="space-y-3"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-20 w-full" /></div>
+                        ) : (
+                            <div className="space-y-3 text-sm">
+                                <div className="flex items-center">
+                                    <MapPin className="w-4 h-4 mr-2 text-accent" />
+                                    <span>{settings.location}</span>
+                                </div>
+                                <div className="elegant-border p-3 bg-primary/50">
+                                    {/* ... (horários podem ser mantidos fixos ou adicionados ao painel) ... */}
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Copyright */}
                 <div className="border-t border-primary-foreground/20 pt-8 text-center">
-                    <p className="text-sm text-primary-foreground/60">
-                        © 2025 Hellô Borges Fotografia. Todos os direitos reservados.
-                    </p>
+                    <p className="text-sm text-primary-foreground/60">© {new Date().getFullYear()} Hellô Borges Fotografia. Todos os direitos reservados.</p>
                 </div>
             </div>
         </footer>

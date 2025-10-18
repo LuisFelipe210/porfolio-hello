@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
-import { User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { LogOut, LayoutDashboard, ImageIcon, Menu } from 'lucide-react';
+import { LogOut, LayoutDashboard, ImageIcon, Menu, User, Settings } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -56,6 +55,15 @@ const AdminLayout = () => {
                 >
                     <User className="mr-2 h-4 w-4" />
                     Sobre Mim
+                </Button>
+            </Link>
+            <Link to="/admin/settings" onClick={() => setSheetOpen(false)}>
+                <Button
+                    variant={isLinkActive('/admin/settings') ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Configurações
                 </Button>
             </Link>
         </nav>
