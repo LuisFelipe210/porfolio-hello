@@ -186,28 +186,32 @@ const PortfolioSection = () => {
             </button>
           ))}
         </div>
-        {/* Mobile: Horizontal scrollable buttons styled as pills */}
+        {/* Mobile: Horizontal scrollable category buttons (underline style) */}
         <div className="relative md:hidden">
           <div
             ref={categoriesScrollRef}
-            className="flex gap-2 mb-4 overflow-x-auto category-scrollbar px-1 -mx-1 snap-x snap-mandatory"
+            className="flex gap-6 mb-6 overflow-x-auto overflow-y-hidden no-scrollbar px-4 snap-x snap-mandatory justify-start relative z-10"
           >
             {categories.map((category, index) => (
               <button
                 key={category.id}
                 onClick={() => scrollToCategory(category.id, index)}
-                className={`flex-shrink-0 px-4 py-2 text-sm font-light tracking-wide transition-all snap-center rounded-full border ${
-                  activeCategory === category.id
-                    ? "bg-accent text-white border-accent shadow"
-                    : "bg-white text-muted-foreground border-zinc-200 hover:bg-accent/10"
-                }`}
-                style={{ minWidth: "fit-content" }}
+                className={`relative pb-1 text-base tracking-wide font-light transition-all duration-300 whitespace-nowrap snap-center
+                  ${
+                    activeCategory === category.id
+                      ? "text-accent after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.5px] after:bg-accent"
+                      : "text-zinc-400 hover:text-zinc-100 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-accent after:transition-all after:duration-300 hover:after:w-full"
+                  }`}
               >
                 {category.name}
               </button>
             ))}
           </div>
+
+          {/* Fade direito */}
+          <div className="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-secondary/50 to-transparent pointer-events-none z-20"></div>
         </div>
+
 
         {/* Portfolio Grid */}
         <div className="overflow-visible">

@@ -1,10 +1,33 @@
-import { Camera, Heart, Users, UtensilsCrossed, ChevronLeft, ChevronRight } from "lucide-react";
+import { Camera, Heart, Users, UserPlus, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
+
+// Componente para ícone de mulher
+const WomanIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="4" r="2" /> {/* Cabeça */}
+    <path d="M12 6v12M9 18h6M9 6h6" /> {/* Corpo simplificado */}
+  </svg>
+);
+
+// Componente SVG de mulher grávida mais evidente
+const PregnantWomanIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 64 64"
+    fill="currentColor"
+    {...props}
+  >
+    {/* Cabeça */}
+    <circle cx="32" cy="12" r="6" />
+    {/* Corpo e barriga */}
+    <path d="M32 22c-6 6-6 14-4 20s8 10 12 6 2-14-4-20c0 0-4-4-4-6z" />
+  </svg>
+);
 
 const services = [
     { icon: Camera, title: "Ensaios e Retratos", description: "Retratos profissionais que capturam sua personalidade única", features: ["Direção de pose", "Edição profissional", "Galeria online"], price: "Consultar valores" },
     { icon: Heart, title: "Casamentos", description: "Cobertura completa do seu grande dia com estilo documental", features: ["Pre-wedding", "Cerimônia e festa", "Álbum personalizado"], price: "Consultar valores" },
-    { icon: UtensilsCrossed, title: "Fotografia Gastronômica", description: "Imagens que despertam o apetite e valorizam seus pratos", features: ["Cardápios", "Redes sociais", "Material publicitário"], price: "Consultar valores" },
+    { icon: UserPlus, title: "Maternidade", description: "Capturando a beleza e expectativa da gestação", features: ["Ensaios externos e internos", "Direção de pose delicada", "Edição profissional"], price: "Consultar valores" },
     { icon: Users, title: "Eventos", description: "Cobertura completa de eventos corporativos e sociais", features: ["Todas as idades", "Momentos espontâneos", "Entrega rápida"], price: "Consultar valores" }
 ];
 
@@ -155,7 +178,8 @@ const ServicesSection = () => {
                                         <ul className="space-y-2 mb-6">
                                             {service.features.map(f => (
                                                 <li key={f} className="text-sm text-muted-foreground flex items-center">
-                                                    ✓&nbsp; {f}
+                                                    <Check className="w-4 h-4 text-orange-500 mr-2 flex-shrink-0" />
+                                                    {f}
                                                 </li>
                                             ))}
                                         </ul>
