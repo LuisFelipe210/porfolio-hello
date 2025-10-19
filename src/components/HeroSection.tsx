@@ -5,16 +5,26 @@ import Logo from "../assets/logo.svg";
 import { Skeleton } from "./ui/skeleton.tsx";
 
 const HeroSection = () => {
-    const [settings, setSettings] = useState({ heroTitle: '', heroSubtitle: '' });
+    const [settings, setSettings] = useState({
+        heroTitle: "Hellô Borges",
+        heroSubtitle: "Fotografia que captura emoções reais."
+    });
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        const cached = sessionStorage.getItem("settings");
+        if (cached) {
+            setSettings(JSON.parse(cached));
+            setIsLoading(false);
+        }
+
         const fetchSettings = async () => {
             try {
-                const response = await fetch('/api/settings');
+                const response = await fetch("/api/settings");
                 const data = await response.json();
                 if (data) {
                     setSettings(data);
+                    sessionStorage.setItem("settings", JSON.stringify(data));
                 }
             } catch (error) {
                 console.error("Erro ao buscar configurações:", error);
@@ -22,6 +32,7 @@ const HeroSection = () => {
                 setIsLoading(false);
             }
         };
+
         fetchSettings();
     }, []);
 
