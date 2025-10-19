@@ -41,7 +41,7 @@ const BlogPostPage = () => {
     }, [slug]);
 
     return (
-        <div className="bg-background min-h-screen">
+        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
             <Header />
             <main className="pt-24 md:pt-32">
                 <div className="container mx-auto max-w-3xl px-6 pb-16 md:pb-24">
