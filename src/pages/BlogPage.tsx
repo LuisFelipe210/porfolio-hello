@@ -37,18 +37,23 @@ const BlogPage = () => {
     }, []);
 
     return (
-        <div className="bg-background min-h-screen">
+        <div className="relative min-h-screen bg-gradient-to-b from-zinc-900 via-zinc-950 to-black overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.15),transparent_60%)] animate-[pulse_10s_ease-in-out_infinite]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.1),transparent_60%)] animate-[pulse_12s_ease-in-out_infinite]" />
             <Header />
             <main className="pt-24 md:pt-32">
                 <section className="section-padding">
                     <div className="container mx-auto max-w-4xl">
                         <div className="text-center mb-16">
-                            {/* ----- CORREÇÃO AQUI ----- */}
-                            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mb-4">
-                                <img src={Logo} alt="Logo" className="h-10 sm:h-12 w-auto" />
-                                <h1 className="text-4xl sm:text-5xl font-semibold">Diário de Bordo</h1>
+                            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mb-6">
+                                <img src={Logo} alt="Logo" className="h-12 sm:h-14 w-auto animate-fade-in" />
+                                <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent drop-shadow-md">
+                                    Diário de Bordo
+                                </h1>
                             </div>
-                            <p className="text-lg text-muted-foreground">Histórias, dicas e bastidores do meu trabalho.</p>
+                            <p className="text-lg sm:text-xl text-muted-foreground/90 max-w-xl mx-auto">
+                                Histórias, dicas e bastidores do meu trabalho criativo.
+                            </p>
                         </div>
 
                         {isLoading ? (
@@ -57,21 +62,25 @@ const BlogPage = () => {
                                 <Skeleton className="h-80 w-full rounded-xl" />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
                                 {posts.map((post) => (
                                     <Link to={`/blog/${post.slug}`} key={post._id} className="group block">
-                                        <Card className="overflow-hidden h-full transition-shadow duration-300 hover:shadow-xl border-border/60">
+                                        <Card className="overflow-hidden h-full border border-border/50 rounded-2xl bg-card/60 backdrop-blur-sm shadow-md hover:shadow-xl hover:border-accent/60 transition-all duration-300">
                                             <div className="overflow-hidden aspect-[16/10]">
                                                 <img
                                                     src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_800")}
                                                     alt={post.title}
                                                     loading="lazy"
-                                                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
+                                                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                                                 />
                                             </div>
-                                            <CardHeader>
-                                                <CardTitle className="leading-tight group-hover:text-accent transition-colors">{post.title}</CardTitle>
-                                                <CardDescription className="pt-2">{format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</CardDescription>
+                                            <CardHeader className="p-5">
+                                                <CardTitle className="text-xl font-semibold leading-tight group-hover:text-accent transition-colors">
+                                                    {post.title}
+                                                </CardTitle>
+                                                <CardDescription className="pt-2 text-muted-foreground/80">
+                                                    {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                                                </CardDescription>
                                             </CardHeader>
                                         </Card>
                                     </Link>
