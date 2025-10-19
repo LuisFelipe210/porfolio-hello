@@ -1,18 +1,24 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
 import cors from 'cors';
 
-dotenv.config();
+// Helper de conexão com o MongoDB
+let cachedDb = null;
+async function connectToDatabase(uri) {
+    if (cachedDb) {
+        return cachedDb;
+    }
+    const client = await MongoClient.connect(uri);
+    const db = client.db('helloborges_portfolio');
+    cachedDb = db;
+    return db;
+}
 
-// CORS manual para Vercel
 const corsMiddleware = cors({
-    origin: [
-        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
-    ],
+    origin: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
 });
 
 export default async function handler(req, res) {
-    // Executa o CORS
     await new Promise((resolve, reject) => {
         corsMiddleware(req, res, (result) => (result instanceof Error ? reject(result) : resolve(result)));
     });
@@ -28,6 +34,20 @@ export default async function handler(req, res) {
     }
 
     try {
+        // 1. Guardar a mensagem no banco de dados
+        const db = await connectToDatabase(process.env.MONGODB_URI);
+        const collection = db.collection('messages');
+        await collection.insertOne({
+            name,
+            email,
+            phone,
+            service,
+            message,
+            createdAt: new Date(),
+            read: false, // Adicionamos um campo para marcar como lida no futuro
+        });
+
+        // 2. Enviar o e-mail
         const transporter = nodemailer.createTransport({
             host: process.env.EMAIL_HOST,
             port: Number(process.env.EMAIL_PORT) || 465,
@@ -44,20 +64,20 @@ export default async function handler(req, res) {
             replyTo: email,
             subject: `Novo contato do site - ${service}`,
             html: `
-        <h2>Nova mensagem recebida:</h2>
-        <p><strong>Nome:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Telefone:</strong> ${phone || 'Não informado'}</p>
-        <p><strong>Serviço:</strong> ${service}</p>
-        <hr />
-        <p><strong>Mensagem:</strong></p>
-        <p>${message}</p>
-      `,
+                <h2>Nova mensagem recebida:</h2>
+                <p><strong>Nome:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Telefone:</strong> ${phone || 'Não informado'}</p>
+                <p><strong>Serviço:</strong> ${service}</p>
+                <hr />
+                <p><strong>Mensagem:</strong></p>
+                <p>${message}</p>
+            `,
         });
 
-        return res.status(200).json({ success: true, message: 'E-mail enviado com sucesso!' });
+        return res.status(200).json({ success: true, message: 'Mensagem enviada e guardada com sucesso!' });
     } catch (error) {
-        console.error('Erro ao enviar e-mail:', error);
-        return res.status(500).json({ error: 'Falha ao enviar e-mail.' });
+        console.error('Erro ao processar mensagem:', error);
+        return res.status(500).json({ error: 'Falha ao processar a mensagem.' });
     }
 }
