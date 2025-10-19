@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom'; // Removi o 'useNavigate' que já não é necessário aqui
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,7 +21,7 @@ const BlogPostPage = () => {
     const [post, setPost] = useState<Post | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { slug } = useParams<{ slug: string }>();
-    const navigate = useNavigate();
+    // O useNavigate foi removido daqui
 
     useEffect(() => {
         if (!slug) return;
@@ -41,17 +41,13 @@ const BlogPostPage = () => {
     }, [slug]);
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.12),transparent_60%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.15),transparent_60%)] animate-[pulse_10s_ease-in-out_infinite]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.1),transparent_60%)] animate-[pulse_12s_ease-in-out_infinite]" />
+        <div className="bg-background min-h-screen">
             <Header />
             <main className="pt-24 md:pt-32">
-                {/* Container principal com padding ajustado */}
                 <div className="container mx-auto max-w-3xl px-6 pb-16 md:pb-24">
 
-                    {/* Link de "Voltar" movido para cima e com novo estilo */}
                     <div className="mb-8">
-                        <Link to="/blog" className="inline-flex items-center text-sm text-accent underline hover:text-accent-dark">
+                        <Link to="/blog" className="inline-flex items-center text-sm text-accent no-underline hover:underline">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Voltar para todos os artigos
                         </Link>
@@ -87,8 +83,8 @@ const BlogPostPage = () => {
                         <div className="text-center py-16">
                             <h1 className="text-2xl font-bold">Artigo não encontrado</h1>
                             <p className="text-muted-foreground mt-2">O link que você seguiu pode estar quebrado ou o artigo foi removido.</p>
-                            <Button variant="default" className="mt-8" onClick={() => navigate('/blog')}>
-                                Voltar para todos os arquivos
+                            <Button variant="default" asChild className="mt-8">
+                                <Link to="/blog">Voltar para todos os artigos</Link>
                             </Button>
                         </div>
                     )}
