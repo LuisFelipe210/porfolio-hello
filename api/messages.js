@@ -12,7 +12,6 @@ async function connectToDatabase(uri) {
 
 export default async function handler(req, res) {
     try {
-        // Apenas administradores podem aceder a esta rota
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ error: 'Token não fornecido.' });
@@ -22,13 +21,30 @@ export default async function handler(req, res) {
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const collection = db.collection('messages');
 
-        // GET: Busca todas as mensagens, as mais recentes primeiro
         if (req.method === 'GET') {
             const messages = await collection.find({}).sort({ createdAt: -1 }).toArray();
             return res.status(200).json(messages);
         }
 
-        // DELETE: Apaga uma mensagem
+        // --- NOVO MÉTODO PUT ADICIONADO AQUI ---
+        if (req.method === 'PUT') {
+            const { id } = req.query;
+            if (!id || !ObjectId.isValid(id)) {
+                return res.status(400).json({ error: 'ID inválido.' });
+            }
+
+            const result = await collection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: { read: true } } // Define o campo 'read' como verdadeiro
+            );
+
+            if (result.matchedCount === 0) {
+                return res.status(404).json({ error: 'Mensagem não encontrada.' });
+            }
+
+            return res.status(200).json({ message: 'Mensagem marcada como lida.' });
+        }
+
         if (req.method === 'DELETE') {
             const { id } = req.query;
             if (!id || !ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido.' });
@@ -39,7 +55,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Mensagem excluída com sucesso.' });
         }
 
-        res.setHeader('Allow', ['GET', 'DELETE']);
+        res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
         return res.status(405).json({ error: `Método ${req.method} não permitido.` });
 
     } catch (error) {

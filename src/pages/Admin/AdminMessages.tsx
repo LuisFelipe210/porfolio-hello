@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Mail, Phone } from 'lucide-react';
+import { Trash2, Mail, Phone, Circle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -16,6 +16,7 @@ interface Message {
     service: string;
     message: string;
     createdAt: string;
+    read: boolean; // Adicionamos o campo 'read'
 }
 
 const AdminMessages = () => {
@@ -43,6 +44,33 @@ const AdminMessages = () => {
         fetchMessages();
     }, [toast]);
 
+    // Função para marcar a mensagem como lida
+    const handleMarkAsRead = async (id: string) => {
+        // Procura a mensagem na lista local
+        const message = messages.find(msg => msg._id === id);
+        // Se a mensagem já estiver marcada como lida, não faz nada
+        if (message?.read) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('authToken');
+            await fetch(`/api/messages?id=${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+
+            // Atualiza o estado local para remover o indicador visual instantaneamente
+            setMessages(prevMessages =>
+                prevMessages.map(msg =>
+                    msg._id === id ? { ...msg, read: true } : msg
+                )
+            );
+        } catch (error) {
+            console.error("Erro ao marcar como lida:", error);
+        }
+    };
+
     const handleDelete = async (id: string) => {
         if (!window.confirm('Tem certeza que deseja excluir esta mensagem permanentemente?')) return;
         try {
@@ -66,7 +94,6 @@ const AdminMessages = () => {
                 <div className="space-y-4">
                     <Skeleton className="h-20 w-full" />
                     <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-20 w-full" />
                 </div>
             </div>
         );
@@ -76,15 +103,20 @@ const AdminMessages = () => {
         <div>
             <h1 className="text-3xl font-bold mb-6">Caixa de Entrada</h1>
             {messages.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full space-y-4">
+                <Accordion type="single" collapsible className="w-full space-y-4" onValueChange={handleMarkAsRead}>
                     {messages.map((msg) => (
-                        <Card key={msg._id}>
+                        <Card key={msg._id} className={!msg.read ? 'border-accent' : ''}>
                             <AccordionItem value={msg._id} className="border-b-0">
                                 <AccordionTrigger className="p-4 hover:no-underline">
                                     <div className="flex justify-between items-center w-full">
-                                        <div className="text-left">
-                                            <p className="font-semibold">{msg.name}</p>
-                                            <p className="text-sm text-muted-foreground">{msg.service}</p>
+                                        <div className="flex items-center gap-3 text-left">
+                                            {!msg.read && (
+                                                <Circle className="h-3 w-3 text-accent fill-current" />
+                                            )}
+                                            <div>
+                                                <p className="font-semibold">{msg.name}</p>
+                                                <p className="text-sm text-muted-foreground">{msg.service}</p>
+                                            </div>
                                         </div>
                                         <p className="text-sm text-muted-foreground pr-4">
                                             {format(new Date(msg.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
