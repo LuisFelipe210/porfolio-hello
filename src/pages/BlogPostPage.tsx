@@ -8,7 +8,6 @@ import { ptBR } from 'date-fns/locale';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 
 interface Post {
     _id: string;
@@ -41,9 +40,9 @@ const BlogPostPage = () => {
     }, [slug]);
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,200,100,0.12),transparent_70%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.15),transparent_60%)] animate-[pulse_10s_ease-in-out_infinite]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,180,80,0.08),transparent_70%)] dark:bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.1),transparent_60%)] animate-[pulse_12s_ease-in-out_infinite]" />
+        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.12),transparent_60%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.15),transparent_60%)] animate-[pulse_10s_ease-in-out_infinite]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.1),transparent_60%)] animate-[pulse_12s_ease-in-out_infinite]" />
             <Header />
             <main className="pt-24 md:pt-32">
                 {/* Container principal com padding ajustado */}
@@ -69,23 +68,21 @@ const BlogPostPage = () => {
                             </div>
                         </div>
                     ) : post ? (
-                        <Card className="overflow-hidden h-full rounded-2xl bg-white/70 dark:bg-card/60 border border-zinc-200/40 dark:border-border backdrop-blur-md shadow-sm hover:shadow-lg hover:border-accent/60 transition-all duration-300">
-                            <article className="p-8">
-                                <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{post.title}</h1>
-                                <p className="text-sm text-muted-foreground mt-0 mb-8">
-                                    Publicado em {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                                </p>
-                                <img
-                                    src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_1200")}
-                                    alt={post.title}
-                                    className="w-full aspect-[16/9] object-cover rounded-xl my-8"
-                                />
-                                {/* Usamos 'prose' para estilizar automaticamente o conteúdo do blog */}
-                                <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-lg leading-relaxed">
-                                    {post.content}
-                                </div>
-                            </article>
-                        </Card>
+                        <article>
+                            <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{post.title}</h1>
+                            <p className="text-sm text-muted-foreground mt-0 mb-8">
+                                Publicado em {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                            </p>
+                            <img
+                                src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_1200")}
+                                alt={post.title}
+                                className="w-full aspect-[16/9] object-cover rounded-xl my-8"
+                            />
+                            {/* Usamos 'prose' para estilizar automaticamente o conteúdo do blog */}
+                            <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-lg leading-relaxed">
+                                {post.content}
+                            </div>
+                        </article>
                     ) : (
                         <div className="text-center py-16">
                             <h1 className="text-2xl font-bold">Artigo não encontrado</h1>

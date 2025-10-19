@@ -37,9 +37,9 @@ const BlogPage = () => {
     }, []);
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,200,100,0.12),transparent_70%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.15),transparent_60%)] animate-[pulse_10s_ease-in-out_infinite]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,180,80,0.08),transparent_70%)] dark:bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.1),transparent_60%)] animate-[pulse_12s_ease-in-out_infinite]" />
+        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.12),transparent_60%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,140,0,0.15),transparent_60%)] animate-[pulse_10s_ease-in-out_infinite]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_bottom_right,rgba(255,215,0,0.1),transparent_60%)] animate-[pulse_12s_ease-in-out_infinite]" />
             <Header />
             <main className="pt-24 md:pt-32">
                 <section className="section-padding">
@@ -65,7 +65,7 @@ const BlogPage = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
                                 {posts.map((post) => (
                                     <Link to={`/blog/${post.slug}`} key={post._id} className="group block">
-                                        <Card className="overflow-hidden h-full rounded-2xl bg-white/70 dark:bg-card/60 border border-zinc-200/40 dark:border-border backdrop-blur-md shadow-sm hover:shadow-lg hover:border-accent/60 transition-all duration-300">
+                                        <Card className="overflow-hidden h-full border border-border/40 rounded-2xl bg-white/70 dark:bg-card/60 backdrop-blur-md shadow-sm hover:shadow-lg hover:border-accent/60 transition-all duration-300">
                                             <div className="overflow-hidden aspect-[16/10]">
                                                 <img
                                                     src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_800")}
