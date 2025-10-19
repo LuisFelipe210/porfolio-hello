@@ -50,7 +50,7 @@ const BlogPostPage = () => {
 
                     {/* Link de "Voltar" movido para cima e com novo estilo */}
                     <div className="mb-8">
-                        <Link to="/blog" className="inline-flex items-center text-sm text-accent no-underline hover:underline">
+                        <Link to="/blog" className="inline-flex items-center text-sm text-accent underline hover:text-accent-dark">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Voltar para todos os artigos
                         </Link>
@@ -78,7 +78,6 @@ const BlogPostPage = () => {
                                 alt={post.title}
                                 className="w-full aspect-[16/9] object-cover rounded-xl my-8"
                             />
-                            {/* Usamos 'prose' para estilizar automaticamente o conteúdo do blog */}
                             <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-lg leading-relaxed">
                                 {post.content}
                             </div>
@@ -87,7 +86,9 @@ const BlogPostPage = () => {
                         <div className="text-center py-16">
                             <h1 className="text-2xl font-bold">Artigo não encontrado</h1>
                             <p className="text-muted-foreground mt-2">O link que você seguiu pode estar quebrado ou o artigo foi removido.</p>
-                            <Link to="/blog"><Button className="mt-8">Voltar para o Blog</Button></Link>
+                            <Button asChild variant="default" className="mt-8">
+                                <Link to="/blog">Voltar para o Blog</Link>
+                            </Button>
                         </div>
                     )}
                 </div>
