@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // 1. Importar o Link
 import Logo from "../assets/logo.svg";
 import { Instagram, Mail, MapPin } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -25,19 +26,27 @@ const Footer = () => {
         fetchSettings();
     }, []);
 
-    // Função para formatar o número de WhatsApp para exibição
     const formatPhoneNumber = (phone: string) => {
         if (!phone) return '';
         const cleaned = phone.replace(/\D/g, '');
-        // Formato esperado: (74) 99124-8392
         if (cleaned.length === 11) {
             return `(${cleaned.substring(0, 2)}) ${cleaned.substring(2, 7)}-${cleaned.substring(7)}`;
         }
         return phone;
     }
 
+    // Função para scroll suave
+    const scrollToSection = (sectionId: string) => {
+        // Se estivermos noutra página, navega para a página inicial com a hash
+        if (window.location.pathname !== '/') {
+            window.location.href = `/#${sectionId}`;
+        } else {
+            document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+        }
+    };
+
     return (
-        <footer className="bg-primary text-primary-foreground py-12">
+        <footer id="contact" className="bg-primary text-primary-foreground py-12">
             <div className="container mx-auto px-6 max-w-6xl">
                 <div className="grid md:grid-cols-4 gap-8 mb-8">
                     {/* Brand */}
@@ -52,34 +61,15 @@ const Footer = () => {
                         </p>
                     </div>
 
-                    {/* Quick Links (Navegação) - RESTAURADO */}
+                    {/* Quick Links (Navegação) */}
                     <div>
                         <h4 className="font-light mb-4">Navegação</h4>
                         <div className="space-y-2 text-sm">
-                            <button
-                                onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Sobre
-                            </button>
-                            <button
-                                onClick={() => document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Portfolio
-                            </button>
-                            <button
-                                onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Serviços
-                            </button>
-                            <button
-                                onClick={() => document.getElementById("testimonials")?.scrollIntoView({ behavior: "smooth" })}
-                                className="block hover:text-accent transition-colors"
-                            >
-                                Depoimentos
-                            </button>
+                            <button onClick={() => scrollToSection("about")} className="block hover:text-accent transition-colors">Sobre</button>
+                            <button onClick={() => scrollToSection("portfolio")} className="block hover:text-accent transition-colors">Portfolio</button>
+                            <button onClick={() => scrollToSection("services")} className="block hover:text-accent transition-colors">Serviços</button>
+                            {/* 2. Adicionado Link para o Blog */}
+                            <Link to="/blog" className="block hover:text-accent transition-colors">Blog</Link>
                         </div>
                     </div>
 

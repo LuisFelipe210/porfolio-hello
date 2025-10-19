@@ -8,6 +8,8 @@ import { ThemeProvider } from "./components/ThemeProvider";
 // Páginas principais
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
 
 // Novas páginas do Admin
 import AdminLayout from "./pages/Admin/AdminLayout";
@@ -50,6 +52,8 @@ const App = () => {
                                 {/* Rotas Públicas */}
                                 <Route path="/" element={<Index />} />
                                 <Route path="*" element={<NotFound />} />
+                                <Route path="/blog" element={<BlogPage />} /> 
+                                <Route path="/blog/:slug" element={<BlogPostPage />} />
 
                                 {/* Rota de Login (separada e pública) */}
                                 <Route path="/admin/login" element={<AdminLogin />} />
