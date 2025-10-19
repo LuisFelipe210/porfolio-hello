@@ -7,7 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
-import Logo from '@/assets/logo.svg'; // 1. Importar a sua logo
+import Logo from '@/assets/logo.svg';
 
 interface Post {
     _id: string;
@@ -42,11 +42,11 @@ const BlogPage = () => {
             <main className="pt-24 md:pt-32">
                 <section className="section-padding">
                     <div className="container mx-auto max-w-4xl">
-                        {/* 2. Novo cabeçalho da página */}
                         <div className="text-center mb-16">
-                            <div className="flex justify-center items-center gap-4 mb-4">
-                                <img src={Logo} alt="Logo" className="h-12 w-auto" />
-                                <h1 className="text-4xl md:text-5xl font-semibold">Diário de Bordo</h1>
+                            {/* ----- CORREÇÃO AQUI ----- */}
+                            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mb-4">
+                                <img src={Logo} alt="Logo" className="h-10 sm:h-12 w-auto" />
+                                <h1 className="text-4xl sm:text-5xl font-semibold">Diário de Bordo</h1>
                             </div>
                             <p className="text-lg text-muted-foreground">Histórias, dicas e bastidores do meu trabalho.</p>
                         </div>

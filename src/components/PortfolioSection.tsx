@@ -325,16 +325,6 @@ const PortfolioSection = () => {
                         </div>
                     </div>
                 )}
-
-                {/* CTA (sem alterações) */}
-                <div className="text-center mt-12">
-                    <button
-                        onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-                        className="inline-flex items-center px-8 py-3 text-sm font-light tracking-wide text-accent hover:text-accent/80 transition-colors border-b border-accent/30 hover:border-accent"
-                    >
-                        Ver mais trabalhos
-                    </button>
-                </div>
             </div>
         </section>
     );
