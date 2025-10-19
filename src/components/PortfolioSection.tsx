@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Skeleton } from "./ui/skeleton"; // Importe o Skeleton para o loading
+import { Skeleton } from "./ui/skeleton";
+import { optimizeCloudinaryUrl } from "@/lib/utils"
 
 const PortfolioSection = () => {
     // Estado para armazenar os itens do portfólio vindos da API
@@ -24,7 +25,6 @@ const PortfolioSection = () => {
                 setPortfolioItems(data);
             } catch (error) {
                 console.error("Erro:", error);
-                // Opcional: Adicionar um estado de erro para mostrar uma mensagem na tela
             } finally {
                 setIsLoading(false);
             }
