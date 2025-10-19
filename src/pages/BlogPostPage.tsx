@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +21,7 @@ const BlogPostPage = () => {
     const [post, setPost] = useState<Post | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { slug } = useParams<{ slug: string }>();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!slug) return;
@@ -86,8 +87,8 @@ const BlogPostPage = () => {
                         <div className="text-center py-16">
                             <h1 className="text-2xl font-bold">Artigo não encontrado</h1>
                             <p className="text-muted-foreground mt-2">O link que você seguiu pode estar quebrado ou o artigo foi removido.</p>
-                            <Button asChild variant="default" className="mt-8">
-                                <Link to="/blog">Voltar para o Blog</Link>
+                            <Button variant="default" className="mt-8" onClick={() => navigate('/blog')}>
+                                Voltar para todos os arquivos
                             </Button>
                         </div>
                     )}
