@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { LogOut, LayoutDashboard, ImageIcon, Menu, User, Settings, MessageSquareQuote, Inbox, Rss, HelpCircle, Users } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { LogOut, LayoutDashboard, ImageIcon, Menu, User, Settings, MessageSquareQuote, Inbox, Rss, Users } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
-import { useIsMobile } from '@/hooks/use-mobile'; //
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -12,6 +12,7 @@ const AdminLayout = () => {
     const isMobile = useIsMobile();
     const [isSheetOpen, setSheetOpen] = useState(false);
 
+    // Verifica autenticação
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (!token) {
@@ -19,6 +20,7 @@ const AdminLayout = () => {
         }
     }, [navigate]);
 
+    // Redireciona para /admin/clients ao entrar no painel
     useEffect(() => {
         if (location.pathname === '/admin') {
             navigate('/admin/clients');
@@ -30,9 +32,7 @@ const AdminLayout = () => {
         navigate('/admin/login');
     };
 
-    const isLinkActive = (path: string) => {
-        return location.pathname.includes(path);
-    };
+    const isLinkActive = (path: string) => location.pathname.includes(path);
 
     const NavLinks = () => (
         <nav className="flex flex-col gap-2 px-4">
@@ -114,7 +114,7 @@ const AdminLayout = () => {
     if (isMobile) {
         return (
             <div className="min-h-screen w-full">
-                <header className="relative z-10 sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
+                <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
                     <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
                         <SheetTrigger asChild>
                             <Button variant="outline" size="icon">
@@ -138,7 +138,7 @@ const AdminLayout = () => {
                         </SheetContent>
                     </Sheet>
                     <span className="text-lg font-semibold">Painel Admin</span>
-                    <div/>
+                    <div />
                 </header>
                 <main className="relative z-10 p-4">
                     <Outlet />
@@ -157,20 +157,20 @@ const AdminLayout = () => {
                 />
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
-            <header className="relative z-10 sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
+
+            <header className="relative z-10 sticky top-0 flex h-16 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4">
                 <div className="flex items-center gap-2">
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold">Painel Admin</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" className="h-10" onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sair
-                    </Button>
-                </div>
+                <Button variant="outline" className="h-10" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                </Button>
             </header>
+
             <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-card border-r p-4 flex flex-col">
+                <aside className="w-64 bg-card border-r p-4 flex flex-col relative z-10">
                     <NavLinks />
                 </aside>
                 <main className="relative z-10 flex-1 p-6 md:p-8 overflow-auto">
