@@ -18,14 +18,14 @@ interface Gallery {
 
 // --- Componente para a Janela de Visualização (Modal/Lightbox) ---
 const ImageModal = ({
-                        images,
-                        currentIndex,
-                        onClose,
-                        onNavigate,
-                        selectedImages,
-                        toggleSelection,
-                        isSelectionComplete
-                    }: {
+    images,
+    currentIndex,
+    onClose,
+    onNavigate,
+    selectedImages,
+    toggleSelection,
+    isSelectionComplete
+}: {
     images: string[];
     currentIndex: number;
     onClose: () => void;
@@ -37,7 +37,6 @@ const ImageModal = ({
     const currentImage = images[currentIndex];
     const isSelected = selectedImages.has(currentImage);
 
-    // 2. Lógica para o swipe
     const touchStartX = useRef(0);
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -48,13 +47,9 @@ const ImageModal = ({
         const touchEndX = e.changedTouches[0].clientX;
         const diff = touchStartX.current - touchEndX;
 
-        if (diff > 50) { // Swipe para a esquerda
-            onNavigate('next');
-        } else if (diff < -50) { // Swipe para a direita
-            onNavigate('prev');
-        }
+        if (diff > 50) onNavigate('next');
+        else if (diff < -50) onNavigate('prev');
     };
-
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -81,14 +76,20 @@ const ImageModal = ({
                     <img
                         src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1600")}
                         alt="Foto do ensaio em tamanho grande"
-                        className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl pointer-events-none" // 3. Bloqueio de arrastar
-                        onContextMenu={(e) => e.preventDefault()} // 4. Bloqueio do clique direito
+                        className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl pointer-events-none"
+                        onContextMenu={(e) => e.preventDefault()}
                     />
+
                     {!isSelectionComplete && (
-                        <Button variant={isSelected ? "secondary" : "default"} onClick={() => toggleSelection(currentImage)} className="min-w-[180px]">
-                            <Heart className={`mr-2 h-4 w-4 ${isSelected ? 'fill-red-500 text-red-500' : ''}`} />
-                            {isSelected ? 'Remover Seleção' : 'Selecionar Foto'}
-                        </Button>
+                        <div className="absolute top-4 right-4 flex items-center gap-2 bg-white/60 rounded-full p-2 shadow-md">
+                            <Heart className={`h-6 w-6 ${isSelected ? 'fill-red-500 text-red-500' : 'text-gray-800'}`} />
+                            <button
+                                onClick={() => toggleSelection(currentImage)}
+                                className="text-sm font-medium text-gray-900 hover:text-gray-700"
+                            >
+                                {isSelected ? 'Remover' : 'Selecionar'}
+                            </button>
+                        </div>
                     )}
                 </div>
 
@@ -251,22 +252,39 @@ const ClientGalleryPage = () => {
             {galleries.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {galleries.map((gallery) => (
-                        <Card key={gallery._id} className="cursor-pointer hover:border-accent transition-colors" onClick={() => setActiveGallery(gallery)}>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-muted-foreground" /> {gallery.name}</CardTitle>
-                                <CardDescription>{gallery.images.length} fotos</CardDescription>
-                            </CardHeader>
-                            <CardContent>
+                        <div
+                            key={gallery._id}
+                            onClick={() => setActiveGallery(gallery)}
+                            className="relative flex flex-col bg-white/20 backdrop-blur-lg border border-white/25 rounded-[2rem] overflow-hidden shadow-xl cursor-pointer transition-transform hover:scale-105 hover:shadow-2xl"
+                        >
+                            {/* Imagem de preview */}
+                            <div className="w-full h-48 overflow-hidden">
+                                {gallery.images[0] ? (
+                                    <img
+                                        src={optimizeCloudinaryUrl(gallery.images[0], "f_auto,q_auto,w_600")}
+                                        alt={gallery.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                                        Sem imagem
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Conteúdo */}
+                            <div className="p-4 flex flex-col gap-2">
+                                <h2 className="text-lg font-bold text-white">{gallery.name}</h2>
+                                <p className="text-sm text-white/90">{gallery.images.length} fotos</p>
                                 {gallery.status === 'selection_complete' ? (
                                     <div className="flex items-center text-green-500 text-sm">
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Seleção finalizada
+                                        <CheckCircle className="h-4 w-4 mr-2" /> Seleção finalizada
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-muted-foreground">{gallery.selections.length} fotos já selecionadas.</p>
+                                    <p className="text-sm text-white/80">{gallery.selections.length} fotos já selecionadas</p>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     ))}
                 </div>
             ) : (

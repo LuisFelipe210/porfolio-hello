@@ -6,13 +6,15 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, GalleryHorizontal } from 'lucide-react';
+import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Client {
     _id: string;
     name: string;
     email: string;
+    // Adicionando campo opcional password apenas para exibição/cópia (front-end only)
+    password?: string;
 }
 
 const AdminClients = () => {
@@ -59,8 +61,40 @@ const AdminClients = () => {
         setPassword('');
     };
 
+    const generateRandomEmail = () => {
+        const randomString = Math.random().toString(36).substring(2, 10);
+        const newEmail = `${randomString}@example.com`;
+        setEmail(newEmail);
+        toast({ title: 'Email gerado', description: `Email aleatório gerado: ${newEmail}` });
+    };
+
+    const generateRandomPassword = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+        let result = '';
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setPassword(result);
+        toast({ title: 'Senha gerada', description: 'Senha aleatória gerada com sucesso.' });
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            toast({ title: 'Copiado', description: `${text} copiado para a área de transferência.` });
+        }).catch(() => {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível copiar para a área de transferência.' });
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validação para impedir emails duplicados
+        if (clients.some(client => client.email.toLowerCase() === email.toLowerCase())) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Já existe um cliente com este email.' });
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem('authToken');
@@ -100,8 +134,30 @@ const AdminClients = () => {
                         <DialogHeader><DialogTitle>Adicionar Novo Cliente</DialogTitle></DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div><Label htmlFor="name">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required /></div>
-                            <div><Label htmlFor="email">Email (para login do cliente)</Label><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-                            <div><Label htmlFor="password">Senha (temporária para o cliente)</Label><Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+                            <div>
+                                <Label htmlFor="email">Email (para login do cliente)</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                                    <Button type="button" variant="outline" size="icon" onClick={generateRandomEmail} title="Gerar email aleatório">
+                                        <RefreshCw className="h-4 w-4" />
+                                    </Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(email)} title="Copiar email">
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                            <div>
+                                <Label htmlFor="password">Senha (temporária para o cliente)</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                                    <Button type="button" variant="outline" size="icon" onClick={generateRandomPassword} title="Gerar senha aleatória">
+                                        <RefreshCw className="h-4 w-4" />
+                                    </Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(password)} title="Copiar senha">
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
                             <DialogFooter>
                                 <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
                                 <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar Cliente'}</Button>
@@ -152,6 +208,26 @@ const AdminClients = () => {
                                                 <GalleryHorizontal className="mr-2 h-4 w-4"/>
                                                 Gerir Galerias
                                             </Link>
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            title="Copiar email"
+                                            onClick={() => copyToClipboard(client.email)}
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                        {/* Botão de copiar senha temporária */}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            title="Copiar senha"
+                                            onClick={() => copyToClipboard(client.password ?? 'Senha não disponível')}
+                                            disabled={!client.password}
+                                        >
+                                            <Copy className="h-4 w-4" />
                                         </Button>
                                         <Button
                                             variant="ghost"
