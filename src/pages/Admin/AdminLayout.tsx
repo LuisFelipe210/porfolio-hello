@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { LogOut, LayoutDashboard, ImageIcon, Menu, User, Settings, MessageSquareQuote, Inbox, Rss } from 'lucide-react';
+import { LogOut, LayoutDashboard, ImageIcon, Menu, User, Settings, MessageSquareQuote, Inbox, Rss, HelpCircle } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -82,6 +82,15 @@ const AdminLayout = () => {
                 >
                     <Rss className="mr-2 h-4 w-4" />
                     Blog
+                </Button>
+            </Link>
+            <Link to="/admin/faq" onClick={() => setSheetOpen(false)}>
+                <Button
+                    variant={isLinkActive('/admin/faq') ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                >
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    FAQ
                 </Button>
             </Link>
             <Link to="/admin/settings" onClick={() => setSheetOpen(false)}>
