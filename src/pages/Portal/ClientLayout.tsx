@@ -21,15 +21,16 @@ const ClientLayout = () => {
     };
 
     return (
-        <div className="relative min-h-screen bg-background">
-            <div
-                className="absolute inset-0 z-0 opacity-5 dark:opacity-10"
-                style={{
-                    backgroundImage: `url(${ClientBackground})`,
-                    backgroundSize: 'cover', // ou 'contain', dependendo do seu SVG
-                    backgroundPosition: 'center',
-                }}
-            />
+        <div className="relative flex items-center justify-center min-h-screen bg-background">
+            {/* Background Image e Overlay */}
+            <div className="absolute inset-0 z-0">
+                <img
+                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            </div>
 
             <div className="relative z-10">
                 <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-8">

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // 1. Importar o Link
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
+import { ArrowLeft } from 'lucide-react'; // 2. Importar o ícone
 
 const ClientLoginPage = () => {
     const [email, setEmail] = useState('');
@@ -28,10 +29,10 @@ const ClientLoginPage = () => {
             if (!response.ok) throw new Error('Credenciais inválidas');
 
             const { token } = await response.json();
-            localStorage.setItem('clientAuthToken', token); // Guarda o token do cliente
+            localStorage.setItem('clientAuthToken', token);
 
             toast({ title: 'Login bem-sucedido!', description: 'A aceder à sua galeria...' });
-            navigate('/portal/gallery'); // Redireciona para a galeria
+            navigate('/portal/gallery');
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro de login', description: 'Email ou senha incorretos.' });
         } finally {
@@ -92,6 +93,17 @@ const ClientLoginPage = () => {
                     </CardFooter>
                 </form>
             </Card>
+
+            {/* 3. Botão "Voltar" adicionado aqui */}
+            <div className="absolute bottom-8 text-center w-full z-10">
+                <Button variant="link" asChild className="text-white/70 hover:text-white transition-colors">
+                    <Link to="/">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Voltar à página principal
+                    </Link>
+                </Button>
+            </div>
+
         </div>
     );
 };

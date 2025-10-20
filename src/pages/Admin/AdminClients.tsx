@@ -19,12 +19,18 @@ const AdminClients = () => {
     const [clients, setClients] = useState<Client[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { toast } = useToast();
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
 
     const fetchClients = async () => {
         setIsLoading(true);
@@ -78,21 +84,11 @@ const AdminClients = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir este cliente? Todas as suas galerias também serão perdidas.')) return;
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/portal?action=deleteClient&clientId=${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Falha ao excluir.');
-            toast({ title: 'Sucesso', description: 'Cliente excluído.' });
-            fetchClients();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o cliente.' });
-        }
-    };
+    const filteredClients = clients
+        .filter((client) => client.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => sortOrder === 'recent'
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name));
 
     return (
         <div>
@@ -115,6 +111,23 @@ const AdminClients = () => {
                 </Dialog>
             </div>
 
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                <Input
+                    placeholder="Buscar cliente..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-1/2"
+                />
+                <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
+                    className="border border-border/40 rounded-md bg-transparent px-3 py-2 text-sm"
+                >
+                    <option value="recent">A-Z</option>
+                    <option value="oldest">Z-A</option>
+                </select>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isLoading ? (
                     <>
@@ -122,34 +135,93 @@ const AdminClients = () => {
                         <Skeleton className="h-32 w-full" />
                         <Skeleton className="h-32 w-full" />
                     </>
-                ) : clients.length > 0 ? (
-                    clients.map((client) => (
-                        <Card key={client._id} className="flex flex-col">
-                            <CardHeader className="flex-1">
-                                <CardTitle>{client.name}</CardTitle>
-                                <CardDescription>{client.email}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex gap-2">
-                                    <Button asChild variant="outline" className="w-full">
-                                        <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                                            <GalleryHorizontal className="mr-2 h-4 w-4"/>
-                                            Gerir Galerias
-                                        </Link>
-                                    </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(client._id)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                ) : filteredClients.length > 0 ? (
+                    filteredClients.map((client) => (
+                        <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
+                            <Card className="flex flex-col p-6 gap-4 bg-white/70 dark:bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+                                <CardHeader className="flex-1 flex flex-row items-center gap-4">
+                                    <div className="flex flex-col">
+                                        <CardTitle>{client.name}</CardTitle>
+                                        <CardDescription>{client.email}</CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex gap-2">
+                                        <Button asChild variant="outline" className="w-full">
+                                            <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
+                                                <GalleryHorizontal className="mr-2 h-4 w-4"/>
+                                                Gerir Galerias
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setSelectedClient(client);
+                                                setIsDeleteDialogOpen(true);
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     ))
                 ) : (
-                    <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center text-muted-foreground pt-12">
-                        Nenhum cliente encontrado. Adicione o primeiro!
-                    </div>
+                    <p className="text-center text-muted-foreground pt-12">Nenhum cliente encontrado.</p>
                 )}
             </div>
+
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirmar exclusão</DialogTitle>
+                    </DialogHeader>
+                    <p>
+                        Tem certeza que deseja excluir o cliente{' '}
+                        <strong>{selectedClient?.name}</strong>? Todas as suas galerias também serão removidas.
+                    </p>
+                    <DialogFooter className="flex justify-end gap-2">
+                        <DialogClose asChild>
+                            <Button variant="secondary">Cancelar</Button>
+                        </DialogClose>
+                        <Button
+                            variant="destructive"
+                            disabled={isDeleting}
+                            onClick={async () => {
+                                if (!selectedClient) return;
+                                setIsDeleting(true);
+                                try {
+                                    const token = localStorage.getItem('authToken');
+                                    const response = await fetch(
+                                        `/api/admin/portal?action=deleteClient&clientId=${selectedClient._id}`,
+                                        {
+                                            method: 'DELETE',
+                                            headers: { Authorization: `Bearer ${token}` },
+                                        }
+                                    );
+                                    if (!response.ok) throw new Error('Falha ao excluir.');
+                                    toast({ title: 'Sucesso', description: 'Cliente excluído com sucesso.' });
+                                    fetchClients();
+                                } catch {
+                                    toast({
+                                        variant: 'destructive',
+                                        title: 'Erro',
+                                        description: 'Não foi possível excluir o cliente.',
+                                    });
+                                } finally {
+                                    setIsDeleting(false);
+                                    setIsDeleteDialogOpen(false);
+                                    setSelectedClient(null);
+                                }
+                            }}
+                        >
+                            {isDeleting ? 'Excluindo...' : 'Excluir'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

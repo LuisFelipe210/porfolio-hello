@@ -50,6 +50,9 @@ const AdminPortfolio = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedItemToDelete, setSelectedItemToDelete] = useState<PortfolioItem | null>(null);
+
     const fetchItems = async () => {
         setIsLoading(true);
         try {
@@ -148,12 +151,11 @@ const AdminPortfolio = () => {
         }
     };
 
-    // ... (resto do seu código, handleDelete e renderContent, continua igual)
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir este item?')) return;
+    const handleDelete = async () => {
+        if (!selectedItemToDelete) return;
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/portfolio?id=${id}`, {
+            const response = await fetch(`/api/portfolio?id=${selectedItemToDelete._id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -162,6 +164,9 @@ const AdminPortfolio = () => {
             fetchItems();
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o item.' });
+        } finally {
+            setIsDeleteModalOpen(false);
+            setSelectedItemToDelete(null);
         }
     };
 
@@ -199,7 +204,10 @@ const AdminPortfolio = () => {
                                         <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(item)}>
                                             <Edit className="h-4 w-4 mr-1" /> Editar
                                         </Button>
-                                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(item._id)}>
+                                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => {
+                                            setSelectedItemToDelete(item);
+                                            setIsDeleteModalOpen(true);
+                                        }}>
                                             <Trash2 className="h-4 w-4 mr-1" /> Excluir
                                         </Button>
                                     </div>
@@ -222,7 +230,10 @@ const AdminPortfolio = () => {
                         <TableCell className="capitalize">{item.category}</TableCell>
                         <TableCell className="text-right">
                             <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => {
+                                setSelectedItemToDelete(item);
+                                setIsDeleteModalOpen(true);
+                            }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         </TableCell>
                     </TableRow>
                 ))}
@@ -231,65 +242,88 @@ const AdminPortfolio = () => {
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl md:text-3xl font-bold">Gerenciar Portfólio</h1>
-                <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { setIsDialogOpen(isOpen); if (!isOpen) resetForm(); }}>
-                    <DialogTrigger asChild>
-                        <Button size={isMobile ? "sm" : "default"} onClick={() => handleOpenDialog()}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Adicionar
+        <>
+            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirmar exclusão</DialogTitle>
+                        <DialogDescription>
+                            Tem certeza que deseja excluir <strong>{selectedItemToDelete?.title}</strong>? Esta ação não pode ser desfeita.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+                                Cancelar
+                            </Button>
+                        </DialogClose>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Excluir
                         </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
-                            <DialogDescription>
-                                {editingId ? "Altere as informações abaixo. Apenas selecione uma nova imagem se desejar substituí-la." : "Preencha os detalhes e faça o upload da imagem."}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div><Label htmlFor="title">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
-                            <div>
-                                <Label htmlFor="category">Categoria</Label>
-                                <Select onValueChange={setCategory} value={category}>
-                                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="portrait">Retratos</SelectItem>
-                                        <SelectItem value="wedding">Casamentos</SelectItem>
-                                        <SelectItem value="maternity">Maternidade</SelectItem>
-                                        <SelectItem value="family">Família</SelectItem>
-                                        <SelectItem value="events">Eventos</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div><Label htmlFor="description">Descrição</Label><Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required /></div>
-                            <div><Label htmlFor="file">Imagem {editingId ? "(Opcional: selecione para substituir)" : ""}</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required={!editingId} /></div>
-                            <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Item'}</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-            {isMobile ? renderContent() : (
-                <Card>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[100px]">Imagem</TableHead>
-                                <TableHead>Título</TableHead>
-                                <TableHead>Categoria</TableHead>
-                                <TableHead className="text-right">Ações</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        {renderContent()}
-                    </Table>
-                </Card>
-            )}
-        </div>
+            <div>
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl md:text-3xl font-bold">Gerenciar Portfólio</h1>
+                    <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { setIsDialogOpen(isOpen); if (!isOpen) resetForm(); }}>
+                        <DialogTrigger asChild>
+                            <Button size={isMobile ? "sm" : "default"} onClick={() => handleOpenDialog()}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Adicionar
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
+                                <DialogDescription>
+                                    {editingId ? "Altere as informações abaixo. Apenas selecione uma nova imagem se desejar substituí-la." : "Preencha os detalhes e faça o upload da imagem."}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div><Label htmlFor="title">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+                                <div>
+                                    <Label htmlFor="category">Categoria</Label>
+                                    <Select onValueChange={setCategory} value={category}>
+                                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="portrait">Retratos</SelectItem>
+                                            <SelectItem value="wedding">Casamentos</SelectItem>
+                                            <SelectItem value="maternity">Maternidade</SelectItem>
+                                            <SelectItem value="family">Família</SelectItem>
+                                            <SelectItem value="events">Eventos</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div><Label htmlFor="description">Descrição</Label><Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required /></div>
+                                <div><Label htmlFor="file">Imagem {editingId ? "(Opcional: selecione para substituir)" : ""}</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required={!editingId} /></div>
+                                <DialogFooter>
+                                    <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
+                                    <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Item'}</Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                {isMobile ? renderContent() : (
+                    <Card>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[100px]">Imagem</TableHead>
+                                    <TableHead>Título</TableHead>
+                                    <TableHead>Categoria</TableHead>
+                                    <TableHead className="text-right">Ações</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            {renderContent()}
+                        </Table>
+                    </Card>
+                )}
+            </div>
+        </>
     );
 };
 

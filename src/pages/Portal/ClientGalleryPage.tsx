@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react'; // 1. Importar useRef
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +37,25 @@ const ImageModal = ({
     const currentImage = images[currentIndex];
     const isSelected = selectedImages.has(currentImage);
 
+    // 2. Lógica para o swipe
+    const touchStartX = useRef(0);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX.current - touchEndX;
+
+        if (diff > 50) { // Swipe para a esquerda
+            onNavigate('next');
+        } else if (diff < -50) { // Swipe para a direita
+            onNavigate('prev');
+        }
+    };
+
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight') onNavigate('next');
@@ -49,7 +68,12 @@ const ImageModal = ({
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2" onClick={onClose}>
-            <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <div
+                className="relative w-full h-full flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-white z-20 h-10 w-10 hover:bg-white/10" onClick={onClose}><X className="h-6 w-6" /></Button>
                 <Button variant="ghost" size="icon" className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 hover:bg-white/10 disabled:opacity-20" onClick={() => onNavigate('prev')} disabled={currentIndex === 0}><ChevronLeft className="h-10 w-10" /></Button>
 
@@ -57,7 +81,8 @@ const ImageModal = ({
                     <img
                         src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1600")}
                         alt="Foto do ensaio em tamanho grande"
-                        className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                        className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl pointer-events-none" // 3. Bloqueio de arrastar
+                        onContextMenu={(e) => e.preventDefault()} // 4. Bloqueio do clique direito
                     />
                     {!isSelectionComplete && (
                         <Button variant={isSelected ? "secondary" : "default"} onClick={() => toggleSelection(currentImage)} className="min-w-[180px]">
@@ -80,6 +105,11 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
     const [modalImageIndex, setModalImageIndex] = useState<number | null>(null);
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
+
+    const preloadImage = (url: string) => {
+        const img = new Image();
+        img.src = url;
+    };
 
     const toggleSelection = (imageUrl: string) => {
         if (isSelectionComplete) return;
@@ -135,7 +165,12 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
             </Card>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
                 {gallery.images.map((imageUrl, index) => (
-                    <div key={imageUrl} className="aspect-square overflow-hidden rounded-lg cursor-pointer group relative" onClick={() => setModalImageIndex(index)}>
+                    <div
+                        key={imageUrl}
+                        className="aspect-square overflow-hidden rounded-lg cursor-pointer group relative"
+                        onClick={() => setModalImageIndex(index)}
+                        onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_1600"))}
+                    >
                         <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")} alt="Foto do ensaio" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                         {selectedImages.has(imageUrl) && (
                             <div className="absolute top-2 right-2 bg-black/40 rounded-full p-1"><Heart className="h-4 w-4 text-white fill-current" /></div>
@@ -166,7 +201,7 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
     );
 };
 
-// --- Componente Principal ---
+// --- Componente Principal (sem alterações) ---
 const ClientGalleryPage = () => {
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -199,12 +234,10 @@ const ClientGalleryPage = () => {
         return <div className="grid grid-cols-1 md:grid-cols-2 gap-4"><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>;
     }
 
-    // Se uma galeria está ativa, mostra a vista de seleção
     if (activeGallery) {
         return <GallerySelectionView gallery={activeGallery} onBack={() => setActiveGallery(null)} onSelectionSubmit={handleSelectionSubmit} />
     }
 
-    // Se não, mostra a lista de galerias para o cliente escolher
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6">As Suas Galerias</h1>

@@ -33,6 +33,15 @@ const AdminBlog = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
+
+    const filteredPosts = posts
+        .filter((post) => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => sortOrder === 'recent'
+            ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
     const fetchPosts = async () => {
         setIsLoading(true);
         try {
@@ -116,16 +125,40 @@ const AdminBlog = () => {
 
     return (
         <div>
+            <div className="py-6">
+                <h1 className="text-4xl font-bold tracking-tight">Gerir Blog</h1>
+                <p className="text-muted-foreground">Aqui você pode criar, editar e excluir artigos do blog.</p>
+            </div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Gerir Blog</h1>
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                    <DialogTrigger asChild><Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Novo Artigo</Button></DialogTrigger>
+                    <DialogTrigger asChild>
+                        <Button variant="default" onClick={() => handleOpenDialog()}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Novo Artigo
+                        </Button>
+                    </DialogTrigger>
                     <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader><DialogTitle>{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle></DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div><Label htmlFor="title">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
-                            <div><Label htmlFor="coverImage">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label><Input id="coverImage" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required={!editingId} /></div>
-                            <div><Label htmlFor="content">Conteúdo</Label><Textarea id="content" rows={12} value={content} onChange={(e) => setContent(e.target.value)} required /></div>
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-semibold">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <Label htmlFor="title">Título</Label>
+                                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="coverImage">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label>
+                                <Input id="coverImage" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required={!editingId} />
+                                {file && (
+                                    <div className="mt-2">
+                                        <img src={URL.createObjectURL(file)} alt="Pré-visualização" className="w-40 h-28 object-cover rounded-lg border" />
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <Label htmlFor="content">Conteúdo</Label>
+                                <Textarea id="content" rows={12} value={content} onChange={(e) => setContent(e.target.value)} required />
+                            </div>
                             <DialogFooter>
                                 <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
                                 <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
@@ -135,37 +168,56 @@ const AdminBlog = () => {
                 </Dialog>
             </div>
 
-            <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                <Input
+                    placeholder="Buscar artigo..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-1/2"
+                />
+                <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
+                    className="border border-border/40 rounded-md bg-transparent px-3 py-2 text-sm"
+                >
+                    <option value="recent">Mais recentes</option>
+                    <option value="oldest">Mais antigos</option>
+                </select>
+            </div>
+
+            <div className="space-y-6">
                 {isLoading ? <><Skeleton className="h-24 w-full" /><Skeleton className="h-24 w-full" /></>
-                    : posts.length > 0 ? (
-                        posts.map((post) => (
-                            <Card key={post._id}>
-                                <CardContent className="p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <img src={post.coverImage} alt={post.title} className="w-24 h-16 object-cover rounded-md hidden sm:block" />
-                                        <div>
-                                            <h3 className="font-semibold">{post.title}</h3>
-                                            <p className="text-sm text-muted-foreground">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+                    : filteredPosts.length > 0 ? (
+                        filteredPosts.map((post) => (
+                            <div key={post._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
+                                <Card className="bg-white/70 dark:bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+                                    <CardContent className="p-6 flex items-center justify-between gap-6">
+                                        <div className="flex items-center gap-6">
+                                            <img src={post.coverImage} alt={post.title} className="w-20 h-14 rounded-lg object-cover border" />
+                                            <div>
+                                                <h3 className="text-lg font-semibold">{post.title}</h3>
+                                                <p className="text-sm text-muted-foreground">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => {
-                                                setPostToDelete(post);
-                                                setIsDeleteDialogOpen(true);
-                                            }}
-                                        >
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        <div className="flex gap-2">
+                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => {
+                                                    setPostToDelete(post);
+                                                    setIsDeleteDialogOpen(true);
+                                                }}
+                                            >
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
                         ))
                     ) : (
-                        <p className="text-center text-muted-foreground pt-12">Nenhum artigo publicado. Crie o primeiro!</p>
+                        <p className="text-center text-muted-foreground pt-12">Nenhum artigo encontrado.</p>
                     )}
             </div>
 
@@ -175,8 +227,8 @@ const AdminBlog = () => {
                         <DialogHeader>
                             <DialogTitle>Confirmar exclusão</DialogTitle>
                         </DialogHeader>
-                        <p>Tem certeza que deseja excluir o artigo "{postToDelete.title}"? Esta ação não pode ser desfeita.</p>
-                        <DialogFooter className="flex justify-end gap-2">
+                        <p className="text-center mt-4">Tem certeza que deseja excluir o artigo "{postToDelete.title}"? Esta ação não pode ser desfeita.</p>
+                        <DialogFooter className="flex justify-end gap-2 mt-4">
                             <DialogClose asChild>
                                 <Button variant="secondary">Cancelar</Button>
                             </DialogClose>

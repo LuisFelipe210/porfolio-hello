@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ViewSelectionsDialog } from './components/ViewSelectionsDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 interface Message { _id: string; name: string; email: string; phone?: string; service: string; message: string; createdAt: string; read: boolean; }
 interface Selection { _id: string; name: string; selections: string[]; selectionDate: string; clientInfo: { name: string }; }
@@ -20,6 +21,9 @@ const AdminMessages = () => {
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
     const [selectedGallery, setSelectedGallery] = useState<Selection | null>(null);
     const { toast } = useToast();
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -49,15 +53,18 @@ const AdminMessages = () => {
         } catch (error) { console.error("Erro ao marcar como lida:", error); }
     };
 
-    const handleDeleteMessage = async (id: string) => {
-        if (!window.confirm('Tem certeza?')) return;
+    const handleDeleteMessage = async () => {
+        if (!deleteId) return;
         try {
             const token = localStorage.getItem('authToken');
-            await fetch(`/api/messages?id=${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            await fetch(`/api/messages?id=${deleteId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             toast({ title: 'Sucesso', description: 'Mensagem excluída.' });
             fetchData();
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir.' });
+        } finally {
+            setIsDeleteDialogOpen(false);
+            setDeleteId(null);
         }
     };
 
@@ -100,7 +107,9 @@ const AdminMessages = () => {
                                                         <a href={`mailto:${msg.email}`} className="flex items-center gap-1 hover:text-primary"><Mail className="h-4 w-4"/> {msg.email}</a>
                                                         {msg.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4"/> {msg.phone}</span>}
                                                     </div>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteMessage(msg._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => { setDeleteId(msg._id); setIsDeleteDialogOpen(true); }}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </AccordionContent>
@@ -142,6 +151,19 @@ const AdminMessages = () => {
                     onOpenChange={setIsViewDialogOpen}
                 />
             )}
+
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Excluir Mensagem</DialogTitle>
+                    </DialogHeader>
+                    <p>Deseja realmente excluir esta mensagem?</p>
+                    <DialogFooter className="mt-4 flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={handleDeleteMessage}>Excluir</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
