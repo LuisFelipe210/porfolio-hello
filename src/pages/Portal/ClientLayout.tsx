@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
-import { Eye } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Logo from "@/assets/logo.svg";
 import ClientBackground from "@/assets/cliente.svg";
 
@@ -21,10 +19,6 @@ const ClientLayout = () => {
         localStorage.removeItem('clientAuthToken');
         navigate('/portal/login');
     };
-
-    // Presuming galleries array comes from somewhere, e.g. props or context
-    // Keeping the logic intact, just replacing the card JSX
-    const galleries = []; // This line is just placeholder, actual galleries come from backend
 
     return (
         <div className="relative flex flex-col min-h-screen">
@@ -49,18 +43,7 @@ const ClientLayout = () => {
                 </Button>
             </header>
 
-            <main className="relative z-10 flex-1 pt-20 p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {galleries.map((gallery) => (
-                    <Card key={gallery.id} className="overflow-hidden h-full border border-border/40 rounded-2xl bg-white/70 dark:bg-card/60 backdrop-blur-md shadow-sm hover:shadow-lg transition-all duration-300">
-                        <CardHeader className="p-5 flex flex-col gap-2">
-                            <CardTitle className="text-xl font-semibold">{gallery.name}</CardTitle>
-                            <CardDescription className="text-muted-foreground/80">{gallery.images.length} fotos</CardDescription>
-                            <Button variant="outline" className="mt-2">
-                                <Eye className="mr-2 h-4 w-4" />Ver Galeria
-                            </Button>
-                        </CardHeader>
-                    </Card>
-                ))}
+            <main className="relative z-10 flex-1 pt-20 p-4 md:p-8">
                 <Outlet />
             </main>
         </div>
