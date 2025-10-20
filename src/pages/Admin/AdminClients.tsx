@@ -53,11 +53,35 @@ const AdminClients = () => {
             const token = localStorage.getItem('authToken');
             const response = await fetch('/api/admin/portal?action=resetPassword', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: JSON.stringify({ clientId, newPassword }),
             });
-            if (!response.ok) throw new Error('Falha ao resetar a senha.');
-            // Mostra o toast com a nova senha e botão para copiar
+
+            let responseJson: any = null;
+            try {
+                responseJson = await response.json();
+            } catch (e) {
+                // Se não for JSON, ignora
+            }
+
+            if (!response.ok) {
+                // Erro 400 ou 500
+                let errorMsg = 'Falha ao resetar a senha.';
+                if (responseJson && responseJson.error) {
+                    errorMsg = responseJson.error;
+                } else if (response.status === 400) {
+                    errorMsg = 'Requisição inválida para resetar senha.';
+                } else if (response.status === 500) {
+                    errorMsg = 'Erro interno do servidor ao resetar senha.';
+                }
+                toast({ variant: 'destructive', title: 'Erro', description: errorMsg });
+                return;
+            }
+
+            // Sucesso: pode haver mensagem customizada no responseJson
             toast({
                 title: 'Nova senha gerada',
                 description: (
