@@ -5,7 +5,11 @@ import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
 import { ThemeToggle } from "./ThemeToggle.tsx";
 
-const Header = () => {
+interface HeaderProps {
+    variant?: "default" | "minimal";
+}
+
+const Header = ({ variant = "default" }: HeaderProps) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const scrollToSection = (sectionId: string) => {
@@ -20,6 +24,18 @@ const Header = () => {
         setIsMenuOpen(false);
     };
 
+    if (variant === "minimal") {
+        return (
+            <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] lg:w-auto transition-all duration-500 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl">
+                <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-center">
+                    <button onClick={() => scrollToSection("home")} className="focus:outline-none">
+                        <img src={Logo} alt="Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
+                    </button>
+                </nav>
+            </header>
+        );
+    }
+
     const navLinks = [
         { id: "home", label: "Início", isPage: false },
         { id: "about", label: "Sobre", isPage: false },
@@ -30,15 +46,14 @@ const Header = () => {
 
     return (
         <header
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 
-        bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-md w-[90%] md:w-auto`}
+            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] lg:w-auto transition-all duration-500 
+        bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl`}
         >
-            <nav className="px-4 py-2 md:py-3 flex items-center justify-between gap-4 md:gap-8">
-                <div className="flex items-center space-x-2">
-                    <img src={Logo} alt="Hellô Borges" className="h-10 md:h-11 w-auto" />
-                    <span className="text-2xl md:text-3xl font-bold tracking-wide drop-shadow-lg text-orange-500">
-                        Hellô
-                    </span>
+            <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-between gap-3 md:gap-8">
+                <div className="flex items-center">
+                    <button onClick={() => scrollToSection("home")} className="focus:outline-none">
+                        <img src={Logo} alt="Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
+                    </button>
                 </div>
 
                 {/* Navegação Desktop */}
@@ -77,7 +92,7 @@ const Header = () => {
 
                 {/* Menu Mobile */}
                 {isMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-background border border-border/20 rounded-b-2xl shadow-md md:hidden">
+                    <div className="absolute top-full left-0 right-0 bg-background/95 dark:bg-zinc-900/95 border-t border-border/20 rounded-b-2xl shadow-lg md:hidden backdrop-blur-xl">
                         <div className="flex flex-col space-y-4 p-6">
                             {navLinks.map(({ id, label, isPage }) =>
                                 isPage ? (

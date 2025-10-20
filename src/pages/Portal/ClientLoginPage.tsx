@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
 import { ArrowLeft } from 'lucide-react'; // 2. Importar o ícone
+import Header from "@/components/Header";
 
 const ClientLoginPage = () => {
     const [email, setEmail] = useState('');
@@ -42,6 +43,7 @@ const ClientLoginPage = () => {
 
     return (
         <div className="relative flex items-center justify-center min-h-screen bg-background">
+            <Header variant="minimal" />
             {/* Background Image e Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
@@ -93,16 +95,6 @@ const ClientLoginPage = () => {
                     </CardFooter>
                 </form>
             </Card>
-
-            {/* 3. Botão "Voltar" adicionado aqui */}
-            <div className="absolute bottom-8 text-center w-full z-10">
-                <Button variant="link" asChild className="text-white/70 hover:text-white transition-colors">
-                    <Link to="/">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Voltar à página principal
-                    </Link>
-                </Button>
-            </div>
 
         </div>
     );
