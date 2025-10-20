@@ -21,7 +21,7 @@ const ClientLayout = () => {
     };
 
     return (
-        <div className="relative flex items-center justify-center min-h-screen bg-background">
+        <div className="relative flex flex-col min-h-screen">
             {/* Background Image e Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
@@ -32,21 +32,20 @@ const ClientLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <div className="relative z-10">
-                <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-8">
-                    <div className="flex items-center gap-3">
-                        <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
-                        <span className="text-xl font-light hidden sm:inline">Portal do Cliente</span>
-                    </div>
-                    <Button variant="outline" onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sair
-                    </Button>
-                </header>
-                <main className="p-4 md:p-8">
-                    <Outlet />
-                </main>
-            </div>
+            <header className="relative z-10 sticky top-0 flex h-20 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-8">
+                <div className="flex items-center gap-3">
+                    <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
+                    <span className="text-xl font-light hidden sm:inline">Portal do Cliente</span>
+                </div>
+                <Button variant="outline" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                </Button>
+            </header>
+
+            <main className="relative z-10 flex-1 pt-20 p-4 md:p-8">
+                <Outlet />
+            </main>
         </div>
     );
 };
