@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { FiShare2 } from "react-icons/fi";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils"
 
@@ -225,7 +226,7 @@ const PortfolioSection = () => {
                                         className="absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
                                         aria-label="Compartilhar foto"
                                     >
-                                        🔗
+                                        <FiShare2 className="w-5 h-5" />
                                     </button>
                                     <img
                                         src={item.image}
@@ -275,7 +276,7 @@ const PortfolioSection = () => {
                                         className="absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
                                         aria-label="Compartilhar foto"
                                     >
-                                        🔗
+                                        <FiShare2 className="w-5 h-5" />
                                     </button>
                                     <img
                                         src={item.image}
