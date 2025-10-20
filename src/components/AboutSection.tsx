@@ -74,7 +74,6 @@ const AboutSection = () => {
                             </>
                         )}
 
-                        {/* Stats (mantidos do seu código original) */}
                         <div className="flex justify-center gap-8 mt-8">
                             <div className="text-center">
                                 <div className="flex justify-center mb-2"><Camera className="w-6 h-6 text-accent" /></div>
