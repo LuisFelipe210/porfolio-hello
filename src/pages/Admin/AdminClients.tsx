@@ -57,7 +57,7 @@ const AdminClients = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ clientId, newPassword }),
+                body: JSON.stringify({ clientId, password: newPassword }),
             });
 
             let responseJson: any = null;

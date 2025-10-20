@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         if (!token) return res.status(401).json({ error: 'Token de admin não fornecido.' });
         jwt.verify(token, process.env.JWT_SECRET);
 
-        const { action, clientId, galleryId } = req.query;
+        const { action, galleryId } = req.query;
 
         // --- LÓGICA PARA CLIENTES ---
         if (action === 'getClients' && req.method === 'GET') {
@@ -49,6 +49,7 @@ export default async function handler(req, res) {
 
         // --- RESET DE SENHA DE CLIENTE ---
         if (action === 'resetPassword' && req.method === 'POST') {
+            const { clientId } = req.body;
             if (!clientId || !ObjectId.isValid(clientId)) {
                 return res.status(400).json({ error: 'ID de cliente inválido.' });
             }
