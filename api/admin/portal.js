@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { v2 as cloudinary } from 'cloudinary';
 
 let cachedDb = null;
 async function connectToDatabase(uri) {
@@ -66,8 +67,31 @@ export default async function handler(req, res) {
         if (action === 'updateGalleryImages' && req.method === 'PUT') {
             if (!galleryId || !ObjectId.isValid(galleryId)) return res.status(400).json({ error: 'ID de galeria inválido.' });
             const { images } = req.body;
-            const result = await galleriesCollection.updateOne({ _id: new ObjectId(galleryId) }, { $set: { images } });
-            if (result.matchedCount === 0) return res.status(404).json({ error: 'Galeria não encontrada.' });
+            const uploadedImages = [];
+
+            for (const image of images) {
+                // image.path ou image.data dependendo do formato que você recebe
+                const result = await cloudinary.uploader.upload(image.path, {
+                    folder: `client_galleries/${galleryId}`,
+                    transformation: [
+                        {
+                            overlay: 'My Brand:logo_yqiqm6',
+                            gravity: 'center',
+                            opacity: 15,
+                            width: '0.5',
+                            crop: 'scale',
+                            effect: 'brightness:50'
+                        }
+                    ]
+                });
+                uploadedImages.push(result.secure_url);
+            }
+
+            const updateResult = await galleriesCollection.updateOne(
+                { _id: new ObjectId(galleryId) },
+                { $set: { images: uploadedImages } }
+            );
+            if (updateResult.matchedCount === 0) return res.status(404).json({ error: 'Galeria não encontrada.' });
             return res.status(200).json({ message: 'Galeria atualizada.' });
         }
 
