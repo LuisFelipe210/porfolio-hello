@@ -1,178 +1,146 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Mail, Phone, Circle } from 'lucide-react';
+import { Trash2, Mail, Phone, Circle, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { ViewSelectionsDialog } from './components/ViewSelectionsDialog';
 
-interface Message {
-    _id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    service: string;
-    message: string;
-    createdAt: string;
-    read: boolean; // Adicionamos o campo 'read'
-}
+interface Message { _id: string; name: string; email: string; phone?: string; service: string; message: string; createdAt: string; read: boolean; }
+interface Selection { _id: string; name: string; selections: string[]; selectionDate: string; clientInfo: { name: string }; }
 
 const AdminMessages = () => {
     const [messages, setMessages] = useState<Message[]>([]);
+    const [selections, setSelections] = useState<Selection[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+    const [selectedGallery, setSelectedGallery] = useState<Selection | null>(null);
     const { toast } = useToast();
 
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
-
-    const fetchMessages = async () => {
+    const fetchData = async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
             const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/messages', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            // --- ALTERADO AQUI --- (aponta para a API unificada)
+            const response = await fetch('/api/messages', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await response.json();
-            setMessages(data);
+            setMessages(data.messages);
+            setSelections(data.selections);
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as mensagens.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar a caixa de entrada.' });
         } finally {
             setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchMessages();
-    }, [toast]);
+    useEffect(() => { fetchData(); }, [toast]);
 
-    // Função para marcar a mensagem como lida
     const handleMarkAsRead = async (id: string) => {
-        // Procura a mensagem na lista local
         const message = messages.find(msg => msg._id === id);
-        // Se a mensagem já estiver marcada como lida, não faz nada
-        if (message?.read) {
-            return;
-        }
-
+        if (message?.read) return;
         try {
             const token = localStorage.getItem('authToken');
-            await fetch(`/api/messages?id=${id}`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-
-            // Atualiza o estado local para remover o indicador visual instantaneamente
-            setMessages(prevMessages =>
-                prevMessages.map(msg =>
-                    msg._id === id ? { ...msg, read: true } : msg
-                )
-            );
-        } catch (error) {
-            console.error("Erro ao marcar como lida:", error);
-        }
+            await fetch(`/api/messages?id=${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+            setMessages(prev => prev.map(msg => msg._id === id ? { ...msg, read: true } : msg));
+        } catch (error) { console.error("Erro ao marcar como lida:", error); }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDeleteMessage = async (id: string) => {
+        if (!window.confirm('Tem certeza?')) return;
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/messages?id=${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Falha ao excluir.');
+            await fetch(`/api/messages?id=${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             toast({ title: 'Sucesso', description: 'Mensagem excluída.' });
-            fetchMessages();
+            fetchData();
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir a mensagem.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir.' });
         }
     };
 
-    if (isLoading) {
-        return (
-            <div>
-                <h1 className="text-3xl font-bold mb-6">Caixa de Entrada</h1>
-                <div className="space-y-4">
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-20 w-full" />
-                </div>
-            </div>
-        );
-    }
+    const openViewDialog = (gallery: Selection) => {
+        setSelectedGallery(gallery);
+        setIsViewDialogOpen(true);
+    };
 
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6">Caixa de Entrada</h1>
-            {messages.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full space-y-4" onValueChange={handleMarkAsRead}>
-                    {messages.map((msg) => (
-                        <Card key={msg._id} className={!msg.read ? 'border-accent' : ''}>
-                            <AccordionItem value={msg._id} className="border-b-0">
-                                <AccordionTrigger className="p-4 hover:no-underline">
-                                    <div className="flex justify-between items-center w-full">
-                                        <div className="flex items-center gap-3 text-left">
-                                            {!msg.read && (
-                                                <Circle className="h-3 w-3 text-accent fill-current" />
-                                            )}
+            <Tabs defaultValue="messages">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="messages">Mensagens de Contato ({messages.filter(m => !m.read).length})</TabsTrigger>
+                    <TabsTrigger value="selections">Seleções Finalizadas ({selections.length})</TabsTrigger>
+                </TabsList>
+                <TabsContent value="messages">
+                    {isLoading ? <Skeleton className="h-40 w-full mt-4" /> : messages.length > 0 ? (
+                        <Accordion type="single" collapsible className="w-full space-y-4 mt-4" onValueChange={handleMarkAsRead}>
+                            {messages.map((msg) => (
+                                <Card key={msg._id} className={!msg.read ? 'border-accent' : ''}>
+                                    <AccordionItem value={msg._id} className="border-b-0">
+                                        <AccordionTrigger className="p-4 hover:no-underline">
+                                            <div className="flex justify-between items-center w-full">
+                                                <div className="flex items-center gap-3 text-left">
+                                                    {!msg.read && <Circle className="h-3 w-3 text-accent fill-current" />}
+                                                    <div>
+                                                        <p className="font-semibold">{msg.name}</p>
+                                                        <p className="text-sm text-muted-foreground">{msg.service}</p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground pr-4">{format(new Date(msg.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-4 pb-4">
+                                            <div className="border-t pt-4 space-y-4">
+                                                <p className="whitespace-pre-wrap">{msg.message}</p>
+                                                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                                                    <div className="flex gap-4">
+                                                        <a href={`mailto:${msg.email}`} className="flex items-center gap-1 hover:text-primary"><Mail className="h-4 w-4"/> {msg.email}</a>
+                                                        {msg.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4"/> {msg.phone}</span>}
+                                                    </div>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteMessage(msg._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                                </div>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Card>
+                            ))}
+                        </Accordion>
+                    ) : <p className="text-center text-muted-foreground pt-12">Nenhuma mensagem de contato.</p>}
+                </TabsContent>
+                <TabsContent value="selections">
+                    {isLoading ? <Skeleton className="h-40 w-full mt-4" /> : selections.length > 0 ? (
+                        <div className="space-y-4 mt-4">
+                            {selections.map((gallery) => (
+                                <Card key={gallery._id}>
+                                    <CardHeader>
+                                        <div className="flex justify-between items-start">
                                             <div>
-                                                <p className="font-semibold">{msg.name}</p>
-                                                <p className="text-sm text-muted-foreground">{msg.service}</p>
+                                                <CardTitle>{gallery.clientInfo.name}</CardTitle>
+                                                <CardDescription>Galeria: "{gallery.name}"</CardDescription>
+                                                <p className="text-xs text-muted-foreground mt-1">Seleção finalizada em {format(new Date(gallery.selectionDate), "dd/MM/yyyy", { locale: ptBR })}</p>
                                             </div>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground pr-4">
-                                            {format(new Date(msg.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                        </p>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="px-4 pb-4">
-                                    <div className="border-t pt-4 space-y-4">
-                                        <p className="whitespace-pre-wrap">{msg.message}</p>
-                                        <div className="flex justify-between items-center text-sm text-muted-foreground">
-                                            <div className="flex gap-4">
-                                                <a href={`mailto:${msg.email}`} className="flex items-center gap-1 hover:text-primary"><Mail className="h-4 w-4"/> {msg.email}</a>
-                                                {msg.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4"/> {msg.phone}</span>}
-                                            </div>
-                                            <Button variant="ghost" size="icon" onClick={() => { setMessageToDelete(msg); setIsDeleteDialogOpen(true); }}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            <Button variant="outline" onClick={() => openViewDialog(gallery)}>
+                                                <Eye className="mr-2 h-4 w-4"/>Ver {gallery.selections.length} fotos
                                             </Button>
                                         </div>
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
-                    ))}
-                </Accordion>
-            ) : (
-                <p className="text-center text-muted-foreground pt-12">Nenhuma mensagem encontrada.</p>
-            )}
+                                    </CardHeader>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : <p className="text-center text-muted-foreground pt-12">Nenhuma seleção de cliente foi finalizada ainda.</p>}
+                </TabsContent>
+            </Tabs>
 
-            {messageToDelete && (
-                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Confirmar exclusão</DialogTitle>
-                        </DialogHeader>
-                        <p>Tem certeza que deseja excluir a mensagem de "{messageToDelete.name}"?</p>
-                        <DialogFooter className="flex justify-end gap-2">
-                            <DialogClose asChild>
-                                <Button variant="secondary">Cancelar</Button>
-                            </DialogClose>
-                            <Button
-                                variant="destructive"
-                                onClick={() => {
-                                    if (messageToDelete) {
-                                        handleDelete(messageToDelete._id);
-                                        setIsDeleteDialogOpen(false);
-                                    }
-                                }}
-                            >
-                                Excluir
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+            {selectedGallery && (
+                <ViewSelectionsDialog
+                    galleryName={selectedGallery.name}
+                    selectedImages={selectedGallery.selections}
+                    open={isViewDialogOpen}
+                    onOpenChange={setIsViewDialogOpen}
+                />
             )}
         </div>
     );
