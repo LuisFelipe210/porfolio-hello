@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy, Eye, EyeOff } from 'lucide-react';
+import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Client {
@@ -33,8 +33,55 @@ const AdminClients = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
-    // controla se a senha está visível por clientId
-    const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+    // Estado para controlar loading do reset de senha por client
+    const [resettingPassword, setResettingPassword] = useState<Record<string, boolean>>({});
+    // Função para gerar senha aleatória
+    const generateRandomPasswordString = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%.&*_';
+        let result = '';
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    };
+
+    // Função para resetar senha do cliente
+    const handleResetPassword = async (clientId: string, clientName: string) => {
+        const newPassword = generateRandomPasswordString();
+        setResettingPassword(prev => ({ ...prev, [clientId]: true }));
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/admin/portal?action=resetPassword', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ clientId, newPassword }),
+            });
+            if (!response.ok) throw new Error('Falha ao resetar a senha.');
+            // Mostra o toast com a nova senha e botão para copiar
+            toast({
+                title: 'Nova senha gerada',
+                description: (
+                    <div className="flex items-center gap-2">
+                        <span className="font-mono select-all">{newPassword}</span>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => copyToClipboard(newPassword)}
+                            title="Copiar senha"
+                        >
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ),
+                duration: 9000,
+            });
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
+            toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
+        } finally {
+            setResettingPassword(prev => ({ ...prev, [clientId]: false }));
+        }
+    };
 
     const fetchClients = async () => {
         setIsLoading(true);
@@ -235,36 +282,20 @@ const AdminClients = () => {
                                             </Button>
                                         </div>
 
-                                        {/* linha da senha: input mascarado + eye + copy */}
-                                        <div className="flex items-center gap-2">
-                                            <div className="relative flex items-center w-full max-w-xs">
-                                                <input
-                                                    type={showPasswords[client._id] ? 'text' : 'password'}
-                                                    value={client.password ?? ''}
-                                                    readOnly
-                                                    placeholder={client.password ? '' : 'Senha não disponível'}
-                                                    className="w-full py-2 pl-3 pr-10 text-sm rounded-md border border-border/40 bg-transparent"
-                                                />
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPasswords(prev => ({ ...prev, [client._id]: !prev[client._id] }))}
-                                                    className="absolute right-8 top-1/2 -translate-y-1/2 p-1"
-                                                    title={showPasswords[client._id] ? 'Ocultar senha' : 'Mostrar senha'}
-                                                >
-                                                    {showPasswords[client._id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => copyToClipboard(client.password ?? '')}
-                                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1"
-                                                    title="Copiar senha"
-                                                    disabled={!client.password}
-                                                >
-                                                    <Copy className="h-4 w-4" />
-                                                </button>
-                                            </div>
+                                        {/* Botão de Gerar Nova Senha */}
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                className="flex-1"
+                                                onClick={() => handleResetPassword(client._id, client.name)}
+                                                disabled={!!resettingPassword[client._id]}
+                                            >
+                                                {resettingPassword[client._id] ? (
+                                                    <span className="animate-spin mr-2 w-4 h-4 border-2 border-t-transparent border-primary rounded-full" />
+                                                ) : null}
+                                                Gerar nova senha
+                                            </Button>
                                         </div>
                                     </div>
                                 </CardContent>
