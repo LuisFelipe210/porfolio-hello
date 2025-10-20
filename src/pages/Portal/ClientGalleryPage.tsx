@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, ArrowLeft, Upload, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { UploadPhotosDialog } from 'src/pages/Admin/components/UploadPhotosDialog.tsx';
+import { UploadPhotosDialog } from '../Admin/components/UploadPhotosDialog.tsx';
 
 interface Gallery {
     _id: string;
