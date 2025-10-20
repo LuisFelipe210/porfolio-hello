@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Importar o Link para a navegação
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,18 +9,13 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, GalleryHorizontal } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface Client {
-    _id: string;
-    name: string;
-    email: string;
-}
+interface Client { _id: string; name: string; email: string; }
 
 const AdminClients = () => {
     const [clients, setClients] = useState<Client[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { toast } = useToast();
-
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -30,7 +25,7 @@ const AdminClients = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/clients', {
+            const response = await fetch('/api/admin/portal?action=getClients', { // <-- ALTERADO AQUI
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error("Falha ao buscar clientes.");
@@ -43,30 +38,22 @@ const AdminClients = () => {
         }
     };
 
-    useEffect(() => {
-        fetchClients();
-    }, [toast]);
+    useEffect(() => { fetchClients(); }, [toast]);
 
-    const resetForm = () => {
-        setName('');
-        setEmail('');
-        setPassword('');
-    };
+    const resetForm = () => { setName(''); setEmail(''); setPassword(''); };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/clients', {
+            const response = await fetch('/api/admin/portal?action=createClient', { // <-- ALTERADO AQUI
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ name, email, password }),
             });
-
             if (!response.ok) throw new Error('Falha ao criar o cliente.');
             toast({ title: 'Sucesso!', description: `Cliente ${name} adicionado.` });
-
             resetForm();
             setIsDialogOpen(false);
             fetchClients();
@@ -79,10 +66,10 @@ const AdminClients = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir este cliente? Todas as suas galerias também serão perdidas.')) return;
+        if (!window.confirm('Tem certeza? Todas as galerias do cliente também serão excluídas.')) return;
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/clients?id=${id}`, {
+            const response = await fetch(`/api/admin/portal?action=deleteClient&clientId=${id}`, { // <-- ALTERADO AQUI
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -104,44 +91,28 @@ const AdminClients = () => {
                         <DialogHeader><DialogTitle>Adicionar Novo Cliente</DialogTitle></DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div><Label htmlFor="name">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required /></div>
-                            <div><Label htmlFor="email">Email (para login do cliente)</Label><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-                            <div><Label htmlFor="password">Senha (temporária para o cliente)</Label><Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
-                            <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar Cliente'}</Button>
-                            </DialogFooter>
+                            <div><Label htmlFor="email">Email (para login)</Label><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+                            <div><Label htmlFor="password">Senha (temporária)</Label><Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+                            <DialogFooter><DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose><Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar'}</Button></DialogFooter>
                         </form>
                     </DialogContent>
                 </Dialog>
             </div>
-
             <div className="space-y-4">
                 {isLoading ? <><Skeleton className="h-28 w-full" /><Skeleton className="h-28 w-full" /></>
                     : clients.length > 0 ? (
                         clients.map((client) => (
                             <Card key={client._id}>
-                                <CardHeader>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <CardTitle>{client.name}</CardTitle>
-                                            <CardDescription>{client.email}</CardDescription>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button asChild variant="outline">
-                                                <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                                                    <GalleryHorizontal className="mr-2 h-4 w-4"/>
-                                                    Gerir Galerias
-                                                </Link>
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(client._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                                        </div>
+                                <CardHeader><div className="flex justify-between items-start">
+                                    <div><CardTitle>{client.name}</CardTitle><CardDescription>{client.email}</CardDescription></div>
+                                    <div className="flex gap-2">
+                                        <Button asChild variant="outline"><Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}><GalleryHorizontal className="mr-2 h-4 w-4"/>Gerir Galerias</Link></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(client._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                     </div>
-                                </CardHeader>
+                                </div></CardHeader>
                             </Card>
                         ))
-                    ) : (
-                        <p className="text-center text-muted-foreground pt-12">Nenhum cliente encontrado. Adicione o primeiro!</p>
-                    )}
+                    ) : <p className="text-center text-muted-foreground pt-12">Nenhum cliente encontrado.</p>}
             </div>
         </div>
     );

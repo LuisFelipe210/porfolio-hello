@@ -47,25 +47,24 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
                     method: 'POST',
                     body: formData,
                 });
-                if (!response.ok) throw new Error(`Falha ao enviar o ficheiro ${file.name}`);
+                if (!response.ok) throw new Error(`Falha ao enviar ${file.name}`);
 
                 const { url } = await response.json();
                 uploadedUrls.push(url);
                 setProgress(((i + 1) / files.length) * 100);
 
             } catch (error) {
-                toast({ variant: 'destructive', title: `Erro no upload do ficheiro ${file.name}` });
+                toast({ variant: 'destructive', title: `Erro no upload de ${file.name}` });
                 setIsUploading(false);
                 return;
             }
         }
 
-        // Todas as imagens foram enviadas, agora atualizamos a galeria
         try {
             const token = localStorage.getItem('authToken');
             const updatedImages = [...existingImages, ...uploadedUrls];
 
-            const response = await fetch(`/api/admin/galleries?galleryId=${galleryId}`, {
+            const response = await fetch(`/api/admin/portal?action=updateGalleryImages&galleryId=${galleryId}`, { // <-- ALTERADO AQUI
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,8 +75,8 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
 
             if (!response.ok) throw new Error('Falha ao atualizar a galeria.');
 
-            toast({ title: 'Sucesso!', description: `${files.length} fotos adicionadas à galeria.` });
-            onUploadComplete(); // Avisa o componente pai para recarregar as galerias
+            toast({ title: 'Sucesso!', description: `${files.length} fotos adicionadas.` });
+            onUploadComplete();
             setFiles([]);
             onOpenChange(false);
 

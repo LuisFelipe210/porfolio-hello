@@ -28,7 +28,6 @@ const AdminClientGalleries = () => {
     const [galleryName, setGalleryName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Estados para o dialog de upload
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
     const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
 
@@ -37,7 +36,7 @@ const AdminClientGalleries = () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/galleries?clientId=${clientId}`, {
+            const response = await fetch(`/api/admin/portal?action=getGalleries&clientId=${clientId}`, { // <-- ALTERADO AQUI
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -58,7 +57,7 @@ const AdminClientGalleries = () => {
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/galleries?clientId=${clientId}`, {
+            const response = await fetch(`/api/admin/portal?action=createGallery&clientId=${clientId}`, { // <-- ALTERADO AQUI
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ name: galleryName }),
@@ -79,10 +78,10 @@ const AdminClientGalleries = () => {
     };
 
     const handleDeleteGallery = async (galleryId: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir esta galeria? Todas as fotos serão perdidas.')) return;
+        if (!window.confirm('Tem certeza que deseja excluir esta galeria?')) return;
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/galleries?galleryId=${galleryId}`, {
+            const response = await fetch(`/api/admin/portal?action=deleteGallery&galleryId=${galleryId}`, { // <-- ALTERADO AQUI
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -107,7 +106,7 @@ const AdminClientGalleries = () => {
                 </Link>
                 <div>
                     <h1 className="text-3xl font-bold">Galerias de {clientName}</h1>
-                    <p className="text-muted-foreground">Crie e gira as galerias de fotos para este cliente.</p>
+                    <p className="text-muted-foreground">Crie e gira as galerias para este cliente.</p>
                 </div>
             </div>
 
@@ -120,7 +119,7 @@ const AdminClientGalleries = () => {
                             <div><Label htmlFor="galleryName">Nome da Galeria</Label><Input id="galleryName" value={galleryName} onChange={(e) => setGalleryName(e.target.value)} required /></div>
                             <DialogFooter>
                                 <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Criando...' : 'Criar Galeria'}</Button>
+                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Criando...' : 'Criar'}</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
