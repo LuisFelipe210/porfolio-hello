@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, ArrowLeft, Upload, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { UploadPhotosDialog } from './components/UploadPhotosDialog';
 
 interface Gallery {
     _id: string;
@@ -21,11 +22,15 @@ const AdminClientGalleries = () => {
     const { clientId, clientName } = useParams<{ clientId: string; clientName: string }>();
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const { toast } = useToast();
 
     const [galleryName, setGalleryName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Estados para o dialog de upload
+    const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+    const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
 
     const fetchGalleries = async () => {
         if (!clientId) return;
@@ -63,7 +68,7 @@ const AdminClientGalleries = () => {
             toast({ title: 'Sucesso!', description: `Galeria "${galleryName}" criada.` });
 
             setGalleryName('');
-            setIsDialogOpen(false);
+            setIsCreateDialogOpen(false);
             fetchGalleries();
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
@@ -89,6 +94,11 @@ const AdminClientGalleries = () => {
         }
     };
 
+    const openUploadDialog = (gallery: Gallery) => {
+        setSelectedGallery(gallery);
+        setIsUploadDialogOpen(true);
+    };
+
     return (
         <div>
             <div className="flex items-center gap-4 mb-6">
@@ -102,12 +112,12 @@ const AdminClientGalleries = () => {
             </div>
 
             <div className="flex justify-end mb-6">
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild><Button onClick={() => setIsDialogOpen(true)}><PlusCircle className="mr-2 h-4 w-4" />Nova Galeria</Button></DialogTrigger>
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                    <DialogTrigger asChild><Button onClick={() => setIsCreateDialogOpen(true)}><PlusCircle className="mr-2 h-4 w-4" />Nova Galeria</Button></DialogTrigger>
                     <DialogContent>
                         <DialogHeader><DialogTitle>Criar Nova Galeria</DialogTitle></DialogHeader>
                         <form onSubmit={handleCreateGallery} className="space-y-4">
-                            <div><Label htmlFor="galleryName">Nome da Galeria (ex: Ensaio de Família - 20/10/2025)</Label><Input id="galleryName" value={galleryName} onChange={(e) => setGalleryName(e.target.value)} required /></div>
+                            <div><Label htmlFor="galleryName">Nome da Galeria</Label><Input id="galleryName" value={galleryName} onChange={(e) => setGalleryName(e.target.value)} required /></div>
                             <DialogFooter>
                                 <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
                                 <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Criando...' : 'Criar Galeria'}</Button>
@@ -128,10 +138,16 @@ const AdminClientGalleries = () => {
                                             <CardTitle>{gallery.name}</CardTitle>
                                             <CardDescription>{gallery.images.length} fotos | {gallery.selections.length} selecionadas</CardDescription>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button variant="outline"><Upload className="mr-2 h-4 w-4"/>Adicionar Fotos</Button>
-                                            <Button variant="outline" disabled={gallery.status !== 'selection_complete'}><Eye className="mr-2 h-4 w-4"/>Ver Seleção</Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteGallery(gallery._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        <div className="flex flex-wrap gap-2 justify-end">
+                                            <Button variant="outline" onClick={() => openUploadDialog(gallery)}>
+                                                <Upload className="mr-2 h-4 w-4"/>Adicionar Fotos
+                                            </Button>
+                                            <Button variant="outline" disabled={gallery.status !== 'selection_complete'}>
+                                                <Eye className="mr-2 h-4 w-4"/>Ver Seleção
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteGallery(gallery._id)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
                                         </div>
                                     </div>
                                 </CardHeader>
@@ -141,6 +157,16 @@ const AdminClientGalleries = () => {
                         <p className="text-center text-muted-foreground pt-12">Nenhuma galeria encontrada. Crie a primeira!</p>
                     )}
             </div>
+
+            {selectedGallery && (
+                <UploadPhotosDialog
+                    galleryId={selectedGallery._id}
+                    existingImages={selectedGallery.images}
+                    open={isUploadDialogOpen}
+                    onOpenChange={setIsUploadDialogOpen}
+                    onUploadComplete={fetchGalleries}
+                />
+            )}
         </div>
     );
 };
