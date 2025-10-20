@@ -58,7 +58,6 @@ const App = () => {
 
                     <div className="site-content">
                         <BrowserRouter>
-                            {/* <ScrollToTop /> */}
                             <Routes>
                                 {/* --- Rotas Públicas --- */}
                                 <Route path="/" element={<Index />} />
