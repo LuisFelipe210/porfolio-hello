@@ -47,6 +47,32 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Cliente e suas galerias foram excluídos.' });
         }
 
+        // --- RESET DE SENHA DE CLIENTE ---
+        if (action === 'resetPassword' && req.method === 'POST') {
+            if (!clientId || !ObjectId.isValid(clientId)) {
+                return res.status(400).json({ error: 'ID de cliente inválido.' });
+            }
+            // Gera nova senha aleatória simples
+            function generatePassword(length = 8) {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let pass = '';
+                for (let i = 0; i < length; i++) {
+                    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return pass;
+            }
+            const newPassword = generatePassword(8);
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const result = await clientsCollection.updateOne(
+                { _id: new ObjectId(clientId) },
+                { $set: { password: hashedPassword } }
+            );
+            if (result.matchedCount === 0) {
+                return res.status(404).json({ error: 'Cliente não encontrado.' });
+            }
+            return res.status(200).json({ newPassword });
+        }
+
         // --- LÓGICA PARA GALERIAS ---
         if (action === 'getGalleries' && req.method === 'GET') {
             if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });

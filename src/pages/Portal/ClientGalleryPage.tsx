@@ -100,12 +100,40 @@ const ImageModal = ({
 };
 
 // --- Componente para a Vista de Seleção de UMA Galeria ---
-const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery: Gallery, onBack: () => void, onSelectionSubmit: () => void }) => {
-    const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set(gallery.selections || []));
+const GallerySelectionView = ({
+    gallery,
+    onBack,
+    onSelectionSubmit
+}: {
+    gallery: Gallery,
+    onBack: () => void,
+    onSelectionSubmit: () => void
+}) => {
+    // Persistência da seleção no localStorage
+    const storageKey = `gallery-selection-${gallery._id}`;
+    const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) return new Set(parsed);
+                } catch { /* ignore */ }
+            }
+        }
+        return new Set(gallery.selections || []);
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalImageIndex, setModalImageIndex] = useState<number | null>(null);
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
+
+    // Salva seleção no localStorage sempre que selectedImages muda
+    useEffect(() => {
+        if (!isSelectionComplete) {
+            localStorage.setItem(storageKey, JSON.stringify(Array.from(selectedImages)));
+        }
+    }, [selectedImages, storageKey, isSelectionComplete]);
 
     const preloadImage = (url: string) => {
         const img = new Image();
@@ -118,6 +146,8 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
             const newSet = new Set(prev);
             if (newSet.has(imageUrl)) newSet.delete(imageUrl);
             else newSet.add(imageUrl);
+            // Persistir imediatamente após alteração
+            localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
             return newSet;
         });
     };
@@ -133,6 +163,8 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
             });
             if (!response.ok) throw new Error('Falha ao enviar a seleção.');
             toast({ title: 'Seleção Enviada!', description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
+            // Limpar seleção salva após envio
+            localStorage.removeItem(storageKey);
             onSelectionSubmit();
         } catch(error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar a sua seleção.' });
@@ -154,7 +186,15 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
     return (
         <div>
             {modalImageIndex !== null && (
-                <ImageModal images={gallery.images} currentIndex={modalImageIndex} onClose={() => setModalImageIndex(null)} onNavigate={handleNavigateModal} selectedImages={selectedImages} toggleSelection={toggleSelection} isSelectionComplete={isSelectionComplete} />
+                <ImageModal
+                    images={gallery.images}
+                    currentIndex={modalImageIndex}
+                    onClose={() => setModalImageIndex(null)}
+                    onNavigate={handleNavigateModal}
+                    selectedImages={selectedImages}
+                    toggleSelection={toggleSelection}
+                    isSelectionComplete={isSelectionComplete}
+                />
             )}
 
             <Button variant="ghost" onClick={onBack} className="mb-6"><ArrowLeft className="mr-2 h-4 w-4" />Voltar para as galerias</Button>
