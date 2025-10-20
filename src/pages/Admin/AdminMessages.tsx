@@ -25,6 +25,8 @@ const AdminMessages = () => {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
+    const [searchTerm, setSearchTerm] = useState('');
+
     const fetchData = async () => {
         setIsLoading(true);
         try {
@@ -73,18 +75,37 @@ const AdminMessages = () => {
         setIsViewDialogOpen(true);
     };
 
+    const filteredMessages = messages.filter((msg) =>
+        msg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        msg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        msg.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        msg.message.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredSelections = selections.filter((gallery) =>
+        gallery.clientInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        gallery.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6">Caixa de Entrada</h1>
+            <input
+                type="text"
+                placeholder="Buscar por nome, email ou serviço..."
+                className="w-full max-w-md mb-6 p-2 border rounded-md bg-background/70 backdrop-blur-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <Tabs defaultValue="messages">
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="messages">Mensagens de Contato ({messages.filter(m => !m.read).length})</TabsTrigger>
-                    <TabsTrigger value="selections">Seleções Finalizadas ({selections.length})</TabsTrigger>
+                    <TabsTrigger value="messages">Mensagens de Contato ({filteredMessages.filter(m => !m.read).length})</TabsTrigger>
+                    <TabsTrigger value="selections">Seleções Finalizadas ({filteredSelections.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="messages">
-                    {isLoading ? <Skeleton className="h-40 w-full mt-4" /> : messages.length > 0 ? (
+                    {isLoading ? <Skeleton className="h-40 w-full mt-4" /> : filteredMessages.length > 0 ? (
                         <Accordion type="single" collapsible className="w-full space-y-4 mt-4" onValueChange={handleMarkAsRead}>
-                            {messages.map((msg) => (
+                            {filteredMessages.map((msg) => (
                                 <Card key={msg._id} className={!msg.read ? 'border-accent' : ''}>
                                     <AccordionItem value={msg._id} className="border-b-0">
                                         <AccordionTrigger className="p-4 hover:no-underline">
@@ -120,9 +141,9 @@ const AdminMessages = () => {
                     ) : <p className="text-center text-muted-foreground pt-12">Nenhuma mensagem de contato.</p>}
                 </TabsContent>
                 <TabsContent value="selections">
-                    {isLoading ? <Skeleton className="h-40 w-full mt-4" /> : selections.length > 0 ? (
+                    {isLoading ? <Skeleton className="h-40 w-full mt-4" /> : filteredSelections.length > 0 ? (
                         <div className="space-y-4 mt-4">
-                            {selections.map((gallery) => (
+                            {filteredSelections.map((gallery) => (
                                 <Card key={gallery._id}>
                                     <CardHeader>
                                         <div className="flex justify-between items-start">

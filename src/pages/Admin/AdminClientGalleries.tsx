@@ -97,10 +97,20 @@ const AdminClientGalleries = () => {
                                         <div className="flex flex-wrap gap-2 justify-end">
                                             <Button
                                                 variant="outline"
-                                                onClick={() => openUploadDialog(gallery)}
-                                                disabled={gallery.status === 'selection_complete'}
+                                                onClick={() => {
+                                                    if (gallery.status === 'selection_complete' || gallery.selections.length > 0) {
+                                                        toast({
+                                                            variant: 'destructive',
+                                                            title: 'Galeria finalizada',
+                                                            description: 'Não é possível adicionar novas fotos em uma galeria finalizada ou com seleções.'
+                                                        });
+                                                        return;
+                                                    }
+                                                    openUploadDialog(gallery);
+                                                }}
+                                                disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0}
                                             >
-                                                <Upload className="mr-2 h-4 w-4"/>Adicionar Fotos
+                                                <Upload className="mr-2 h-4 w-4" />Adicionar Fotos
                                             </Button>
 
                                             {/* 4. Botão "Ver Seleção" agora funciona */}
