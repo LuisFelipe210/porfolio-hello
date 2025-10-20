@@ -32,6 +32,9 @@ const AdminClientGalleries = () => {
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false); // <-- 2. Novo estado para o diálogo de visualização
     const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
 
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [galleryToDelete, setGalleryToDelete] = useState<Gallery | null>(null);
+
     const fetchGalleries = async () => {
         // ... (função fetchGalleries sem alterações)
     };
@@ -45,7 +48,18 @@ const AdminClientGalleries = () => {
     };
 
     const handleDeleteGallery = async (galleryId: string) => {
-        // ... (função handleDeleteGallery sem alterações)
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/admin/portal?action=deleteGallery&galleryId=${galleryId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) throw new Error('Falha ao excluir.');
+            toast({ title: 'Sucesso', description: 'Galeria excluída.' });
+            fetchGalleries();
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir a galeria.' });
+        }
     };
 
     const openUploadDialog = (gallery: Gallery) => {
@@ -81,7 +95,11 @@ const AdminClientGalleries = () => {
                                             <CardDescription>{gallery.images.length} fotos | {gallery.selections.length} selecionadas</CardDescription>
                                         </div>
                                         <div className="flex flex-wrap gap-2 justify-end">
-                                            <Button variant="outline" onClick={() => openUploadDialog(gallery)}>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => openUploadDialog(gallery)}
+                                                disabled={gallery.status === 'selection_complete'}
+                                            >
                                                 <Upload className="mr-2 h-4 w-4"/>Adicionar Fotos
                                             </Button>
 
@@ -94,7 +112,7 @@ const AdminClientGalleries = () => {
                                                 <Eye className="mr-2 h-4 w-4"/>Ver Seleção
                                             </Button>
 
-                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteGallery(gallery._id)}>
+                                            <Button variant="ghost" size="icon" onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </div>
@@ -127,6 +145,33 @@ const AdminClientGalleries = () => {
                     onOpenChange={setIsViewDialogOpen}
                 />
             )}
+
+            {galleryToDelete && (
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                        </DialogHeader>
+                        <p>Tem certeza que deseja excluir a galeria "{galleryToDelete.name}"? Todas as fotos serão perdidas.</p>
+                        <DialogFooter className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (galleryToDelete) {
+                                        handleDeleteGallery(galleryToDelete._id);
+                                        setIsDeleteDialogOpen(false);
+                                    }
+                                }}
+                            >
+                                Excluir
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 };
@@ -145,6 +190,9 @@ const AdminClientGalleriesWithFunctions = () => {
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
     const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [galleryToDelete, setGalleryToDelete] = useState<Gallery | null>(null);
 
     const fetchGalleries = async () => {
         if (!clientId) return;
@@ -193,7 +241,6 @@ const AdminClientGalleriesWithFunctions = () => {
     };
 
     const handleDeleteGallery = async (galleryId: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir esta galeria? Todas as fotos serão perdidas.')) return;
         try {
             const token = localStorage.getItem('authToken');
             const response = await fetch(`/api/admin/portal?action=deleteGallery&galleryId=${galleryId}`, {
@@ -268,7 +315,7 @@ const AdminClientGalleriesWithFunctions = () => {
                                             >
                                                 <Eye className="mr-2 h-4 w-4"/>Ver Seleção
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteGallery(gallery._id)}>
+                                            <Button variant="ghost" size="icon" onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </div>
@@ -298,6 +345,33 @@ const AdminClientGalleriesWithFunctions = () => {
                     open={isViewDialogOpen}
                     onOpenChange={setIsViewDialogOpen}
                 />
+            )}
+
+            {galleryToDelete && (
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                        </DialogHeader>
+                        <p>Tem certeza que deseja excluir a galeria "{galleryToDelete.name}"? Todas as fotos serão perdidas.</p>
+                        <DialogFooter className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (galleryToDelete) {
+                                        handleDeleteGallery(galleryToDelete._id);
+                                        setIsDeleteDialogOpen(false);
+                                    }
+                                }}
+                            >
+                                Excluir
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             )}
         </div>
     );

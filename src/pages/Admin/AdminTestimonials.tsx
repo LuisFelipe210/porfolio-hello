@@ -28,6 +28,9 @@ const AdminTestimonials = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [testimonialToDelete, setTestimonialToDelete] = useState<Testimonial | null>(null);
+
     const fetchTestimonials = async () => {
         setIsLoading(true);
         try {
@@ -93,7 +96,6 @@ const AdminTestimonials = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir este depoimento?')) return;
         try {
             const token = localStorage.getItem('authToken');
             const response = await fetch(`/api/testimonials?id=${id}`, {
@@ -143,7 +145,7 @@ const AdminTestimonials = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => { setTestimonialToDelete(item); setIsDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -156,6 +158,33 @@ const AdminTestimonials = () => {
                     <p className="text-center text-muted-foreground pt-12">Nenhum depoimento encontrado. Adicione o primeiro!</p>
                 )}
             </div>
+
+            {testimonialToDelete && (
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                        </DialogHeader>
+                        <p>Tem certeza que deseja excluir o depoimento de "{testimonialToDelete.author}"?</p>
+                        <DialogFooter className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (testimonialToDelete) {
+                                        handleDelete(testimonialToDelete._id);
+                                        setIsDeleteDialogOpen(false);
+                                    }
+                                }}
+                            >
+                                Excluir
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 };

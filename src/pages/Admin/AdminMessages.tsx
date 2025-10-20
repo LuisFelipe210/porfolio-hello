@@ -7,6 +7,7 @@ import { Trash2, Mail, Phone, Circle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 interface Message {
     _id: string;
@@ -23,6 +24,9 @@ const AdminMessages = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
 
     const fetchMessages = async () => {
         try {
@@ -72,7 +76,6 @@ const AdminMessages = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir esta mensagem permanentemente?')) return;
         try {
             const token = localStorage.getItem('authToken');
             const response = await fetch(`/api/messages?id=${id}`, {
@@ -131,7 +134,7 @@ const AdminMessages = () => {
                                                 <a href={`mailto:${msg.email}`} className="flex items-center gap-1 hover:text-primary"><Mail className="h-4 w-4"/> {msg.email}</a>
                                                 {msg.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4"/> {msg.phone}</span>}
                                             </div>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(msg._id)}>
+                                            <Button variant="ghost" size="icon" onClick={() => { setMessageToDelete(msg); setIsDeleteDialogOpen(true); }}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </div>
@@ -143,6 +146,33 @@ const AdminMessages = () => {
                 </Accordion>
             ) : (
                 <p className="text-center text-muted-foreground pt-12">Nenhuma mensagem encontrada.</p>
+            )}
+
+            {messageToDelete && (
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                        </DialogHeader>
+                        <p>Tem certeza que deseja excluir a mensagem de "{messageToDelete.name}"?</p>
+                        <DialogFooter className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (messageToDelete) {
+                                        handleDelete(messageToDelete._id);
+                                        setIsDeleteDialogOpen(false);
+                                    }
+                                }}
+                            >
+                                Excluir
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             )}
         </div>
     );

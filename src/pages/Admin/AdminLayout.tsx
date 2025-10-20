@@ -30,6 +30,15 @@ const AdminLayout = () => {
 
     const NavLinks = () => (
         <nav className="flex flex-col gap-2 px-4">
+            <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
+                <Button
+                    variant={isLinkActive('/admin/clients') ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                >
+                    <Users className="mr-2 h-4 w-4" />
+                    Clientes
+                </Button>
+            </Link>
             <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}>
                 <Button
                     variant={isLinkActive('/admin/portfolio') ? "secondary" : "ghost"}
@@ -82,15 +91,6 @@ const AdminLayout = () => {
                 >
                     <Rss className="mr-2 h-4 w-4" />
                     Blog
-                </Button>
-            </Link>
-            <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant={isLinkActive('/admin/clients') ? "secondary" : "ghost"}
-                    className="w-full justify-start"
-                >
-                    <Users className="mr-2 h-4 w-4" />
-                    Clientes
                 </Button>
             </Link>
             <Link to="/admin/settings" onClick={() => setSheetOpen(false)}>

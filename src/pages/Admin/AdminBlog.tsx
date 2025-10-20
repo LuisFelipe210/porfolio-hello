@@ -23,6 +23,8 @@ const AdminBlog = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [postToDelete, setPostToDelete] = useState<Post | null>(null);
     const { toast } = useToast();
 
     const [title, setTitle] = useState('');
@@ -109,19 +111,7 @@ const AdminBlog = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir este artigo?')) return;
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/blog?id=${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Falha ao excluir.');
-            toast({ title: 'Sucesso', description: 'Artigo excluído.' });
-            fetchPosts();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o artigo.' });
-        }
+        // Removed window.confirm and handleDelete logic since deletion is handled in modal
     };
 
     return (
@@ -160,7 +150,16 @@ const AdminBlog = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(post._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setPostToDelete(post);
+                                                setIsDeleteDialogOpen(true);
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -169,6 +168,45 @@ const AdminBlog = () => {
                         <p className="text-center text-muted-foreground pt-12">Nenhum artigo publicado. Crie o primeiro!</p>
                     )}
             </div>
+
+            {postToDelete && (
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                        </DialogHeader>
+                        <p>Tem certeza que deseja excluir o artigo "{postToDelete.title}"? Esta ação não pode ser desfeita.</p>
+                        <DialogFooter className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button
+                                variant="destructive"
+                                onClick={async () => {
+                                    if (!postToDelete) return;
+                                    try {
+                                        const token = localStorage.getItem('authToken');
+                                        const response = await fetch(`/api/blog?id=${postToDelete._id}`, {
+                                            method: 'DELETE',
+                                            headers: { 'Authorization': `Bearer ${token}` },
+                                        });
+                                        if (!response.ok) throw new Error('Falha ao excluir.');
+                                        toast({ title: 'Sucesso', description: 'Artigo excluído.' });
+                                        fetchPosts();
+                                    } catch (error) {
+                                        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o artigo.' });
+                                    } finally {
+                                        setIsDeleteDialogOpen(false);
+                                        setPostToDelete(null);
+                                    }
+                                }}
+                            >
+                                Excluir
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 };

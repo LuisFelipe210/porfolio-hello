@@ -20,6 +20,8 @@ const AdminClients = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
 
     const fetchClients = async () => {
         setIsLoading(true);
@@ -66,19 +68,7 @@ const AdminClients = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza? Todas as galerias do cliente também serão excluídas.')) return;
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/portal?action=deleteClient&clientId=${id}`, { // <-- ALTERADO AQUI
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Falha ao excluir.');
-            toast({ title: 'Sucesso', description: 'Cliente excluído.' });
-            fetchClients();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o cliente.' });
-        }
+        // Removed window.confirm and logic moved to modal
     };
 
     return (
@@ -107,13 +97,57 @@ const AdminClients = () => {
                                     <div><CardTitle>{client.name}</CardTitle><CardDescription>{client.email}</CardDescription></div>
                                     <div className="flex gap-2">
                                         <Button asChild variant="outline"><Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}><GalleryHorizontal className="mr-2 h-4 w-4"/>Gerir Galerias</Link></Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(client._id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => { setClientToDelete(client); setIsDeleteDialogOpen(true); }}
+                                        >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
                                     </div>
                                 </div></CardHeader>
                             </Card>
                         ))
                     ) : <p className="text-center text-muted-foreground pt-12">Nenhum cliente encontrado.</p>}
             </div>
+            {clientToDelete && (
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                        </DialogHeader>
+                        <p>Tem certeza que deseja excluir o cliente "{clientToDelete.name}"? Todas as galerias associadas serão removidas.</p>
+                        <DialogFooter className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button
+                                variant="destructive"
+                                onClick={async () => {
+                                    if (!clientToDelete) return;
+                                    try {
+                                        const token = localStorage.getItem('authToken');
+                                        const response = await fetch(`/api/admin/portal?action=deleteClient&clientId=${clientToDelete._id}`, {
+                                            method: 'DELETE',
+                                            headers: { 'Authorization': `Bearer ${token}` },
+                                        });
+                                        if (!response.ok) throw new Error('Falha ao excluir.');
+                                        toast({ title: 'Sucesso', description: 'Cliente excluído.' });
+                                        fetchClients();
+                                    } catch (error) {
+                                        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o cliente.' });
+                                    } finally {
+                                        setIsDeleteDialogOpen(false);
+                                        setClientToDelete(null);
+                                    }
+                                }}
+                            >
+                                Excluir
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 };
