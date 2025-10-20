@@ -207,6 +207,26 @@ const PortfolioSection = () => {
                                     onTouchStart={handleTouchStart}
                                     onTouchEnd={handleTouchEnd}
                                 >
+                                    {/* Botão de compartilhar mobile */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const shareData = {
+                                                title: item.title,
+                                                text: item.description,
+                                                url: item.image,
+                                            };
+                                            if (navigator.share) {
+                                                navigator.share(shareData).catch(console.error);
+                                            } else {
+                                                navigator.clipboard.writeText(shareData.url).then(() => alert("Link copiado!"));
+                                            }
+                                        }}
+                                        className="absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
+                                        aria-label="Compartilhar foto"
+                                    >
+                                        🔗
+                                    </button>
                                     <img
                                         src={item.image}
                                         alt={item.title}
@@ -236,6 +256,27 @@ const PortfolioSection = () => {
                                     className="relative group cursor-pointer aspect-[4/3] rounded-xl overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg"
                                     onClick={() => setSelectedIndex(index)}
                                 >
+                                    {/* Botão de compartilhar desktop */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const shareData = {
+                                                title: filteredItems[index].title,
+                                                text: filteredItems[index].description,
+                                                url: filteredItems[index].image,
+                                            };
+                                            if (navigator.share) {
+                                                navigator.share(shareData).catch(console.error);
+                                            } else {
+                                                // fallback: copia o link para o clipboard
+                                                navigator.clipboard.writeText(shareData.url).then(() => alert("Link copiado!"));
+                                            }
+                                        }}
+                                        className="absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
+                                        aria-label="Compartilhar foto"
+                                    >
+                                        🔗
+                                    </button>
                                     <img
                                         src={item.image}
                                         alt={item.title}
