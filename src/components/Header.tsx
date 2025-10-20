@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom"; // 1. Importar o Link
-import { Menu, X } from "lucide-react";
+import { Menu, X, User } from "lucide-react"; // Adicionar ícone de User
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
 import { ThemeToggle } from "./ThemeToggle.tsx";
@@ -9,7 +9,6 @@ const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const scrollToSection = (sectionId: string) => {
-        // Se estivermos na página do blog, primeiro navegamos para a página inicial
         if (window.location.pathname !== '/') {
             window.location.href = `/#${sectionId}`;
         } else {
@@ -26,7 +25,7 @@ const Header = () => {
         { id: "about", label: "Sobre", isPage: false },
         { id: "portfolio", label: "Portfolio", isPage: false },
         { id: "services", label: "Serviços", isPage: false },
-        { id: "blog", label: "Blog", isPage: true }, // 2. Marcamos o blog como uma página separada
+        { id: "blog", label: "Blog", isPage: true },
     ];
 
     return (
@@ -34,17 +33,16 @@ const Header = () => {
             className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 
         bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-md w-[90%] md:w-auto`}
         >
-            <nav className="px-4 py-2 md:py-3 flex items-center justify-between gap-6 md:gap-16">
-                <Link to="/" className="flex items-center space-x-2 hover:opacity-90 transition-opacity">
+            <nav className="px-4 py-2 md:py-3 flex items-center justify-between gap-4 md:gap-8">
+                <div className="flex items-center space-x-2">
                     <img src={Logo} alt="Hellô Borges" className="h-10 md:h-11 w-auto" />
                     <span className="text-2xl md:text-3xl font-bold tracking-wide drop-shadow-lg text-orange-500">
                         Hellô
                     </span>
-                </Link>
+                </div>
 
                 {/* Navegação Desktop */}
                 <div className="hidden md:flex items-center space-x-6">
-                    {/* 3. Lógica condicional para renderizar Link ou button */}
                     {navLinks.map(({ id, label, isPage }) =>
                         isPage ? (
                             <Link key={id} to={`/${id}`} className="drop-shadow-lg font-bold whitespace-nowrap text-foreground/80 hover:text-foreground transition-colors">
@@ -56,7 +54,17 @@ const Header = () => {
                             </button>
                         )
                     )}
+                </div>
+
+                {/* Botões de Ação à Direita (Desktop) */}
+                <div className="hidden md:flex items-center gap-2">
                     <ThemeToggle />
+                    <Button variant="ghost" asChild>
+                        <Link to="/portal/login">
+                            <User className="mr-2 h-4 w-4" />
+                            Login
+                        </Link>
+                    </Button>
                 </div>
 
                 {/* Botões Mobile */}
@@ -71,7 +79,6 @@ const Header = () => {
                 {isMenuOpen && (
                     <div className="absolute top-full left-0 right-0 bg-background border border-border/20 rounded-b-2xl shadow-md md:hidden">
                         <div className="flex flex-col space-y-4 p-6">
-                            {/* 4. Mesma lógica condicional para o menu mobile */}
                             {navLinks.map(({ id, label, isPage }) =>
                                 isPage ? (
                                     <Link key={id} to={`/${id}`} onClick={() => setIsMenuOpen(false)} className="drop-shadow-lg text-left text-sm font-bold text-foreground hover:text-accent transition-colors">
@@ -83,6 +90,13 @@ const Header = () => {
                                     </button>
                                 )
                             )}
+                            {/* Link de Login no Menu Mobile */}
+                            <div className="border-t border-border/20 pt-4 mt-2">
+                                <Link to="/portal/login" onClick={() => setIsMenuOpen(false)} className="flex items-center drop-shadow-lg text-left text-sm font-bold text-foreground hover:text-accent transition-colors">
+                                    <User className="mr-2 h-4 w-4" />
+                                    Portal do Cliente
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 )}
