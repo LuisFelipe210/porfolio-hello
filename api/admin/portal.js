@@ -82,7 +82,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Ação inválida ou não especificada.' });
 
     } catch (error) {
-        console.error('API Error (/api/admin/portal):', error);
+        console.error('API Error (/api/admin/Portal):', error);
         if (error.name === 'JsonWebTokenError') return res.status(401).json({ error: 'Token de admin inválido.' });
         return res.status(500).json({ error: 'Erro interno do servidor.' });
     }

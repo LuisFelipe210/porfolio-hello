@@ -25,6 +25,11 @@ import AdminBlog from "./pages/Admin/AdminBlog";
 import AdminClients from "./pages/Admin/AdminClients";
 import AdminClientGalleries from "./pages/Admin/AdminClientGalleries";
 
+// Rotas para clientes
+import ClientLoginPage from "./pages/Portal/ClientLoginPage";
+import ClientLayout from "./pages/Portal/ClientLayout";
+import ClientGalleryPage from "./pages/Portal/ClientGalleryPage";
+
 
 import ShutterPreloader from "./components/ShutterPreloader";
 import FloatingContact from "./components/FloatingContact";
@@ -58,6 +63,12 @@ const App = () => {
                                 <Route path="*" element={<NotFound />} />
                                 <Route path="/blog" element={<BlogPage />} /> 
                                 <Route path="/blog/:slug" element={<BlogPostPage />} />
+
+                                {/* --- ROTAS DO PORTAL DO CLIENTE --- */}
+                                <Route path="/portal/login" element={<ClientLoginPage />} />
+                                <Route path="/portal" element={<ClientLayout />}>
+                                    <Route path="gallery" element={<ClientGalleryPage />} />
+                                </Route>
 
                                 {/* Rota de Login (separada e pública) */}
                                 <Route path="/admin/login" element={<AdminLogin />} />
