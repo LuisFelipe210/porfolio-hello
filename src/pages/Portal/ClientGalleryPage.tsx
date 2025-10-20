@@ -215,6 +215,13 @@ const ClientGalleryPage = () => {
             const response = await fetch('/api/portal?action=getGalleries', { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
+            // Pré-carregar todas as imagens
+            data.forEach(gallery => {
+                gallery.images.forEach(url => {
+                    const img = new Image();
+                    img.src = optimizeCloudinaryUrl(url, "f_auto,q_auto,w_800");
+                });
+            });
             setGalleries(data);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as suas galerias.' });
