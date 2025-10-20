@@ -44,7 +44,7 @@ const ClientLoginPage = () => {
             {/* Background Image e Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/f_auto,q_auto,w_1920/v1760542514/1_ltqoke.jpg" // Nova imagem de fundo
+                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
                     alt="Background"
                     className="w-full h-full object-cover"
                 />
