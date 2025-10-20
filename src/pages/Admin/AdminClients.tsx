@@ -63,13 +63,13 @@ const AdminClients = () => {
 
     const generateRandomEmail = () => {
         const randomString = Math.random().toString(36).substring(2, 10);
-        const newEmail = `${randomString}@example.com`;
+        const newEmail = `${randomString}@hello.com`;
         setEmail(newEmail);
         toast({ title: 'Email gerado', description: `Email aleatório gerado: ${newEmail}` });
     };
 
     const generateRandomPassword = () => {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%.&*_';
         let result = '';
         for (let i = 0; i < 12; i++) {
             result += chars.charAt(Math.floor(Math.random() * chars.length));

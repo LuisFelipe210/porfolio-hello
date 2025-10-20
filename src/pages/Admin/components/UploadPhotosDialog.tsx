@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -36,12 +36,11 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
         setProgress(0);
 
         const uploadedUrls: string[] = [];
+        let completed = 0;
 
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+        const uploadPromises = files.map(async (file) => {
             const formData = new FormData();
             formData.append('file', file);
-
             try {
                 const response = await fetch('/api/upload', {
                     method: 'POST',
@@ -51,13 +50,19 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
 
                 const { url } = await response.json();
                 uploadedUrls.push(url);
-                setProgress(((i + 1) / files.length) * 100);
-
+                completed++;
+                setProgress((completed / files.length) * 100);
             } catch (error) {
-                toast({ variant: 'destructive', title: `Erro no upload de ${file.name}` });
-                setIsUploading(false);
-                return;
+                throw new Error(`Erro no upload de ${file.name}`);
             }
+        });
+
+        try {
+            await Promise.all(uploadPromises);
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: error.message });
+            setIsUploading(false);
+            return;
         }
 
         try {
