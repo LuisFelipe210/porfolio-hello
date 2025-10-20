@@ -114,7 +114,7 @@ const AdminLayout = () => {
     if (isMobile) {
         return (
             <div className="min-h-screen w-full">
-                <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
+                <header className="relative z-10 sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
                     <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
                         <SheetTrigger asChild>
                             <Button variant="outline" size="icon">
@@ -140,7 +140,7 @@ const AdminLayout = () => {
                     <span className="text-lg font-semibold">Painel Admin</span>
                     <div/>
                 </header>
-                <main className="p-4">
+                <main className="relative z-10 p-4">
                     <Outlet />
                 </main>
             </div>
@@ -149,7 +149,15 @@ const AdminLayout = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
+            <div className="absolute inset-0 z-0">
+                <img
+                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            </div>
+            <header className="relative z-10 sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
                 <div className="flex items-center gap-2">
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold">Painel Admin</span>
@@ -165,7 +173,7 @@ const AdminLayout = () => {
                 <aside className="w-64 bg-card border-r p-4 flex flex-col">
                     <NavLinks />
                 </aside>
-                <main className="flex-1 p-6 md:p-8 overflow-auto">
+                <main className="relative z-10 flex-1 p-6 md:p-8 overflow-auto">
                     <Outlet />
                 </main>
             </div>

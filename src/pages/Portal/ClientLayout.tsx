@@ -34,14 +34,9 @@ const ClientLayout = () => {
 
             {/* Header fixo no topo */}
             <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-8">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-3">
                     <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                        <span className="text-xl font-light hidden sm:inline">Portal do Cliente</span>
-                        <span className="text-sm text-muted-foreground hidden sm:inline">
-                            Olá, {localStorage.getItem('clientName') || 'Cliente'}
-                        </span>
-                    </div>
+                    <span className="text-xl font-light hidden sm:inline">Portal do Cliente</span>
                 </div>
                 <Button variant="outline" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
