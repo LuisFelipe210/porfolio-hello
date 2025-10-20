@@ -5,31 +5,29 @@ import Logo from "../assets/logo.svg";
 import { Skeleton } from "./ui/skeleton.tsx";
 
 const HeroSection = () => {
-    const [settings, setSettings] = useState({
-        heroTitle: "Hellô Borges",
-        heroSubtitle: "Fotografia que captura emoções reais."
-    });
-    const [isLoading, setIsLoading] = useState(true);
+    const [settings, setSettings] = useState<{ heroTitle?: string; heroSubtitle?: string }>({});
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
         const cached = sessionStorage.getItem("settings");
+
         if (cached) {
             setSettings(JSON.parse(cached));
-            setIsLoading(false);
+            setIsReady(true);
         }
 
         const fetchSettings = async () => {
             try {
                 const response = await fetch("/api/settings");
                 const data = await response.json();
+
                 if (data) {
                     setSettings(data);
                     sessionStorage.setItem("settings", JSON.stringify(data));
+                    setIsReady(true);
                 }
             } catch (error) {
                 console.error("Erro ao buscar configurações:", error);
-            } finally {
-                setIsLoading(false);
             }
         };
 
@@ -48,18 +46,16 @@ const HeroSection = () => {
                 <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
             </div>
             <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
-                {isLoading ? (
-                    <div className="flex flex-col items-center gap-4">
-                        <Skeleton className="h-20 w-80" />
-                        <Skeleton className="h-8 w-64" />
-                    </div>
-                ) : (
+                {isReady && (
                     <>
                         <h1 className="flex items-center justify-center gap-3 text-4xl sm:text-6xl md:text-7xl font-bold font-serif mb-6 animate-fade-in-up">
                             <img src={Logo} alt="Hellô Borges Logo" className="h-12 sm:h-16 md:h-20 w-auto" />
                             {settings.heroTitle}
                         </h1>
-                        <p className="text-xl md:text-2xl font-light mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+                        <p
+                            className="text-xl md:text-2xl font-light mb-8 max-w-2xl mx-auto animate-fade-in-up"
+                            style={{ animationDelay: "0.2s" }}
+                        >
                             {settings.heroSubtitle}
                         </p>
                     </>

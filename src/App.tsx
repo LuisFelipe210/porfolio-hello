@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "./components/ThemeProvider";
+import ScrollToTop from "./components/ScrollToTop.tsx";
 
 // Páginas principais
 import Index from "./pages/Index";
@@ -48,6 +49,7 @@ const App = () => {
 
                     <div className="site-content">
                         <BrowserRouter>
+                            <ScrollToTop />
                             <Routes>
                                 {/* Rotas Públicas */}
                                 <Route path="/" element={<Index />} />
