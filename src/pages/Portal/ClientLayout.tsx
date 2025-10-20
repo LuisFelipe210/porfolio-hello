@@ -53,7 +53,7 @@ const ClientLayout = () => {
                 {galleries.map((gallery) => (
                     <Card key={gallery.id} className="overflow-hidden h-full border border-border/40 rounded-2xl bg-white/70 dark:bg-card/60 backdrop-blur-md shadow-sm hover:shadow-lg transition-all duration-300">
                         <CardHeader className="p-5 flex flex-col gap-2">
-                            <CardTitle className="text-lg font-semibold">{gallery.name}</CardTitle>
+                            <CardTitle className="text-xl font-semibold">{gallery.name}</CardTitle>
                             <CardDescription className="text-muted-foreground/80">{gallery.images.length} fotos</CardDescription>
                             <Button variant="outline" className="mt-2">
                                 <Eye className="mr-2 h-4 w-4" />Ver Galeria
