@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy } from 'lucide-react';
+import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy, Eye, EyeOff } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Client {
@@ -33,6 +33,8 @@ const AdminClients = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
+    // controla se a senha está visível por clientId
+    const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
 
     const fetchClients = async () => {
         setIsLoading(true);
@@ -202,43 +204,68 @@ const AdminClients = () => {
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="flex gap-2">
-                                        <Button asChild variant="outline" className="w-full">
-                                            <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                                                <GalleryHorizontal className="mr-2 h-4 w-4"/>
-                                                Gerir Galerias
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            title="Copiar email"
-                                            onClick={() => copyToClipboard(client.email)}
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
-                                        {/* Botão de copiar senha temporária */}
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            title="Copiar senha"
-                                            onClick={() => copyToClipboard(client.password ?? 'Senha não disponível')}
-                                            disabled={!client.password}
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => {
-                                                setSelectedClient(client);
-                                                setIsDeleteDialogOpen(true);
-                                            }}
-                                        >
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
+                                    <div className="flex flex-col w-full gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <Button asChild variant="outline" className="flex-1">
+                                                <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
+                                                    <GalleryHorizontal className="mr-2 h-4 w-4"/>
+                                                    Gerir Galerias
+                                                </Link>
+                                            </Button>
+
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                title="Copiar email"
+                                                onClick={() => copyToClipboard(client.email)}
+                                            >
+                                                <Copy className="h-4 w-4" />
+                                            </Button>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => {
+                                                    setSelectedClient(client);
+                                                    setIsDeleteDialogOpen(true);
+                                                }}
+                                            >
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+
+                                        {/* linha da senha: input mascarado + eye + copy */}
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative flex items-center w-full max-w-xs">
+                                                <input
+                                                    type={showPasswords[client._id] ? 'text' : 'password'}
+                                                    value={client.password ?? ''}
+                                                    readOnly
+                                                    placeholder={client.password ? '' : 'Senha não disponível'}
+                                                    className="w-full py-2 pl-3 pr-10 text-sm rounded-md border border-border/40 bg-transparent"
+                                                />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPasswords(prev => ({ ...prev, [client._id]: !prev[client._id] }))}
+                                                    className="absolute right-8 top-1/2 -translate-y-1/2 p-1"
+                                                    title={showPasswords[client._id] ? 'Ocultar senha' : 'Mostrar senha'}
+                                                >
+                                                    {showPasswords[client._id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => copyToClipboard(client.password ?? '')}
+                                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1"
+                                                    title="Copiar senha"
+                                                    disabled={!client.password}
+                                                >
+                                                    <Copy className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
