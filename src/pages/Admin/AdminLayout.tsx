@@ -19,6 +19,12 @@ const AdminLayout = () => {
         }
     }, [navigate]);
 
+    useEffect(() => {
+        if (location.pathname === '/admin') {
+            navigate('/admin/clients');
+        }
+    }, [location.pathname, navigate]);
+
     const handleLogout = () => {
         localStorage.removeItem('authToken');
         navigate('/admin/login');
