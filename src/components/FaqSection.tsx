@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from './ui/skeleton';
+import { HiOutlineQuestionMarkCircle } from 'react-icons/hi';
 
 interface FaqItem {
     _id: string;
@@ -59,7 +60,8 @@ const FaqSection = () => {
                 <Accordion type="single" collapsible className="w-full">
                     {faqs.map((item) => (
                         <AccordionItem value={item._id} key={item._id} className="bg-white border border-gray-200 rounded-lg shadow-sm mb-4 last:mb-0">
-                            <AccordionTrigger className="text-left hover:text-orange-500 focus:outline-none transition-colors">
+                            <AccordionTrigger className="flex items-center gap-3 text-lg hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors px-6 py-4">
+                                <HiOutlineQuestionMarkCircle className="w-6 h-6 text-orange-500 flex-shrink-0" />
                                 {item.question}
                             </AccordionTrigger>
                             <AccordionContent className="prose dark:prose-invert max-w-none px-6 py-4 text-gray-700">
