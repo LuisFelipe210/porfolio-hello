@@ -35,14 +35,12 @@ const Header = () => {
         bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-md w-[90%] md:w-auto`}
         >
             <nav className="px-4 py-2 md:py-3 flex items-center justify-between gap-6 md:gap-16">
-                <div className="flex items-center space-x-2">
+                <Link to="/" className="flex items-center space-x-2 hover:opacity-90 transition-opacity">
                     <img src={Logo} alt="Hellô Borges" className="h-10 md:h-11 w-auto" />
-                    <span
-                        className="text-2xl md:text-3xl font-bold tracking-wide drop-shadow-lg text-orange-500"
-                    >
+                    <span className="text-2xl md:text-3xl font-bold tracking-wide drop-shadow-lg text-orange-500">
                         Hellô
                     </span>
-                </div>
+                </Link>
 
                 {/* Navegação Desktop */}
                 <div className="hidden md:flex items-center space-x-6">
