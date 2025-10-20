@@ -84,15 +84,6 @@ const AdminLayout = () => {
                     Blog
                 </Button>
             </Link>
-            <Link to="/admin/faq" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant={isLinkActive('/admin/faq') ? "secondary" : "ghost"}
-                    className="w-full justify-start"
-                >
-                    <HelpCircle className="mr-2 h-4 w-4" />
-                    FAQ
-                </Button>
-            </Link>
             <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
                 <Button
                     variant={isLinkActive('/admin/clients') ? "secondary" : "ghost"}
