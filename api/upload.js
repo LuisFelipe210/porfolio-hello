@@ -8,8 +8,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Desativa o parser de body padrão da Vercel para esta rota,
-// pois o formidable cuidará disso.
+// Desativa o parser de body padrão da Vercel para esta rota
 export const config = {
     api: {
         bodyParser: false,
@@ -29,19 +28,27 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: 'Erro ao processar o upload.' });
             }
 
-            const file = files.file[0]; // formidable v3+ coloca os arquivos em um array
+            const file = files.file[0];
 
             if (!file) {
-                return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+                return res.status(400).json({ error: 'Nenhum ficheiro enviado.' });
             }
 
-            // Faz o upload do arquivo para o Cloudinary
+            // Faz o upload do ficheiro para o Cloudinary JÁ COM a transformação de marca d'água
             const result = await cloudinary.uploader.upload(file.filepath, {
-                // Opcional: Especifique uma pasta no Cloudinary
-                folder: 'portfolio',
+                folder: 'client-galleries', // Organiza as fotos de clientes numa pasta separada
+                transformation: [
+                    {
+                        overlay: 'My Brand:logo_yqiqm6',
+                        gravity: 'center',
+                        opacity: 20,
+                        width: '0.5'
+                        crop: 'scale',
+                        effect: 'brightness:50'
+                    }
+                ]
             });
 
-            // Retorna a URL segura da imagem para o frontend
             return res.status(200).json({ url: result.secure_url });
         });
     } catch (error) {
