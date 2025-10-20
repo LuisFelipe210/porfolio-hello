@@ -28,10 +28,10 @@ const ClientLoginPage = () => {
             if (!response.ok) throw new Error('Credenciais inválidas');
 
             const { token } = await response.json();
-            localStorage.setItem('clientAuthToken', token); // Usamos um nome de token diferente
+            localStorage.setItem('clientAuthToken', token); // Guarda o token do cliente
 
             toast({ title: 'Login bem-sucedido!', description: 'A aceder à sua galeria...' });
-            navigate('/portal/gallery');
+            navigate('/portal/gallery'); // Redireciona para a galeria
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro de login', description: 'Email ou senha incorretos.' });
         } finally {
@@ -41,26 +41,48 @@ const ClientLoginPage = () => {
 
     return (
         <div className="relative flex items-center justify-center min-h-screen bg-background">
+            {/* Background Image e Overlay */}
             <div className="absolute inset-0 z-0">
-                <img src="https://res.cloudinary.com/dohdgkzdu/image/upload/f_auto,q_auto,w_1920/v1760542514/1_ltqoke.jpg" alt="Background" className="w-full h-full object-cover" />
+                <img
+                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/f_auto,q_auto,w_1920/v1760542514/1_ltqoke.jpg" // Nova imagem de fundo
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                />
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
+            {/* Formulário de Login */}
             <Card className="w-full max-w-sm z-10 animate-fade-in-up">
                 <CardHeader className="text-center">
                     <img src={Logo} alt="Hellô Borges Logo" className="h-16 w-auto mx-auto mb-4" />
                     <CardTitle className="text-2xl">Portal do Cliente</CardTitle>
-                    <CardDescription>Aceda à sua galeria privada para selecionar as suas fotos.</CardDescription>
+                    <CardDescription>
+                        Aceda à sua galeria privada para selecionar as suas fotos.
+                    </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="O seu email" />
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                placeholder="O seu email"
+                            />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="password">Senha</Label>
-                            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" />
+                            <Input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                placeholder="••••••••"
+                            />
                         </div>
                     </CardContent>
                     <CardFooter>

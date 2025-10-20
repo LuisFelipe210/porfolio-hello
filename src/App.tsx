@@ -4,17 +4,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "./components/ThemeProvider";
+
+// Componentes Globais e Utilitários
+import ShutterPreloader from "./components/ShutterPreloader";
+import FloatingContact from "./components/FloatingContact";
+// O seu componente ScrollToTop é uma ótima adição para a experiência do usuário!
 import ScrollToTop from "./components/ScrollToTop.tsx";
 
-// Páginas principais
+// Páginas Públicas
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import NotFound from "./pages/NotFound";
 
-// Novas páginas do Admin
-import AdminLayout from "./pages/Admin/AdminLayout";
+// Páginas do Painel de Administração
 import AdminLogin from "./pages/Admin/AdminLogin";
+import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminPortfolio from "./pages/Admin/AdminPortfolio";
 import AdminServices from "./pages/Admin/AdminServices";
 import AdminAbout from "./pages/Admin/AdminAbout";
@@ -25,14 +30,11 @@ import AdminBlog from "./pages/Admin/AdminBlog";
 import AdminClients from "./pages/Admin/AdminClients";
 import AdminClientGalleries from "./pages/Admin/AdminClientGalleries";
 
-// Rotas para clientes
+// Páginas do Portal do Cliente
 import ClientLoginPage from "./pages/Portal/ClientLoginPage";
 import ClientLayout from "./pages/Portal/ClientLayout";
 import ClientGalleryPage from "./pages/Portal/ClientGalleryPage";
 
-
-import ShutterPreloader from "./components/ShutterPreloader";
-import FloatingContact from "./components/FloatingContact";
 
 const queryClient = new QueryClient();
 
@@ -56,26 +58,22 @@ const App = () => {
 
                     <div className="site-content">
                         <BrowserRouter>
-                            <ScrollToTop />
+                            {/* <ScrollToTop /> */}
                             <Routes>
-                                {/* Rotas Públicas */}
+                                {/* --- Rotas Públicas --- */}
                                 <Route path="/" element={<Index />} />
-                                <Route path="*" element={<NotFound />} />
-                                <Route path="/blog" element={<BlogPage />} /> 
+                                <Route path="/blog" element={<BlogPage />} />
                                 <Route path="/blog/:slug" element={<BlogPostPage />} />
 
-                                {/* --- ROTAS DO PORTAL DO CLIENTE --- */}
+                                {/* --- Rotas do Portal do Cliente --- */}
                                 <Route path="/portal/login" element={<ClientLoginPage />} />
                                 <Route path="/portal" element={<ClientLayout />}>
                                     <Route path="gallery" element={<ClientGalleryPage />} />
                                 </Route>
 
-                                {/* Rota de Login (separada e pública) */}
+                                {/* --- Rotas do Painel de Administração --- */}
                                 <Route path="/admin/login" element={<AdminLogin />} />
-
-                                {/* Rotas Protegidas do Painel Administrativo */}
                                 <Route path="/admin" element={<AdminLayout />}>
-                                    {/* O Outlet em AdminLayout renderizará estas rotas filhas */}
                                     <Route path="portfolio" element={<AdminPortfolio />} />
                                     <Route path="services" element={<AdminServices />} />
                                     <Route path="about" element={<AdminAbout />} />
@@ -85,9 +83,10 @@ const App = () => {
                                     <Route path="blog" element={<AdminBlog />} />
                                     <Route path="clients" element={<AdminClients />} />
                                     <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
-
-
                                 </Route>
+
+                                {/* --- Rota "Não Encontrado" --- */}
+                                <Route path="*" element={<NotFound />} />
                             </Routes>
                         </BrowserRouter>
                     </div>
