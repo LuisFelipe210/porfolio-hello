@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Eye } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import ClientBackground from "@/assets/cliente.svg";
 
@@ -19,6 +20,12 @@ const ClientLayout = () => {
         localStorage.removeItem('clientAuthToken');
         navigate('/portal/login');
     };
+
+    const galleries = [
+        { id: 1, name: 'Galeria de Verão', images: ['img1.jpg', 'img2.jpg', 'img3.jpg'] },
+        { id: 2, name: 'Galeria de Inverno', images: ['img1.jpg', 'img2.jpg'] },
+        { id: 3, name: 'Galeria Primavera', images: ['img1.jpg', 'img2.jpg', 'img3.jpg', 'img4.jpg'] },
+    ];
 
     return (
         <div className="relative flex flex-col min-h-screen bg-background">
@@ -45,8 +52,21 @@ const ClientLayout = () => {
             </header>
 
             {/* Conteúdo abaixo do header */}
-            <main className="pt-20 p-4 md:p-8 relative z-10">
-                <Outlet />
+            <main className="pt-20 p-4 md:p-8 relative z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {galleries.map((gallery) => (
+                    <Card key={gallery.id} className="rounded-lg hover:shadow-lg transition-shadow duration-300">
+                        <CardHeader>
+                            <CardTitle>{gallery.name}</CardTitle>
+                            <CardDescription>{gallery.images.length} fotos</CardDescription>
+                        </CardHeader>
+                        <div className="px-6 pb-6">
+                            <Button variant="outline" onClick={() => alert(`Ver galeria: ${gallery.name}`)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Ver Galeria
+                            </Button>
+                        </div>
+                    </Card>
+                ))}
             </main>
         </div>
     );

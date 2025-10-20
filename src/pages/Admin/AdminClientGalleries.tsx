@@ -315,8 +315,22 @@ const AdminClientGalleriesWithFunctions = () => {
                                             <CardDescription>{gallery.images.length} fotos | {gallery.selections.length} selecionadas</CardDescription>
                                         </div>
                                         <div className="flex flex-wrap gap-2 justify-end">
-                                            <Button variant="outline" onClick={() => openUploadDialog(gallery)}>
-                                                <Upload className="mr-2 h-4 w-4"/>Adicionar Fotos
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => {
+                                                    if (gallery.status === 'selection_complete' || gallery.selections.length > 0) {
+                                                        toast({
+                                                            variant: 'destructive',
+                                                            title: 'Galeria finalizada',
+                                                            description: 'Não é possível adicionar novas fotos em uma galeria finalizada ou com seleções.'
+                                                        });
+                                                        return;
+                                                    }
+                                                    openUploadDialog(gallery);
+                                                }}
+                                                disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0}
+                                            >
+                                                <Upload className="mr-2 h-4 w-4" />Adicionar Fotos
                                             </Button>
                                             <Button
                                                 variant="outline"
