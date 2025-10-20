@@ -142,23 +142,27 @@ const AdminLayout = () => {
     }
 
     return (
-        <div className="flex min-h-screen bg-secondary/20">
-            <aside className="w-64 bg-card border-r p-4 flex flex-col">
-                <div className="flex items-center gap-2 mb-10">
-                    <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
-                    <span className="text-xl font-semibold">Painel Admin</span>
+        <div className="flex flex-col min-h-screen">
+            <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
+                <div className="flex items-center gap-2">
+                    <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
+                    <span className="text-lg font-semibold">Painel Admin</span>
                 </div>
-                <NavLinks />
-                <div className="mt-auto">
-                    <Button variant="outline" className="w-full" onClick={handleLogout}>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" className="h-10" onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Sair
                     </Button>
                 </div>
-            </aside>
-            <main className="flex-1 p-6 md:p-8 overflow-auto">
-                <Outlet />
-            </main>
+            </header>
+            <div className="flex flex-1 overflow-hidden">
+                <aside className="w-64 bg-card border-r p-4 flex flex-col">
+                    <NavLinks />
+                </aside>
+                <main className="flex-1 p-6 md:p-8 overflow-auto">
+                    <Outlet />
+                </main>
+            </div>
         </div>
     );
 };
