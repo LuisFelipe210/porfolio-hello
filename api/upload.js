@@ -36,15 +36,20 @@ export default async function handler(req, res) {
 
             // Faz o upload do ficheiro para o Cloudinary JÁ COM a transformação de marca d'água
             const result = await cloudinary.uploader.upload(file.filepath, {
-                folder: 'client-galleries', // Organiza as fotos de clientes numa pasta separada
+                folder: 'client-galleries',
                 transformation: [
                     {
                         overlay: 'My Brand:logo_yqiqm6',
-                        gravity: 'center',
-                        opacity: 20,
-                        width: '0.5'
+                        width: 0.30, // 30% da largura da imagem base
                         crop: 'scale',
-                        effect: 'brightness:50'
+                        opacity: 10, // Opacidade de 10%
+                        flags: ['relative']
+                    },
+                    {
+                        gravity: 'center', // Centralizado
+                        x: 0.02, // Pequeno desvio de 2% para a direita
+                        y: 0.03, // Pequeno desvio de 3% para baixo
+                        flags: ['layer_apply']
                     }
                 ]
             });
