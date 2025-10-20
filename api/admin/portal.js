@@ -67,25 +67,36 @@ export default async function handler(req, res) {
         if (action === 'updateGalleryImages' && req.method === 'PUT') {
             if (!galleryId || !ObjectId.isValid(galleryId)) return res.status(400).json({ error: 'ID de galeria inválido.' });
             const { images } = req.body;
+            if (!Array.isArray(images)) return res.status(400).json({ error: 'Imagens inválidas.' });
+
             const uploadedImages = [];
 
             for (const image of images) {
-                // image.path ou image.data dependendo do formato que você recebe
-                const result = await cloudinary.uploader.upload(image.path, {
-                    folder: `client_galleries/${galleryId}`,
-                    transformation: [
-                        {
-                            overlay: 'My Brand:logo_yqiqm6',
-                            gravity: 'center',
-                            opacity: 15,
-                            width: '0.5',
-                            crop: 'scale',
-                            effect: 'brightness:50'
-                        }
-                    ]
-                });
-                uploadedImages.push(result.secure_url);
+                if (!image.path) {
+                    console.warn('Imagem inválida ou sem path, pulando:', image);
+                    continue;
+                }
+                try {
+                    const result = await cloudinary.uploader.upload(image.path, {
+                        folder: `client_galleries/${galleryId}`,
+                        transformation: [
+                            {
+                                overlay: 'My Brand:logo_yqiqm6',
+                                gravity: 'center',
+                                opacity: 15,
+                                width: '0.5',
+                                crop: 'scale',
+                                effect: 'brightness:50'
+                            }
+                        ]
+                    });
+                    uploadedImages.push(result.secure_url);
+                } catch (err) {
+                    console.error('Erro ao subir imagem para Cloudinary:', err);
+                }
             }
+
+            if (uploadedImages.length === 0) return res.status(400).json({ error: 'Nenhuma imagem válida foi enviada.' });
 
             const updateResult = await galleriesCollection.updateOne(
                 { _id: new ObjectId(galleryId) },
