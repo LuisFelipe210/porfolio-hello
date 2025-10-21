@@ -48,6 +48,28 @@ export default async function handler(req, res) {
             return res.status(201).json(inserted);
         }
 
+        if (action === 'updateClient' && req.method === 'PUT') {
+            if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });
+
+            const { name, email, recoveryEmail } = req.body;
+            if (!name || !email) return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
+
+            const existingClient = await clientsCollection.findOne({ email: email, _id: { $ne: new ObjectId(clientId) } });
+            if (existingClient) {
+                return res.status(409).json({ error: 'Este email de login já está a ser utilizado por outro cliente.' });
+            }
+
+            const result = await clientsCollection.updateOne(
+                { _id: new ObjectId(clientId) },
+                { $set: { name, email, recoveryEmail: recoveryEmail || null } }
+            );
+
+            if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
+
+            return res.status(200).json({ message: 'Cliente atualizado com sucesso.' });
+        }
+
+
         if (action === 'deleteClient' && req.method === 'DELETE') {
             if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });
             await galleriesCollection.deleteMany({ clientId: new ObjectId(clientId) });

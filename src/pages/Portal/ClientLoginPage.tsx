@@ -109,7 +109,7 @@ const ClientLoginPage = () => {
                                 className="placeholder:text-muted-foreground"
                             />
                         </div>
-                        <div className="text-right">
+                        <div className="text-right -mt-2">
                             <Button variant="link" asChild className="p-0 h-auto text-xs">
                                 <Link to="/portal/forgot-password">Esqueceu a senha?</Link>
                             </Button>
