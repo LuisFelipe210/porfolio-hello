@@ -1,7 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
+import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 
 let cachedDb = null;
 async function connectToDatabase(uri) {
@@ -13,32 +13,36 @@ async function connectToDatabase(uri) {
 }
 
 async function sendPasswordResetEmail(email, token) {
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: Number(process.env.EMAIL_PORT) || 465,
-        secure: true,
-        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    const mailerSend = new MailerSend({
+        apiKey: process.env.MAILERSEND_API_KEY,
     });
 
     const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'}/portal/reset-password/${token}`;
 
     console.log(`[DEBUG] A enviar e-mail de redefinição para: ${email}`);
-    await transporter.sendMail({
-        from: `"${process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'}" <${process.env.EMAIL_USER}>`,
-        // --- ALTERAÇÃO DE TESTE ABAIXO ---
-        // Força o envio para o seu e-mail de admin para depuração
-        to: process.env.EMAIL_TO,
-        // A linha original era: to: email,
-        subject: `TESTE - Redefinição de Senha para ${email}`, // Adicionado "TESTE" para identificar
-        html: `
-            <p>Isto é um teste. O e-mail original seria para: ${email}</p>
-            <h2>Redefinição de Senha</h2>
-            <p>Recebemos uma solicitação para redefinir a sua senha. Clique no link abaixo para criar uma nova senha:</p>
-            <p><a href="${resetLink}" target="_blank" style="background-color: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Redefinir minha senha</a></p>
-            <p>Este link é válido por 1 hora.</p>
-        `,
-    });
-    console.log(`[DEBUG] Nodemailer concluiu a tentativa de envio para ${process.env.EMAIL_TO} (originalmente para ${email}).`);
+
+    const from = new Sender(
+        process.env.EMAIL_USER,
+        process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'
+    );
+    const recipients = [new Recipient(email, '')];
+
+    const subject = `Redefinição de Senha para ${email}`;
+    const html = `
+        <h2>Redefinição de Senha</h2>
+        <p>Recebemos uma solicitação para redefinir a sua senha. Clique no link abaixo para criar uma nova senha:</p>
+        <p><a href="${resetLink}" target="_blank" style="background-color: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Redefinir minha senha</a></p>
+        <p>Este link é válido por 1 hora.</p>
+    `;
+
+    const emailParams = new EmailParams()
+        .setFrom(from)
+        .setTo(recipients)
+        .setSubject(subject)
+        .setHtml(html);
+
+    await mailerSend.email.send(emailParams);
+    console.log(`[DEBUG] MailerSend concluiu a tentativa de envio para ${email}.`);
 }
 
 
