@@ -62,7 +62,7 @@ const ImageModal = ({
     }, [onNavigate, onClose]);
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-2" onClick={onClose}>
             <div
                 className="relative w-full h-full flex items-center justify-center"
                 onClick={(e) => e.stopPropagation()}
