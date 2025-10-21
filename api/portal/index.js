@@ -23,6 +23,7 @@ async function sendPasswordResetEmail(email, token) {
 
     const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'}/portal/reset-password/${token}`;
 
+    console.log(`[DEBUG] A enviar e-mail de redefinição para: ${email}`);
     await transporter.sendMail({
         from: `"${process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'}" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -35,6 +36,7 @@ async function sendPasswordResetEmail(email, token) {
             <p>Este link é válido por 1 hora.</p>
         `,
     });
+    console.log(`[DEBUG] Nodemailer concluiu a tentativa de envio para ${email}.`);
 }
 
 
@@ -48,19 +50,43 @@ export default async function handler(req, res) {
         // --- AÇÃO: SOLICITAR REDEFINIÇÃO DE SENHA ---
         if (action === 'requestPasswordReset' && req.method === 'POST') {
             const { email } = req.body;
-            if (!email) return res.status(400).json({ error: 'E-mail é obrigatório.' });
+            console.log(`[DEBUG] Solicitação de redefinição de senha recebida para o e-mail de login: ${email}`);
+
+            if (!email) {
+                console.log('[DEBUG] E-mail não fornecido na requisição.');
+                return res.status(400).json({ error: 'E-mail é obrigatório.' });
+            }
 
             const client = await clientsCollection.findOne({ email });
+
             if (client) {
-                const resetToken = jwt.sign(
-                    { clientId: client._id, purpose: 'password-reset' },
-                    process.env.CLIENT_JWT_SECRET,
-                    { expiresIn: '1h' }
-                );
-                await sendPasswordResetEmail(client.email, resetToken);
+                console.log(`[DEBUG] Cliente encontrado: ${client.name}.`);
+                const targetEmail = client.recoveryEmail || client.email;
+
+                if (targetEmail) {
+                    console.log(`[DEBUG] E-mail de destino para redefinição: ${targetEmail}`);
+                    const resetToken = jwt.sign(
+                        { clientId: client._id, purpose: 'password-reset' },
+                        process.env.CLIENT_JWT_SECRET,
+                        { expiresIn: '1h' }
+                    );
+
+                    try {
+                        await sendPasswordResetEmail(targetEmail, resetToken);
+                    } catch (emailError) {
+                        console.error('### ERRO AO ENVIAR E-MAIL DE REDEFINIÇÃO ###', emailError);
+                    }
+                } else {
+                    console.log(`[DEBUG] Cliente ${client.name} não tem um e-mail de login ou de recuperação definido.`);
+                }
+            } else {
+                console.log(`[DEBUG] Nenhum cliente encontrado para o e-mail: ${email}`);
             }
+
+            // Por segurança, sempre retorna uma mensagem genérica para o utilizador.
             return res.status(200).json({ message: 'Se o e-mail estiver registado, um link de redefinição foi enviado.' });
         }
+
 
         // --- AÇÃO: LOGIN DO CLIENTE ---
         if (action === 'login' && req.method === 'POST') {
@@ -113,6 +139,7 @@ export default async function handler(req, res) {
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
             return res.status(200).json({ message: 'Senha atualizada com sucesso!' });
         }
+
 
         // --- O RESTO DAS AÇÕES PROTEGIDAS ---
         const { clientId } = decoded;
@@ -184,7 +211,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Seleção enviada com sucesso!' });
         }
 
-        // Se nenhuma ação corresponder
         return res.status(400).json({ error: 'Ação inválida ou não especificada.' });
 
     } catch (error) {
