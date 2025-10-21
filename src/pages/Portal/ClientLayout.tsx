@@ -46,7 +46,7 @@ const ClientLayout = () => {
                             className="text-white hover:bg-white/10 hover:text-white"
                         >
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            Voltar
+                            Voltar para as galerias
                         </Button>
                     )}
                 </div>
