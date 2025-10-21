@@ -165,6 +165,7 @@ const AdminClients = () => {
         }
     };
 
+
     const filteredClients = clients
         .filter((client) => client.name.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => sortOrder === 'recent' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
@@ -186,6 +187,7 @@ const AdminClients = () => {
                                     {!currentClient && (
                                         <Button type="button" variant="outline" size="icon" onClick={generateRandomEmail} title="Gerar email aleatório"><RefreshCw className="h-4 w-4" /></Button>
                                     )}
+                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(email)} title="Copiar email"><Copy className="h-4 w-4" /></Button>
                                 </div>
                             </div>
                             <div>
@@ -205,6 +207,7 @@ const AdminClients = () => {
                                     <div className="flex items-center gap-2">
                                         <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required />
                                         <Button type="button" variant="outline" size="icon" onClick={generateRandomPassword} title="Gerar senha aleatória"><RefreshCw className="h-4 w-4" /></Button>
+                                        <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(password)} title="Copiar senha"><Copy className="h-4 w-4" /></Button>
                                     </div>
                                 </div>
                             )}
@@ -217,72 +220,101 @@ const AdminClients = () => {
                 </Dialog>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Lista de Clientes</CardTitle>
-                    <CardDescription>Aqui pode ver, editar e remover clientes.</CardDescription>
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-                        <Input
-                            placeholder="Buscar cliente..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full sm:max-w-xs"
-                        />
-                        <select
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
-                            className="border border-input bg-background rounded-md px-3 py-2 text-sm"
-                        >
-                            <option value="recent">A-Z</option>
-                            <option value="oldest">Z-A</option>
-                        </select>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="space-y-2">
-                            <Skeleton className="h-12 w-full" />
-                            <Skeleton className="h-12 w-full" />
-                            <Skeleton className="h-12 w-full" />
-                        </div>
-                    ) : (
-                        <div className="border rounded-md">
-                            {filteredClients.length > 0 ? filteredClients.map(client => (
-                                <div key={client._id} className="flex items-center justify-between p-4 border-b last:border-b-0">
-                                    <div className="font-medium">
-                                        <p>{client.name}</p>
-                                        <p className="text-sm text-muted-foreground">{client.email}</p>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                <Input
+                    placeholder="Buscar cliente..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-1/2"
+                />
+                <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
+                    className="border border-border/40 rounded-md bg-transparent px-3 py-2 text-sm"
+                >
+                    <option value="recent">A-Z</option>
+                    <option value="oldest">Z-A</option>
+                </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                    </>
+                ) : filteredClients.length > 0 ? (
+                    filteredClients.map((client) => (
+                        <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
+                            <Card className="flex flex-col p-6 gap-4 bg-white/70 dark:bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+                                <CardHeader className="flex-1 flex flex-row items-center justify-between p-0">
+                                    <div className="flex flex-col">
+                                        <CardTitle>{client.name}</CardTitle>
+                                        <CardDescription>{client.email}</CardDescription>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button asChild variant="outline" size="sm">
+                                    <Button variant="ghost" size="icon" title="Editar Cliente" onClick={() => handleOpenDialog(client)}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                    <div className="flex gap-2">
+                                        <Button asChild variant="outline" className="w-full">
                                             <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
                                                 <GalleryHorizontal className="mr-2 h-4 w-4"/>
-                                                Galerias
+                                                Gerir Galerias
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="icon" title="Editar Cliente" onClick={() => handleOpenDialog(client)}>
-                                            <Edit className="h-4 w-4" />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            title="Copiar email"
+                                            onClick={() => copyToClipboard(client.email)}
+                                        >
+                                            <Copy className="h-4 w-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" title="Excluir Cliente" onClick={() => { setCurrentClient(client); setIsDeleteDialogOpen(true); }}>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            title="Excluir Cliente"
+                                            onClick={() => {
+                                                setCurrentClient(client);
+                                                setIsDeleteDialogOpen(true);
+                                            }}
+                                        >
                                             <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
                                     </div>
-                                </div>
-                            )) : <p className="p-4 text-center text-sm text-muted-foreground">Nenhum cliente encontrado.</p>}
+                                </CardContent>
+                            </Card>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+                    ))
+                ) : (
+                    <p className="text-center text-muted-foreground pt-12">Nenhum cliente encontrado.</p>
+                )}
+            </div>
 
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Confirmar Exclusão</DialogTitle>
+                        <DialogTitle>Confirmar exclusão</DialogTitle>
                     </DialogHeader>
-                    <p>Tem certeza de que deseja excluir o cliente <strong>{currentClient?.name}</strong>? Todas as suas galerias e seleções serão permanentemente removidas. Esta ação não pode ser desfeita.</p>
-                    <DialogFooter>
-                        <DialogClose asChild><Button variant="secondary">Cancelar</Button></DialogClose>
-                        <Button variant="destructive" onClick={handleDeleteClient} disabled={isDeleting}>{isDeleting ? 'Excluindo...' : 'Excluir'}</Button>
+                    <p>
+                        Tem certeza que deseja excluir o cliente{' '}
+                        <strong>{currentClient?.name}</strong>? Todas as suas galerias também serão removidas.
+                    </p>
+                    <DialogFooter className="flex justify-end gap-2">
+                        <DialogClose asChild>
+                            <Button variant="secondary">Cancelar</Button>
+                        </DialogClose>
+                        <Button
+                            variant="destructive"
+                            disabled={isDeleting}
+                            onClick={handleDeleteClient}
+                        >
+                            {isDeleting ? 'Excluindo...' : 'Excluir'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
