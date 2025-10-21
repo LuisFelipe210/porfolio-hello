@@ -348,3 +348,298 @@ const ClientGalleryPage = () => {
 };
 
 export default ClientGalleryPage;
+import React, { useState, useEffect } from "react";
+import ClientLayout from "./ClientLayout";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle, Heart, Send, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+// Gallery type
+interface Gallery {
+  _id: string;
+  name: string;
+  images: string[];
+  selections: string[];
+  status: string;
+}
+
+// Modal for viewing images
+const ImageModal = ({
+  images,
+  currentIndex,
+  onClose,
+  onNavigate,
+  selectedImages,
+  toggleSelection,
+  isSelectionComplete,
+}: {
+  images: string[];
+  currentIndex: number;
+  onClose: () => void;
+  onNavigate: (direction: "prev" | "next") => void;
+  selectedImages: Set<string>;
+  toggleSelection: (imageUrl: string) => void;
+  isSelectionComplete: boolean;
+}) => {
+  if (currentIndex < 0 || currentIndex >= images.length) return null;
+  const imgUrl = images[currentIndex];
+  const isSelected = selectedImages.has(imgUrl);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+      onClick={onClose}
+    >
+      <div
+        className="relative bg-white rounded-lg overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={imgUrl}
+          alt="Imagem"
+          className="max-w-[90vw] max-h-[80vh] object-contain"
+        />
+        {!isSelectionComplete && (
+          <button
+            className="absolute top-2 right-2 p-2 bg-white rounded-full shadow"
+            onClick={() => toggleSelection(imgUrl)}
+          >
+            <Heart
+              className={`h-6 w-6 ${
+                isSelected ? "fill-red-500 text-red-500" : "text-gray-800"
+              }`}
+            />
+          </button>
+        )}
+        <button
+          className="absolute top-2 left-2 bg-white rounded-full p-1"
+          onClick={onClose}
+        >
+          X
+        </button>
+        <button
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2"
+          onClick={() => onNavigate("prev")}
+          disabled={currentIndex === 0}
+        >
+          {"<"}
+        </button>
+        <button
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-2"
+          onClick={() => onNavigate("next")}
+          disabled={currentIndex === images.length - 1}
+        >
+          {">"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const GallerySelectionView = ({
+  gallery,
+  onBack,
+  onSelectionSubmit,
+}: {
+  gallery: Gallery;
+  onBack: () => void;
+  onSelectionSubmit: () => void;
+}) => {
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(
+    new Set(gallery.selections || [])
+  );
+  const [modalIndex, setModalIndex] = useState<number | null>(null);
+  const isSelectionComplete = gallery.status === "selection_complete";
+  const handleToggle = (url: string) => {
+    if (isSelectionComplete) return;
+    setSelectedImages((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(url)) newSet.delete(url);
+      else newSet.add(url);
+      return newSet;
+    });
+  };
+  const handleSubmit = () => {
+    // Simulação de envio
+    onSelectionSubmit();
+  };
+  return (
+    <div>
+      {modalIndex !== null && (
+        <ImageModal
+          images={gallery.images}
+          currentIndex={modalIndex}
+          onClose={() => setModalIndex(null)}
+          onNavigate={(dir) =>
+            setModalIndex((idx) => {
+              if (idx === null) return null;
+              if (dir === "prev") return idx > 0 ? idx - 1 : idx;
+              if (dir === "next")
+                return idx < gallery.images.length - 1 ? idx + 1 : idx;
+              return idx;
+            })
+          }
+          selectedImages={selectedImages}
+          toggleSelection={handleToggle}
+          isSelectionComplete={isSelectionComplete}
+        />
+      )}
+      <Button variant="ghost" onClick={onBack} className="mb-6">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar para as galerias
+      </Button>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold">{gallery.name}</h2>
+        <p className="text-gray-500">
+          {isSelectionComplete
+            ? "Seleção finalizada e enviada."
+            : "Clique numa imagem para selecionar suas favoritas."}
+        </p>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
+        {gallery.images.map((url, idx) => (
+          <div
+            key={url}
+            className="aspect-square overflow-hidden rounded-lg cursor-pointer group relative"
+            onClick={() => setModalIndex(idx)}
+          >
+            <img
+              src={url}
+              alt="Foto"
+              className="w-full h-full object-cover"
+            />
+            {selectedImages.has(url) && (
+              <div className="absolute top-2 right-2 bg-black/40 rounded-full p-1">
+                <Heart className="h-4 w-4 text-white fill-current" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {!isSelectionComplete && (
+        <div className="sticky bottom-4 mt-8 z-20 flex justify-center">
+          <div className="p-2 shadow-lg bg-white rounded-xl flex items-center gap-4">
+            <div>
+              <p className="font-bold text-lg">
+                {selectedImages.size} fotos selecionadas
+              </p>
+            </div>
+            <Button
+              size="lg"
+              onClick={handleSubmit}
+              disabled={selectedImages.size === 0}
+            >
+              <Send className="mr-2 h-4 w-4" /> Finalizar Seleção
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ClientGalleryPage = () => {
+  const [galleries, setGalleries] = useState<Gallery[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeGallery, setActiveGallery] = useState<Gallery | null>(null);
+
+  useEffect(() => {
+    setIsLoading(true);
+    // Simulação de fetch
+    setTimeout(() => {
+      setGalleries([
+        {
+          _id: "1",
+          name: "Ensaio Família",
+          images: [
+            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400",
+            "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=400",
+            "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400",
+          ],
+          selections: [],
+          status: "pending",
+        },
+        {
+          _id: "2",
+          name: "Casamento Praia",
+          images: [
+            "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400",
+            "https://images.unsplash.com/photo-1465101178521-c1a9136a3b99?w=400",
+          ],
+          selections: ["https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400"],
+          status: "selection_complete",
+        },
+      ]);
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
+  return (
+    <ClientLayout showBackButton={activeGallery !== null}>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      ) : activeGallery ? (
+        <GallerySelectionView
+          gallery={activeGallery}
+          onBack={() => setActiveGallery(null)}
+          onSelectionSubmit={() => setActiveGallery(null)}
+        />
+      ) : (
+        <div>
+          <h1 className="text-3xl font-bold mb-6">As Suas Galerias</h1>
+          {galleries.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {galleries.map((gallery) => (
+                <div
+                  key={gallery._id}
+                  onClick={() => setActiveGallery(gallery)}
+                  className="relative flex flex-col bg-white/20 backdrop-blur-lg border border-white/25 rounded-[2rem] overflow-hidden shadow-xl cursor-pointer transition-transform hover:scale-105 hover:shadow-2xl"
+                >
+                  <div className="w-full h-48 overflow-hidden">
+                    {gallery.images[0] ? (
+                      <img
+                        src={gallery.images[0]}
+                        alt={gallery.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                        Sem imagem
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 flex flex-col gap-2">
+                    <h2 className="text-lg font-bold text-white">
+                      {gallery.name}
+                    </h2>
+                    <p className="text-sm text-white/90">
+                      {gallery.images.length} fotos
+                    </p>
+                    {gallery.status === "selection_complete" ? (
+                      <div className="flex items-center text-green-500 text-sm">
+                        <CheckCircle className="h-4 w-4 mr-2" /> Seleção
+                        finalizada
+                      </div>
+                    ) : (
+                      <p className="text-sm text-white/80">
+                        {gallery.selections.length} fotos já selecionadas
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground pt-12">
+              Nenhuma galeria foi criada para si ainda.
+            </p>
+          )}
+        </div>
+      )}
+    </ClientLayout>
+  );
+};
+
+export default ClientGalleryPage;
