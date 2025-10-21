@@ -289,57 +289,59 @@ const ClientGalleryPage = () => {
                     <Skeleton className="h-48 w-full" />
                     <Skeleton className="h-48 w-full" />
                 </div>
-            ) : activeGallery ? (
-                <GallerySelectionView
-                    gallery={activeGallery}
-                    onBack={() => setActiveGallery(null)}
-                    onSelectionSubmit={handleSelectionSubmit}
-                />
             ) : (
-                <div>
-                    <h1 className="text-3xl font-bold mb-6">As Suas Galerias</h1>
-                    {galleries.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {galleries.map((gallery) => (
-                                <div
-                                    key={gallery._id}
-                                    onClick={() => setActiveGallery(gallery)}
-                                    className="relative flex flex-col bg-white/20 backdrop-blur-lg border border-white/25 rounded-[2rem] overflow-hidden shadow-xl cursor-pointer transition-transform hover:scale-105 hover:shadow-2xl"
-                                >
-                                    {/* Imagem de preview */}
-                                    <div className="w-full h-48 overflow-hidden">
-                                        {gallery.images[0] ? (
-                                            <img
-                                                src={optimizeCloudinaryUrl(gallery.images[0], "f_auto,q_auto,w_600")}
-                                                alt={gallery.name}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                                                Sem imagem
-                                            </div>
-                                        )}
-                                    </div>
+                activeGallery ? (
+                    <GallerySelectionView
+                        gallery={activeGallery}
+                        onBack={() => setActiveGallery(null)}
+                        onSelectionSubmit={handleSelectionSubmit}
+                    />
+                ) : (
+                    <div>
+                        <h1 className="text-3xl font-bold mb-6">As Suas Galerias</h1>
+                        {galleries.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {galleries.map((gallery) => (
+                                    <div
+                                        key={gallery._id}
+                                        onClick={() => setActiveGallery(gallery)}
+                                        className="relative flex flex-col bg-white/20 backdrop-blur-lg border border-white/25 rounded-[2rem] overflow-hidden shadow-xl cursor-pointer transition-transform hover:scale-105 hover:shadow-2xl"
+                                    >
+                                        {/* Imagem de preview */}
+                                        <div className="w-full h-48 overflow-hidden">
+                                            {gallery.images[0] ? (
+                                                <img
+                                                    src={optimizeCloudinaryUrl(gallery.images[0], "f_auto,q_auto,w_600")}
+                                                    alt={gallery.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                                                    Sem imagem
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    {/* Conteúdo */}
-                                    <div className="p-4 flex flex-col gap-2">
-                                        <h2 className="text-lg font-bold text-white">{gallery.name}</h2>
-                                        <p className="text-sm text-white/90">{gallery.images.length} fotos</p>
-                                        {gallery.status === 'selection_complete' ? (
-                                            <div className="flex items-center text-green-500 text-sm">
-                                                <CheckCircle className="h-4 w-4 mr-2" /> Seleção finalizada
-                                            </div>
-                                        ) : (
-                                            <p className="text-sm text-white/80">{gallery.selections.length} fotos já selecionadas</p>
-                                        )}
+                                        {/* Conteúdo */}
+                                        <div className="p-4 flex flex-col gap-2">
+                                            <h2 className="text-lg font-bold text-white">{gallery.name}</h2>
+                                            <p className="text-sm text-white/90">{gallery.images.length} fotos</p>
+                                            {gallery.status === 'selection_complete' ? (
+                                                <div className="flex items-center text-green-500 text-sm">
+                                                    <CheckCircle className="h-4 w-4 mr-2" /> Seleção finalizada
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-white/80">{gallery.selections.length} fotos já selecionadas</p>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground pt-12">Nenhuma galeria foi criada para si ainda.</p>
-                    )}
-                </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-center text-muted-foreground pt-12">Nenhuma galeria foi criada para si ainda.</p>
+                        )}
+                    </div>
+                )
             )}
         </ClientLayout>
     );
