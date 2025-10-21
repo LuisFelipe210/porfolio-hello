@@ -109,11 +109,11 @@ const ClientLoginPage = () => {
                                 className="placeholder:text-muted-foreground"
                             />
                         </div>
-                        <div className="text-right -mt-2">
+                        {/*<div className="text-right -mt-2">
                             <Button variant="link" asChild className="p-0 h-auto text-xs">
                                 <Link to="/portal/forgot-password">Esqueceu a senha?</Link>
                             </Button>
-                        </div>
+                        </div>*/}
                     </CardContent>
                     <CardFooter>
                         <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" type="submit" disabled={isLoading}>
