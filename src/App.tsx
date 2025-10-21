@@ -8,7 +8,6 @@ import { ThemeProvider } from "./components/ThemeProvider";
 // Componentes Globais e Utilitários
 import ShutterPreloader from "./components/ShutterPreloader";
 import FloatingContact from "./components/FloatingContact";
-// O seu componente ScrollToTop é uma ótima adição para a experiência do usuário!
 import ScrollToTop from "./components/ScrollToTop.tsx";
 
 // Páginas Públicas
@@ -34,6 +33,7 @@ import AdminClientGalleries from "./pages/Admin/AdminClientGalleries";
 import ClientLoginPage from "./pages/Portal/ClientLoginPage";
 import ClientLayout from "./pages/Portal/ClientLayout";
 import ClientGalleryPage from "./pages/Portal/ClientGalleryPage";
+import ClientResetPasswordPage from "./pages/Portal/ClientResetPasswordPage";
 
 
 const queryClient = new QueryClient();
@@ -58,6 +58,7 @@ const App = () => {
 
                     <div className="site-content">
                         <BrowserRouter>
+                            <ScrollToTop />
                             <Routes>
                                 {/* --- Rotas Públicas --- */}
                                 <Route path="/" element={<Index />} />
@@ -68,6 +69,7 @@ const App = () => {
                                 <Route path="/portal/login" element={<ClientLoginPage />} />
                                 <Route path="/portal" element={<ClientLayout />}>
                                     <Route path="gallery" element={<ClientGalleryPage />} />
+                                    <Route path="reset-password" element={<ClientResetPasswordPage />} />
                                 </Route>
 
                                 {/* --- Rotas do Painel de Administração --- */}

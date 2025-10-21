@@ -28,11 +28,16 @@ const ClientLoginPage = () => {
 
             if (!response.ok) throw new Error('Credenciais inválidas');
 
-            const { token } = await response.json();
+            const { token, mustResetPassword } = await response.json();
             localStorage.setItem('clientAuthToken', token);
 
-            toast({ title: 'Login bem-sucedido!', description: 'A aceder à sua galeria...' });
-            navigate('/portal/gallery');
+            toast({ title: 'Login bem-sucedido!', description: 'A verificar a sua conta...' });
+
+            if (mustResetPassword) {
+                navigate('/portal/reset-password');
+            } else {
+                navigate('/portal/gallery');
+            }
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro de login', description: 'Email ou senha incorretos.' });
         } finally {

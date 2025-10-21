@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             const { name, email, password } = req.body;
             if (!name || !email || !password) return res.status(400).json({ error: 'Dados incompletos.' });
             const hashedPassword = await bcrypt.hash(password, 10);
-            const result = await clientsCollection.insertOne({ name, email, password: hashedPassword });
+            const result = await clientsCollection.insertOne({ name, email, password: hashedPassword, mustResetPassword: true });
             const inserted = { name, email, _id: result.insertedId };
             return res.status(201).json(inserted);
         }

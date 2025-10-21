@@ -30,11 +30,11 @@ export default async function handler(req, res) {
             if (!isPasswordValid) return res.status(401).json({ error: 'Credenciais inválidas.' });
 
             const token = jwt.sign(
-                { clientId: client._id, name: client.name },
+                { clientId: client._id, name: client.name, mustResetPassword: !!client.mustResetPassword },
                 process.env.CLIENT_JWT_SECRET,
                 { expiresIn: '7d' }
             );
-            return res.status(200).json({ token });
+            return res.status(200).json({ token, mustResetPassword: !!client.mustResetPassword });
         }
 
         // --- AÇÕES PROTEGIDAS (REQUEREM TOKEN DE CLIENTE) ---
@@ -44,6 +44,36 @@ export default async function handler(req, res) {
         const decoded = jwt.verify(token, process.env.CLIENT_JWT_SECRET);
         const { clientId } = decoded;
         if (!clientId) return res.status(401).json({ error: 'Token inválido.' });
+
+        // --- AÇÃO: REDEFINIR SENHA ---
+        if (action === 'resetPassword' && req.method === 'POST') {
+            const { newPassword } = req.body;
+            if (!newPassword || newPassword.length < 6) {
+                return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+            }
+
+            const clientsCollection = db.collection('clients');
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            const result = await clientsCollection.updateOne(
+                { _id: new ObjectId(clientId) },
+                { $set: { password: hashedPassword, mustResetPassword: false } }
+            );
+
+            if (result.matchedCount === 0) {
+                return res.status(404).json({ error: 'Cliente não encontrado.' });
+            }
+
+            const client = await clientsCollection.findOne({ _id: new ObjectId(clientId) });
+            const newToken = jwt.sign(
+                { clientId: client._id, name: client.name, mustResetPassword: false },
+                process.env.CLIENT_JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.status(200).json({ message: 'Senha atualizada com sucesso!', token: newToken });
+        }
+
 
         // --- AÇÃO: BUSCAR GALERIAS DO CLIENTE ---
         if (action === 'getGalleries' && req.method === 'GET') {
