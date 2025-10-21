@@ -12,7 +12,6 @@ async function connectToDatabase(uri) {
     return db;
 }
 
-// Função auxiliar para enviar e-mail de redefinição de senha
 async function sendPasswordResetEmail(email, token) {
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
@@ -26,17 +25,20 @@ async function sendPasswordResetEmail(email, token) {
     console.log(`[DEBUG] A enviar e-mail de redefinição para: ${email}`);
     await transporter.sendMail({
         from: `"${process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'}" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Redefinição de Senha - Hellô Borges Fotografia',
+        // --- ALTERAÇÃO DE TESTE ABAIXO ---
+        // Força o envio para o seu e-mail de admin para depuração
+        to: process.env.EMAIL_TO,
+        // A linha original era: to: email,
+        subject: `TESTE - Redefinição de Senha para ${email}`, // Adicionado "TESTE" para identificar
         html: `
+            <p>Isto é um teste. O e-mail original seria para: ${email}</p>
             <h2>Redefinição de Senha</h2>
             <p>Recebemos uma solicitação para redefinir a sua senha. Clique no link abaixo para criar uma nova senha:</p>
             <p><a href="${resetLink}" target="_blank" style="background-color: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Redefinir minha senha</a></p>
-            <p>Se você não solicitou isto, por favor, ignore este e-mail.</p>
             <p>Este link é válido por 1 hora.</p>
         `,
     });
-    console.log(`[DEBUG] Nodemailer concluiu a tentativa de envio para ${email}.`);
+    console.log(`[DEBUG] Nodemailer concluiu a tentativa de envio para ${process.env.EMAIL_TO} (originalmente para ${email}).`);
 }
 
 
