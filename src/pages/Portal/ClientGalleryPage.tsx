@@ -73,7 +73,7 @@ const ImageModal = ({
                     <img src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1600")} alt="Foto do ensaio em tamanho grande" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl pointer-events-none" onContextMenu={(e) => e.preventDefault()} />
                     {!isSelectionComplete && (
                         <div className="absolute top-4 right-4 flex items-center gap-2 bg-white/60 rounded-full p-2 shadow-md">
-                            <Heart className={`h-6 w-6 ${isSelected ? 'fill-red-500 text-red-500' : 'text-gray-800'}`} />
+                            <Heart className={`h-6 w-6 ${isSelected ? 'fill-orange-500 text-orange-500' : 'text-gray-800'}`} />
                             <button onClick={() => toggleSelection(currentImage)} className="text-sm font-medium text-gray-900 hover:text-gray-700">{isSelected ? 'Remover' : 'Selecionar'}</button>
                         </div>
                     )}
@@ -104,8 +104,9 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit }: { gallery: Gallery
 
     const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
 
-    const toggleSelection = (imageUrl: string) => {
+    const toggleSelection = (imageUrl: string, event?: React.MouseEvent) => {
         if (isSelectionComplete) return;
+        event?.stopPropagation(); // Impede que o clique no coração abra o modal da foto
         setSelectedImages(prev => {
             const newSet = new Set(prev);
             if (newSet.has(imageUrl)) newSet.delete(imageUrl); else newSet.add(imageUrl);
@@ -140,9 +141,23 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit }: { gallery: Gallery
             </Card>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
                 {gallery.images.map((imageUrl, index) => (
-                    <div key={imageUrl} className="aspect-square overflow-hidden rounded-lg cursor-pointer group relative" onClick={() => setModalImageIndex(index)} onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_1600"))}>
+                    <div key={imageUrl}
+                         className="aspect-square overflow-hidden rounded-lg cursor-pointer group relative"
+                         onClick={() => setModalImageIndex(index)}
+                         onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_1600"))}
+                    >
                         <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")} alt="Foto do ensaio" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                        {selectedImages.has(imageUrl) && (<div className="absolute top-2 right-2 bg-black/40 rounded-full p-1"><Heart className="h-4 w-4 text-white fill-current" /></div>)}
+
+                        {!isSelectionComplete && (
+                            <button
+                                className="absolute top-2 right-2 p-1 rounded-full bg-black/40 hover:bg-black/60 transition-colors z-10"
+                                onClick={(e) => toggleSelection(imageUrl, e)}
+                                aria-label={selectedImages.has(imageUrl) ? "Remover seleção" : "Selecionar foto"}
+                            >
+                                <Heart className={`h-5 w-5 transition-colors ${selectedImages.has(imageUrl) ? 'fill-orange-500 text-orange-500' : 'text-white'}`} />
+                            </button>
+                        )}
+
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                 ))}
@@ -171,25 +186,17 @@ const ClientGalleryPage = () => {
     const { toast } = useToast();
     const { setHeaderBackAction } = useOutletContext<LayoutContext>();
 
-    // Função para voltar à lista de galerias, memorizada com useCallback
     const handleBack = useCallback(() => {
         setActiveGallery(null);
-    }, []); // Não tem dependências, então só é criada uma vez
+    }, []);
 
-    // Efeito que comunica com o Layout
     useEffect(() => {
         if (activeGallery) {
-            // Se uma galeria está ativa, passa a função 'handleBack' para o header
             setHeaderBackAction(() => handleBack);
         } else {
-            // Se nenhuma galeria está ativa, remove a função do header (o botão some)
             setHeaderBackAction(null);
         }
-
-        // Função de limpeza: garante que a ação seja removida se o componente for desmontado
-        return () => {
-            setHeaderBackAction(null);
-        };
+        return () => { setHeaderBackAction(null); };
     }, [activeGallery, setHeaderBackAction, handleBack]);
 
     const fetchGalleries = useCallback(async () => {
