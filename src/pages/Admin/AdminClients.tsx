@@ -153,6 +153,9 @@ const AdminClients = () => {
                                     <Button type="button" variant="outline" size="icon" onClick={generateRandomPassword} title="Gerar senha aleatória">
                                         <RefreshCw className="h-4 w-4" />
                                     </Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(password)} title="Copiar senha">
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </div>
                             <DialogFooter>
@@ -212,17 +215,6 @@ const AdminClients = () => {
                                             size="icon"
                                             title="Copiar email"
                                             onClick={() => copyToClipboard(client.email)}
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
-                                        {/* Botão de copiar senha temporária */}
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            title="Copiar senha"
-                                            onClick={() => copyToClipboard(client.password ?? 'Senha não disponível')}
-                                            disabled={!client.password}
                                         >
                                             <Copy className="h-4 w-4" />
                                         </Button>
