@@ -21,7 +21,7 @@ const ClientLayout = () => {
     };
 
     return (
-        <div className="relative flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen">
             {/* Background Image e Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
