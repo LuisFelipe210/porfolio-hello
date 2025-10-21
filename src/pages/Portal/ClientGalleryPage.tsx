@@ -150,7 +150,7 @@ const GallerySelectionView = ({
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) return new Set(parsed);
         } catch {
-          // Ignorar erro de parsing do JSON (intencional)
+          // ignore
         }
       }
     }
@@ -355,7 +355,7 @@ const ClientGalleryPage = () => {
   };
 
   return (
-    <ClientLayout showBackButton={activeGallery !== null}>
+    <ClientLayout>
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Skeleton className="h-48 w-full" />
