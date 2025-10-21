@@ -32,7 +32,7 @@ const ClientLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="relative z-10 sticky top-0 flex h-24 items-center justify-between bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-6 md:px-12">
+            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-6 md:px-12">
                 <div className="flex items-center gap-6">
                     <img src={Logo} alt="Hellô Borges" className="h-12 w-auto" />
                     <span className="text-2xl font-light hidden sm:inline">Portal do Cliente</span>
