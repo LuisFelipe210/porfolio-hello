@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'; // 1. Importar useRef
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -61,7 +62,8 @@ const ImageModal = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onNavigate, onClose]);
 
-    return (
+    // Renderiza o modal acima do header usando portal
+    return createPortal(
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-2" onClick={onClose}>
             <div
                 className="relative w-full h-full flex items-center justify-center"
@@ -95,7 +97,8 @@ const ImageModal = ({
 
                 <Button variant="ghost" size="icon" className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 hover:bg-white/10 disabled:opacity-20" onClick={() => onNavigate('next')} disabled={currentIndex === images.length - 1}><ChevronRight className="h-10 w-10" /></Button>
             </div>
-        </div>
+        </div>,
+        typeof window !== "undefined" ? document.body : (null as any)
     );
 };
 

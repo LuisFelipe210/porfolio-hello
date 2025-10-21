@@ -3,7 +3,6 @@ import { useNavigate, Outlet } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
-import ClientBackground from "@/assets/cliente.svg";
 
 const ClientLayout = () => {
     const navigate = useNavigate();
