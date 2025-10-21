@@ -13,7 +13,7 @@ interface Client {
     _id: string;
     name: string;
     email: string;
-    // Adicionando campo opcional password apenas para exibição/cópia (front-end only)
+    recoveryEmail?: string; // Campo opcional
     password?: string;
 }
 
@@ -26,8 +26,10 @@ const AdminClients = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const { toast } = useToast();
 
+    // Estados do formulário
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [recoveryEmail, setRecoveryEmail] = useState(''); // <-- NOVO ESTADO
     const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,6 +60,7 @@ const AdminClients = () => {
     const resetForm = () => {
         setName('');
         setEmail('');
+        setRecoveryEmail(''); // <-- LIMPAR NO RESET
         setPassword('');
     };
 
@@ -79,29 +82,31 @@ const AdminClients = () => {
     };
 
     const copyToClipboard = (text: string) => {
+        if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
             toast({ title: 'Copiado', description: `${text} copiado para a área de transferência.` });
         }).catch(() => {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível copiar para a área de transferência.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível copiar.' });
         });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Validação para impedir emails duplicados
         if (clients.some(client => client.email.toLowerCase() === email.toLowerCase())) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Já existe um cliente com este email.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Já existe um cliente com este email de login.' });
             return;
         }
 
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem('authToken');
+            // ALTERADO: Adicionado 'recoveryEmail' ao corpo da requisição
+            const body = { name, email, password, recoveryEmail: recoveryEmail || null };
+
             const response = await fetch('/api/admin/portal?action=createClient', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify(body),
             });
 
             if (!response.ok) throw new Error('Falha ao criar o cliente.');
@@ -118,11 +123,31 @@ const AdminClients = () => {
         }
     };
 
+    const handleDeleteClient = async () => {
+        if (!selectedClient) return;
+        setIsDeleting(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/admin/portal?action=deleteClient&clientId=${selectedClient._id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Falha ao excluir o cliente.');
+            toast({ title: 'Sucesso', description: `Cliente ${selectedClient.name} excluído.` });
+            setClients(clients.filter(c => c._id !== selectedClient._id));
+            setIsDeleteDialogOpen(false);
+            setSelectedClient(null);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o cliente.' });
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+
     const filteredClients = clients
         .filter((client) => client.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        .sort((a, b) => sortOrder === 'recent'
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name));
+        .sort((a, b) => sortOrder === 'recent' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
 
     return (
         <div>
@@ -135,27 +160,31 @@ const AdminClients = () => {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div><Label htmlFor="name">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required /></div>
                             <div>
-                                <Label htmlFor="email">Email (para login do cliente)</Label>
+                                <Label htmlFor="email">Email de Login</Label>
                                 <div className="flex items-center gap-2">
                                     <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                                    <Button type="button" variant="outline" size="icon" onClick={generateRandomEmail} title="Gerar email aleatório">
-                                        <RefreshCw className="h-4 w-4" />
-                                    </Button>
-                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(email)} title="Copiar email">
-                                        <Copy className="h-4 w-4" />
-                                    </Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={generateRandomEmail} title="Gerar email aleatório"><RefreshCw className="h-4 w-4" /></Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(email)} title="Copiar email"><Copy className="h-4 w-4" /></Button>
                                 </div>
                             </div>
+                            {/* NOVO CAMPO */}
                             <div>
-                                <Label htmlFor="password">Senha (temporária para o cliente)</Label>
+                                <Label htmlFor="recoveryEmail">Email de Recuperação (Opcional)</Label>
+                                <Input
+                                    id="recoveryEmail"
+                                    type="email"
+                                    placeholder="O e-mail real do cliente"
+                                    value={recoveryEmail}
+                                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">Preencha para que o cliente possa recuperar a senha.</p>
+                            </div>
+                            <div>
+                                <Label htmlFor="password">Senha</Label>
                                 <div className="flex items-center gap-2">
                                     <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                                    <Button type="button" variant="outline" size="icon" onClick={generateRandomPassword} title="Gerar senha aleatória">
-                                        <RefreshCw className="h-4 w-4" />
-                                    </Button>
-                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(password)} title="Copiar senha">
-                                        <Copy className="h-4 w-4" />
-                                    </Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={generateRandomPassword} title="Gerar senha aleatória"><RefreshCw className="h-4 w-4" /></Button>
+                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(password)} title="Copiar senha"><Copy className="h-4 w-4" /></Button>
                                 </div>
                             </div>
                             <DialogFooter>
@@ -195,13 +224,13 @@ const AdminClients = () => {
                     filteredClients.map((client) => (
                         <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
                             <Card className="flex flex-col p-6 gap-4 bg-white/70 dark:bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-                                <CardHeader className="flex-1 flex flex-row items-center gap-4">
+                                <CardHeader className="flex-1 flex flex-row items-center gap-4 p-0">
                                     <div className="flex flex-col">
                                         <CardTitle>{client.name}</CardTitle>
                                         <CardDescription>{client.email}</CardDescription>
                                     </div>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="p-0">
                                     <div className="flex gap-2">
                                         <Button asChild variant="outline" className="w-full">
                                             <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
@@ -254,33 +283,7 @@ const AdminClients = () => {
                         <Button
                             variant="destructive"
                             disabled={isDeleting}
-                            onClick={async () => {
-                                if (!selectedClient) return;
-                                setIsDeleting(true);
-                                try {
-                                    const token = localStorage.getItem('authToken');
-                                    const response = await fetch(
-                                        `/api/admin/portal?action=deleteClient&clientId=${selectedClient._id}`,
-                                        {
-                                            method: 'DELETE',
-                                            headers: { Authorization: `Bearer ${token}` },
-                                        }
-                                    );
-                                    if (!response.ok) throw new Error('Falha ao excluir.');
-                                    toast({ title: 'Sucesso', description: 'Cliente excluído com sucesso.' });
-                                    fetchClients();
-                                } catch {
-                                    toast({
-                                        variant: 'destructive',
-                                        title: 'Erro',
-                                        description: 'Não foi possível excluir o cliente.',
-                                    });
-                                } finally {
-                                    setIsDeleting(false);
-                                    setIsDeleteDialogOpen(false);
-                                    setSelectedClient(null);
-                                }
-                            }}
+                            onClick={handleDeleteClient}
                         >
                             {isDeleting ? 'Excluindo...' : 'Excluir'}
                         </Button>
@@ -292,3 +295,4 @@ const AdminClients = () => {
 };
 
 export default AdminClients;
+

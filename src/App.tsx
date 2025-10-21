@@ -34,6 +34,8 @@ import ClientLoginPage from "./pages/Portal/ClientLoginPage";
 import ClientLayout from "./pages/Portal/ClientLayout";
 import ClientGalleryPage from "./pages/Portal/ClientGalleryPage";
 import ClientResetPasswordPage from "./pages/Portal/ClientResetPasswordPage";
+import ForgotPasswordPage from "./pages/Portal/ForgotPasswordPage"; // <-- NOVO
+import ResetPasswordWithTokenPage from "./pages/Portal/ResetPasswordWithTokenPage"; // <-- NOVO
 
 
 const queryClient = new QueryClient();
@@ -67,6 +69,8 @@ const App = () => {
 
                                 {/* --- Rotas do Portal do Cliente --- */}
                                 <Route path="/portal/login" element={<ClientLoginPage />} />
+                                <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} /> {/* <-- NOVO */}
+                                <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} /> {/* <-- NOVO */}
                                 <Route path="/portal" element={<ClientLayout />}>
                                     <Route path="gallery" element={<ClientGalleryPage />} />
                                     <Route path="reset-password" element={<ClientResetPasswordPage />} />

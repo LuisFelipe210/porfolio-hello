@@ -31,17 +31,26 @@ export default async function handler(req, res) {
         }
 
         if (action === 'createClient' && req.method === 'POST') {
-            const { name, email, password } = req.body;
+            const { name, email, password, recoveryEmail } = req.body;
             if (!name || !email || !password) return res.status(400).json({ error: 'Dados incompletos.' });
+
             const hashedPassword = await bcrypt.hash(password, 10);
-            const result = await clientsCollection.insertOne({ name, email, password: hashedPassword, mustResetPassword: true });
+
+            const result = await clientsCollection.insertOne({
+                name,
+                email,
+                password: hashedPassword,
+                recoveryEmail: recoveryEmail || null,
+                mustResetPassword: true
+            });
+
             const inserted = { name, email, _id: result.insertedId };
             return res.status(201).json(inserted);
         }
 
         if (action === 'deleteClient' && req.method === 'DELETE') {
             if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });
-            await galleriesCollection.deleteMany({ clientId: new ObjectId(clientId) }); // Apaga as galerias do cliente
+            await galleriesCollection.deleteMany({ clientId: new ObjectId(clientId) });
             const result = await clientsCollection.deleteOne({ _id: new ObjectId(clientId) });
             if (result.deletedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
             return res.status(200).json({ message: 'Cliente e suas galerias foram excluídos.' });
@@ -78,11 +87,10 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Galeria excluída.' });
         }
 
-        // Se nenhuma ação corresponder
         return res.status(400).json({ error: 'Ação inválida ou não especificada.' });
 
     } catch (error) {
-        console.error('API Error (/api/admin/Portal):', error);
+        console.error('API Error (/api/admin/portal):', error);
         if (error.name === 'JsonWebTokenError') return res.status(401).json({ error: 'Token de admin inválido.' });
         return res.status(500).json({ error: 'Erro interno do servidor.' });
     }
