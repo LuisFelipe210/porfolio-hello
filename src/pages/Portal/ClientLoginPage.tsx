@@ -43,8 +43,6 @@ const ClientLoginPage = () => {
     return (
         <div className="relative flex items-center justify-center min-h-screen bg-background">
 
-            {/* Header minimal */}
-            <Header variant="minimal" />
 
             {/* Botão de voltar estilo nav */}
             <div className="absolute top-4 left-4 z-20">
@@ -104,6 +102,7 @@ const ClientLoginPage = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 placeholder="••••••••"
+                                className="placeholder:text-muted-foreground"
                             />
                         </div>
                     </CardContent>
