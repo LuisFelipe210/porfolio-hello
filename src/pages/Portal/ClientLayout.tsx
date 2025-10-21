@@ -36,30 +36,33 @@ const ClientLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="sticky top-0 z-[100] flex items-center justify-between h-24 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-6 md:px-12 relative">
-                {/* Botão de voltar - só aparece dentro de uma galeria */}
-                {isInGallery && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute left-6"
-                        onClick={handleBackToGalleries}
-                    >
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                )}
+            <header className="sticky top-0 z-[100] flex items-center justify-between h-24 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-6 md:px-12">
+                {/* Left area: Back button */}
+                <div className="flex items-center w-1/4 justify-start">
+                    {isInGallery && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleBackToGalleries}
+                        >
+                            <ArrowLeft className="h-6 w-6" />
+                        </Button>
+                    )}
+                </div>
 
-                {/* Logo + nome centralizados */}
-                <div className="absolute inset-x-0 flex justify-center items-center space-x-2">
+                {/* Center area: Logo + name */}
+                <div className="flex justify-center items-center space-x-2 w-1/2">
                     <img src={Logo} alt="Hellô Borges" className="h-12 w-auto" />
                     <span className="text-xl font-bold text-white">Portal do Cliente</span>
                 </div>
 
-                {/* Botão de logout */}
-                <Button variant="outline" onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                </Button>
+                {/* Right area: Logout button */}
+                <div className="flex justify-end items-center w-1/4">
+                    <Button variant="outline" onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sair
+                    </Button>
+                </div>
             </header>
 
             <main className="relative z-10 flex-1 pt-20 p-4 md:p-8">
