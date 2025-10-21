@@ -14,10 +14,15 @@ async function connectToDatabase(uri) {
 
 async function sendPasswordResetEmail(email, token) {
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // false para porta 587
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
+            pass: process.env.EMAIL_PASS // Senha de aplicativo do Gmail
+        },
+        tls: {
+            rejectUnauthorized: true
         }
     });
 
@@ -25,26 +30,32 @@ async function sendPasswordResetEmail(email, token) {
 
     console.log(`[DEBUG] A enviar e-mail de redefinição para: ${email}`);
 
-    const subject = `Redefinição de Senha`;
-    const html = `
-        <h2>Redefinição de Senha</h2>
-        <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para criar uma nova senha:</p>
-        <p>
-            <a href="${resetLink}" target="_blank" style="display:inline-block;background-color:#f97316;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;font-weight:bold;">
-                Redefinir minha senha
-            </a>
-        </p>
-        <p>Este link é válido por 1 hora.</p>
-    `;
-
-    await transporter.sendMail({
+    const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'}" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject,
-        html
-    });
-    console.log(`[DEBUG] Nodemailer concluiu a tentativa de envio para ${email}.`);
+        subject: 'Redefinição de Senha',
+        html: `
+            <h2>Redefinição de Senha</h2>
+            <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para criar uma nova senha:</p>
+            <p>
+                <a href="${resetLink}" target="_blank" style="display:inline-block;background-color:#f97316;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;font-weight:bold;">
+                    Redefinir minha senha
+                </a>
+            </p>
+            <p>Este link é válido por 1 hora.</p>
+        `
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[DEBUG] E-mail enviado com sucesso! MessageId: ${info.messageId}`);
+        return info;
+    } catch (error) {
+        console.error('[ERRO] Falha ao enviar e-mail:', error);
+        throw error;
+    }
 }
+
 
 
 export default async function handler(req, res) {
