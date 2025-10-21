@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         if (!token) return res.status(401).json({ error: 'Token de admin não fornecido.' });
         jwt.verify(token, process.env.JWT_SECRET);
 
-        const { action, galleryId } = req.query;
+        const { action, clientId, galleryId } = req.query;
 
         // --- LÓGICA PARA CLIENTES ---
         if (action === 'getClients' && req.method === 'GET') {
