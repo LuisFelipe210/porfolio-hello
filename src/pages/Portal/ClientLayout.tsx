@@ -8,7 +8,8 @@ import React from 'react';
 
 const ClientLayout = () => {
     const navigate = useNavigate();
-    const [showBackButtonInHeader, setShowBackButtonInHeader] = useState(false);
+    // Estado que armazena a função de callback para o botão "Voltar"
+    const [headerBackAction, setHeaderBackAction] = useState<(() => void) | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('clientAuthToken');
@@ -35,12 +36,13 @@ const ClientLayout = () => {
             </div>
 
             <header className="sticky top-0 z-[100] flex h-24 items-center justify-between bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-6 md:px-12 relative">
-                {/* Botão de Voltar condicional à esquerda */}
+                {/* Contêiner para o botão de Voltar */}
                 <div className="w-24">
-                    {showBackButtonInHeader && (
+                    {/* O botão só é renderizado se 'headerBackAction' for uma função */}
+                    {headerBackAction && (
                         <Button
                             variant="ghost"
-                            onClick={() => setShowBackButtonInHeader(false)} // A lógica de voltar está no ClientGalleryPage
+                            onClick={headerBackAction} // Executa a função recebida do componente filho
                             className="text-white hover:bg-white/10 hover:text-white"
                         >
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -49,13 +51,13 @@ const ClientLayout = () => {
                     )}
                 </div>
 
-                {/* Logo e Título centralizados */}
+                {/* Contêiner central para Logo e Título */}
                 <div className="absolute inset-x-0 flex justify-center items-center space-x-2 pointer-events-none">
                     <img src={Logo} alt="Hellô Borges" className="h-12 w-auto" />
                     <span className="text-xl font-bold text-white">Portal do Cliente</span>
                 </div>
 
-                {/* Botão Sair à direita */}
+                {/* Contêiner para o botão Sair */}
                 <div className="w-24 flex justify-end">
                     <Button variant="outline" onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
@@ -65,7 +67,8 @@ const ClientLayout = () => {
             </header>
 
             <main className="relative z-10 flex-1 pt-20 p-4 md:p-8">
-                <Outlet context={{ setShowBackButtonInHeader }} />
+                {/* Passa a função 'setHeaderBackAction' para os componentes filhos via context */}
+                <Outlet context={{ setHeaderBackAction }} />
             </main>
         </div>
     );
