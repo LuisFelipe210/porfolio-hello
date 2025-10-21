@@ -74,7 +74,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Senha atualizada com sucesso!', token: newToken });
         }
 
-
         // --- AÇÃO: BUSCAR GALERIAS DO CLIENTE ---
         if (action === 'getGalleries' && req.method === 'GET') {
             const galleriesCollection = db.collection('galleries');

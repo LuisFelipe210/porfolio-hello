@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
-import Header from "@/components/Header";
 
 const ClientLoginPage = () => {
     const [email, setEmail] = useState('');
@@ -47,9 +46,6 @@ const ClientLoginPage = () => {
 
     return (
         <div className="relative flex items-center justify-center min-h-screen bg-background">
-
-
-            {/* Botão de voltar estilo nav */}
             <div className="absolute top-4 left-4 z-20">
                 <Link
                     to="/"
@@ -65,8 +61,6 @@ const ClientLoginPage = () => {
                     </span>
                 </Link>
             </div>
-
-            {/* Background Image e Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
                     src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
@@ -75,8 +69,6 @@ const ClientLoginPage = () => {
                 />
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
-
-            {/* Formulário de Login */}
             <Card className="w-full max-w-sm z-10 animate-fade-in-up">
                 <CardHeader className="text-center">
                     <img src={Logo} alt="Hellô Borges Logo" className="h-16 w-auto mx-auto mb-4" />

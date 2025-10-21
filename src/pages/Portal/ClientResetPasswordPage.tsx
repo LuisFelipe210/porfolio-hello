@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,86 +7,105 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
 
-const ClientResetPasswordPage = () => {
+const ClientLoginPage = () => {
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { toast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password !== confirmPassword) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'As senhas não coincidem.' });
-            return;
-        }
-        if (password.length < 6) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'A senha deve ter pelo menos 6 caracteres.' });
-            return;
-        }
-
         setIsLoading(true);
 
         try {
-            const token = localStorage.getItem('clientAuthToken');
-            const response = await fetch('/api/portal?action=resetPassword', {
+            const response = await fetch('/api/portal?action=login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ newPassword: password }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
             });
 
-            if (!response.ok) throw new Error('Falha ao redefinir a senha.');
+            if (!response.ok) throw new Error('Credenciais inválidas');
 
-            const { token: newToken } = await response.json();
-            // Atualiza o token no localStorage com o novo que não tem a flag de reset
-            localStorage.setItem('clientAuthToken', newToken);
+            const { token, mustResetPassword } = await response.json();
+            localStorage.setItem('clientAuthToken', token);
 
-            toast({ title: 'Sucesso!', description: 'A sua senha foi atualizada. A aceder à sua galeria...' });
-            navigate('/portal/gallery');
+            toast({ title: 'Login bem-sucedido!', description: 'A verificar a sua conta...' });
 
+            if (mustResetPassword) {
+                navigate('/portal/reset-password');
+            } else {
+                navigate('/portal/gallery');
+            }
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível redefinir a sua senha. Tente novamente.' });
+            toast({ variant: 'destructive', title: 'Erro de login', description: 'Email ou senha incorretos.' });
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-full">
+        <div className="relative flex items-center justify-center min-h-screen bg-background">
+            <div className="absolute top-4 left-4 z-20">
+                <Link
+                    to="/"
+                    className="flex items-center gap-2 bg-black/40 hover:bg-black/60 backdrop-blur-sm rounded-md px-3 py-1 transition-all duration-200"
+                >
+                    <img
+                        src={Logo}
+                        alt="Logo Hellô Borges"
+                        className="h-10 sm:h-12 md:h-14 w-auto"
+                    />
+                    <span className="text-white font-medium text-sm sm:text-base md:text-lg">
+                        Voltar
+                    </span>
+                </Link>
+            </div>
+            <div className="absolute inset-0 z-0">
+                <img
+                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            </div>
             <Card className="w-full max-w-sm z-10 animate-fade-in-up">
                 <CardHeader className="text-center">
                     <img src={Logo} alt="Hellô Borges Logo" className="h-16 w-auto mx-auto mb-4" />
-                    <CardTitle className="text-2xl">Redefinir Senha</CardTitle>
+                    <CardTitle className="text-2xl">Portal do Cliente</CardTitle>
                     <CardDescription>
-                        Por segurança, por favor, crie uma nova senha para o seu primeiro acesso.
+                        Aceda à sua galeria privada para selecionar as suas fotos.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Nova Senha</Label>
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                placeholder="O seu email"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="password">Senha</Label>
                             <Input
                                 id="password"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-                            <Input
-                                id="confirmPassword"
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
+                                placeholder="••••••••"
+                                className="placeholder:text-muted-foreground"
                             />
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" type="submit" disabled={isLoading}>
-                            {isLoading ? 'A guardar...' : 'Guardar Nova Senha'}
+                        <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" type="submit" disabled={isLoading}>
+                            {isLoading ? 'A entrar...' : 'Entrar'}
                         </Button>
                     </CardFooter>
                 </form>
@@ -95,4 +114,4 @@ const ClientResetPasswordPage = () => {
     );
 };
 
-export default ClientResetPasswordPage;
+export default ClientLoginPage;
