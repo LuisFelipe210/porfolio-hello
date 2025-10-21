@@ -12,7 +12,7 @@ const AdminLayout = () => {
     const isMobile = useIsMobile();
     const [isSheetOpen, setSheetOpen] = useState(false);
 
-    // Verifica autenticação
+    // Verifica a autenticação
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (!token) {
