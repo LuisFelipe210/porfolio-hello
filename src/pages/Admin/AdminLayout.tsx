@@ -20,7 +20,6 @@ const AdminLayout = () => {
         }
     }, [navigate]);
 
-    // Redireciona para /admin/clients ao entrar no painel
     useEffect(() => {
         if (location.pathname === '/admin') {
             navigate('/admin/clients');
