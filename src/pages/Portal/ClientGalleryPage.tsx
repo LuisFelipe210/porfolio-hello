@@ -16,7 +16,7 @@ interface Gallery {
     status: string;
 }
 
-// --- Componente para a Janela de Visualização (Modal/Lightbox) ---
+// --- Componente para a Janela de Visualização ---
 const ImageModal = ({
     images,
     currentIndex,
