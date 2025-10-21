@@ -32,10 +32,10 @@ const ClientLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="relative z-10 sticky top-0 flex h-20 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-8">
-                <div className="flex items-center gap-3">
-                    <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
-                    <span className="text-xl font-light hidden sm:inline">Portal do Cliente</span>
+            <header className="relative z-10 sticky top-0 flex h-24 items-center justify-between bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-6 md:px-12">
+                <div className="flex items-center gap-6">
+                    <img src={Logo} alt="Hellô Borges" className="h-12 w-auto" />
+                    <span className="text-2xl font-light hidden sm:inline">Portal do Cliente</span>
                 </div>
                 <Button variant="outline" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
