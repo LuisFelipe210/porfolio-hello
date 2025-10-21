@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react'; // 1. Importar useRef
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, CheckCircle, Send, ArrowLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, CheckCircle, Send, ArrowLeft, ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useGallery } from './GalleryContext';
 
+// Interface para os dados da galeria
 interface Gallery {
     _id: string;
     name: string;
@@ -17,16 +17,16 @@ interface Gallery {
     status: string;
 }
 
-// --- Componente para Modal de Imagem ---
+// --- Componente para a Janela de Visualização ---
 const ImageModal = ({
-                        images,
-                        currentIndex,
-                        onClose,
-                        onNavigate,
-                        selectedImages,
-                        toggleSelection,
-                        isSelectionComplete
-                    }: {
+    images,
+    currentIndex,
+    onClose,
+    onNavigate,
+    selectedImages,
+    toggleSelection,
+    isSelectionComplete
+}: {
     images: string[];
     currentIndex: number;
     onClose: () => void;
@@ -37,11 +37,17 @@ const ImageModal = ({
 }) => {
     const currentImage = images[currentIndex];
     const isSelected = selectedImages.has(currentImage);
+
     const touchStartX = useRef(0);
 
-    const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+    };
+
     const handleTouchEnd = (e: React.TouchEvent) => {
-        const diff = touchStartX.current - e.changedTouches[0].clientX;
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX.current - touchEndX;
+
         if (diff > 50) onNavigate('next');
         else if (diff < -50) onNavigate('prev');
     };
@@ -56,6 +62,7 @@ const ImageModal = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onNavigate, onClose]);
 
+    // Renderiza o modal acima do header usando portal
     return createPortal(
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-2" onClick={onClose}>
             <div
@@ -78,7 +85,10 @@ const ImageModal = ({
                     {!isSelectionComplete && (
                         <div className="absolute top-4 right-4 flex items-center gap-2 bg-white/60 rounded-full p-2 shadow-md">
                             <Heart className={`h-6 w-6 ${isSelected ? 'fill-red-500 text-red-500' : 'text-gray-800'}`} />
-                            <button onClick={() => toggleSelection(currentImage)} className="text-sm font-medium text-gray-900 hover:text-gray-700">
+                            <button
+                                onClick={() => toggleSelection(currentImage)}
+                                className="text-sm font-medium text-gray-900 hover:text-gray-700"
+                            >
                                 {isSelected ? 'Remover' : 'Selecionar'}
                             </button>
                         </div>
@@ -92,16 +102,17 @@ const ImageModal = ({
     );
 };
 
-// --- Componente de Seleção ---
+// --- Componente para a Vista de Seleção de UMA Galeria ---
 const GallerySelectionView = ({
     gallery,
-    onSelectionSubmit,
+    onBack,
+    onSelectionSubmit
 }: {
-    gallery: Gallery;
-    onSelectionSubmit: () => void;
+    gallery: Gallery,
+    onBack: () => void,
+    onSelectionSubmit: () => void
 }) => {
-    // Removido o uso direto do botão de voltar interno; toda navegação deve ser feita via contexto/layout.
-
+    // Persistência da seleção no localStorage
     const storageKey = `gallery-selection-${gallery._id}`;
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
         if (typeof window !== "undefined") {
@@ -110,9 +121,7 @@ const GallerySelectionView = ({
                 try {
                     const parsed = JSON.parse(saved);
                     if (Array.isArray(parsed)) return new Set(parsed);
-                } catch {
-                    // algo dentro
-                }
+                } catch { /* ignore */ }
             }
         }
         return new Set(gallery.selections || []);
@@ -120,9 +129,9 @@ const GallerySelectionView = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalImageIndex, setModalImageIndex] = useState<number | null>(null);
     const { toast } = useToast();
-    const isSelectionComplete = gallery.status === "selection_complete";
-    const { setIsInGallery } = useGallery();
+    const isSelectionComplete = gallery.status === 'selection_complete';
 
+    // Salva seleção no localStorage sempre que selectedImages muda
     useEffect(() => {
         if (!isSelectionComplete) {
             localStorage.setItem(storageKey, JSON.stringify(Array.from(selectedImages)));
@@ -136,10 +145,11 @@ const GallerySelectionView = ({
 
     const toggleSelection = (imageUrl: string) => {
         if (isSelectionComplete) return;
-        setSelectedImages((prev) => {
+        setSelectedImages(prev => {
             const newSet = new Set(prev);
             if (newSet.has(imageUrl)) newSet.delete(imageUrl);
             else newSet.add(imageUrl);
+            // Persistir imediatamente após alteração
             localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
             return newSet;
         });
@@ -148,41 +158,32 @@ const GallerySelectionView = ({
     const handleSubmitSelection = async () => {
         setIsSubmitting(true);
         try {
-            const token = localStorage.getItem("clientAuthToken");
-            const response = await fetch("/api/portal?action=submitSelection", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    galleryId: gallery._id,
-                    selectedImages: Array.from(selectedImages),
-                }),
+            const token = localStorage.getItem('clientAuthToken');
+            const response = await fetch('/api/portal?action=submitSelection', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }),
             });
-            if (!response.ok) throw new Error("Falha ao enviar a seleção.");
-            toast({
-                title: "Seleção Enviada!",
-                description: "A sua seleção foi enviada com sucesso. Obrigado!",
-            });
+            if (!response.ok) throw new Error('Falha ao enviar a seleção.');
+            toast({ title: 'Seleção Enviada!', description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
+            // Limpar seleção salva após envio
             localStorage.removeItem(storageKey);
-            setIsInGallery(false);
             onSelectionSubmit();
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Erro",
-                description: "Não foi possível enviar a sua seleção.",
-            });
+        } catch(error) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar a sua seleção.' });
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleNavigateModal = (direction: "prev" | "next") => {
+    const handleNavigateModal = (direction: 'prev' | 'next') => {
         if (modalImageIndex === null) return;
-        if (direction === "prev" && modalImageIndex > 0) setModalImageIndex(modalImageIndex - 1);
-        if (direction === "next" && modalImageIndex < gallery.images.length - 1) setModalImageIndex(modalImageIndex + 1);
+        if (direction === 'prev' && modalImageIndex > 0) {
+            setModalImageIndex(modalImageIndex - 1);
+        }
+        if (direction === 'next' && modalImageIndex < gallery.images.length - 1) {
+            setModalImageIndex(modalImageIndex + 1);
+        }
     };
 
     return (
@@ -199,17 +200,13 @@ const GallerySelectionView = ({
                 />
             )}
 
+            <Button variant="ghost" onClick={onBack} className="mb-6"><ArrowLeft className="mr-2 h-4 w-4" />Voltar para as galerias</Button>
             <Card className="mb-8">
                 <CardHeader>
                     <CardTitle>{gallery.name}</CardTitle>
-                    <CardDescription>
-                        {isSelectionComplete
-                            ? "Seleção finalizada e enviada."
-                            : "Clique numa imagem para ver em detalhe e selecionar as suas favoritas."}
-                    </CardDescription>
+                    <CardDescription>{isSelectionComplete ? "Seleção finalizada e enviada." : "Clique numa imagem para a ver em detalhe e selecionar as suas favoritas."}</CardDescription>
                 </CardHeader>
             </Card>
-
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
                 {gallery.images.map((imageUrl, index) => (
                     <div
@@ -218,15 +215,9 @@ const GallerySelectionView = ({
                         onClick={() => setModalImageIndex(index)}
                         onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_1600"))}
                     >
-                        <img
-                            src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")}
-                            alt="Foto do ensaio"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
+                        <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")} alt="Foto do ensaio" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                         {selectedImages.has(imageUrl) && (
-                            <div className="absolute top-2 right-2 bg-black/40 rounded-full p-1">
-                                <Heart className="h-4 w-4 text-white fill-current" />
-                            </div>
+                            <div className="absolute top-2 right-2 bg-black/40 rounded-full p-1"><Heart className="h-4 w-4 text-white fill-current" /></div>
                         )}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
@@ -235,47 +226,31 @@ const GallerySelectionView = ({
 
             {!isSelectionComplete && (
                 <div className="sticky bottom-4 mt-8 z-20 flex justify-center">
-                    <Card className="p-2 shadow-lg">
-                        <div className="flex items-center gap-4">
-                            <CardContent className="p-2">
-                                <p className="font-bold text-lg">{selectedImages.size} fotos selecionadas</p>
-                            </CardContent>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button size="lg" disabled={selectedImages.size === 0}>
-                                        <Send className="mr-2 h-4 w-4" /> Finalizar Seleção
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Confirmar Envio</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Tem a certeza que deseja finalizar a sua seleção de {selectedImages.size} fotos? Não poderá fazer alterações após o envio.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleSubmitSelection} disabled={isSubmitting}>
-                                            {isSubmitting ? "A enviar..." : "Sim, enviar"}
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    </Card>
+                    <Card className="p-2 shadow-lg"><div className="flex items-center gap-4">
+                        <CardContent className="p-2"><p className="font-bold text-lg">{selectedImages.size} fotos selecionadas</p></CardContent>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild><Button size="lg" disabled={selectedImages.size === 0}><Send className="mr-2 h-4 w-4" /> Finalizar Seleção</Button></AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader><AlertDialogTitle>Confirmar Envio</AlertDialogTitle><AlertDialogDescription>Tem a certeza que deseja finalizar a sua seleção de {selectedImages.size} fotos? Não poderá fazer alterações após o envio.</AlertDialogDescription></AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleSubmitSelection} disabled={isSubmitting}>{isSubmitting ? 'A enviar...' : 'Sim, enviar'}</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div></Card>
                 </div>
             )}
         </div>
     );
 };
 
-// --- Componente Principal ---
+// --- Componente Principal (sem alterações) ---
 const ClientGalleryPage = () => {
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeGallery, setActiveGallery] = useState<Gallery | null>(null);
     const { toast } = useToast();
-    const { setIsInGallery } = useGallery();
 
     const fetchGalleries = async () => {
         setIsLoading(true);
@@ -284,29 +259,25 @@ const ClientGalleryPage = () => {
             const response = await fetch('/api/portal?action=getGalleries', { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
-            data.forEach((gallery: Gallery) => {
-                gallery.images.forEach(url => { const img = new Image(); img.src = optimizeCloudinaryUrl(url, "f_auto,q_auto,w_800"); });
+            // Pré-carregar todas as imagens
+            data.forEach(gallery => {
+                gallery.images.forEach(url => {
+                    const img = new Image();
+                    img.src = optimizeCloudinaryUrl(url, "f_auto,q_auto,w_800");
+                });
             });
             setGalleries(data);
-        } catch {
+        } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as suas galerias.' });
-        } finally { setIsLoading(false); }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    useEffect(() => { fetchGalleries(); }, []);
-
-    // Garantir que o estado do contexto isInGallery seja sempre sincronizado com a navegação
-    useEffect(() => {
-        // Quando uma galeria está ativa, setar isInGallery true, senão false
-        setIsInGallery(!!activeGallery);
-        // Limpar ao desmontar
-        return () => setIsInGallery(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeGallery]);
+    useEffect(() => { fetchGalleries(); }, [toast]);
 
     const handleSelectionSubmit = () => {
         setActiveGallery(null);
-        // setIsInGallery(false); // Agora controlado pelo useEffect acima
         fetchGalleries();
     }
 
@@ -315,7 +286,7 @@ const ClientGalleryPage = () => {
     }
 
     if (activeGallery) {
-        return <GallerySelectionView gallery={activeGallery} onSelectionSubmit={handleSelectionSubmit} />
+        return <GallerySelectionView gallery={activeGallery} onBack={() => setActiveGallery(null)} onSelectionSubmit={handleSelectionSubmit} />
     }
 
     return (
@@ -326,9 +297,10 @@ const ClientGalleryPage = () => {
                     {galleries.map((gallery) => (
                         <div
                             key={gallery._id}
-                            onClick={() => { setActiveGallery(gallery); /* setIsInGallery(true); agora controlado pelo useEffect */ }}
+                            onClick={() => setActiveGallery(gallery)}
                             className="relative flex flex-col bg-white/20 backdrop-blur-lg border border-white/25 rounded-[2rem] overflow-hidden shadow-xl cursor-pointer transition-transform hover:scale-105 hover:shadow-2xl"
                         >
+                            {/* Imagem de preview */}
                             <div className="w-full h-48 overflow-hidden">
                                 {gallery.images[0] ? (
                                     <img
@@ -343,6 +315,7 @@ const ClientGalleryPage = () => {
                                 )}
                             </div>
 
+                            {/* Conteúdo */}
                             <div className="p-4 flex flex-col gap-2">
                                 <h2 className="text-lg font-bold text-white">{gallery.name}</h2>
                                 <p className="text-sm text-white/90">{gallery.images.length} fotos</p>
