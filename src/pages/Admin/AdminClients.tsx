@@ -13,6 +13,7 @@ interface Client {
     _id: string;
     name: string;
     email: string;
+    // Adicionando campo opcional password apenas para exibição/cópia (front-end only)
     password?: string;
 }
 
@@ -88,6 +89,7 @@ const AdminClients = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Validação para impedir emails duplicados
         if (clients.some(client => client.email.toLowerCase() === email.toLowerCase())) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Já existe um cliente com este email.' });
             return;
@@ -113,28 +115,6 @@ const AdminClients = () => {
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!selectedClient) return;
-        setIsDeleting(true);
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/portal?action=deleteClient&id=${selectedClient._id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Falha ao deletar o cliente.');
-            toast({ title: 'Cliente deletado', description: `Cliente ${selectedClient.name} foi removido.` });
-            setIsDeleteDialogOpen(false);
-            setSelectedClient(null);
-            fetchClients();
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
-            toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
-        } finally {
-            setIsDeleting(false);
         }
     };
 
@@ -172,9 +152,6 @@ const AdminClients = () => {
                                     <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required />
                                     <Button type="button" variant="outline" size="icon" onClick={generateRandomPassword} title="Gerar senha aleatória">
                                         <RefreshCw className="h-4 w-4" />
-                                    </Button>
-                                    <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(password)} title="Copiar senha">
-                                        <Copy className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </div>
@@ -214,46 +191,58 @@ const AdminClients = () => {
                 ) : filteredClients.length > 0 ? (
                     filteredClients.map((client) => (
                         <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
-                            <Card className="flex flex-col p-6 gap-4 bg-white/70 dark:bg-background/80 shadow">
-                                <CardHeader className="p-0 mb-2">
-                                    <CardTitle className="text-xl font-semibold">{client.name}</CardTitle>
-                                    <CardDescription className="text-sm text-muted-foreground">{client.email}</CardDescription>
+                            <Card className="flex flex-col p-6 gap-4 bg-white/70 dark:bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+                                <CardHeader className="flex-1 flex flex-row items-center gap-4">
+                                    <div className="flex flex-col">
+                                        <CardTitle>{client.name}</CardTitle>
+                                        <CardDescription>{client.email}</CardDescription>
+                                    </div>
                                 </CardHeader>
-                                <CardContent className="flex flex-row gap-2 mt-2 p-0">
-                                    <Link
-                                        to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}
-                                        className="flex-1"
-                                    >
-                                        <Button variant="outline" className="w-full flex items-center gap-2" title="Gerir Galerias">
-                                            <GalleryHorizontal className="h-4 w-4" />
-                                            Gerir Galerias
+                                <CardContent>
+                                    <div className="flex gap-2">
+                                        <Button asChild variant="outline" className="w-full">
+                                            <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
+                                                <GalleryHorizontal className="mr-2 h-4 w-4"/>
+                                                Gerir Galerias
+                                            </Link>
                                         </Button>
-                                    </Link>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => copyToClipboard(client.email)}
-                                        title="Copiar email"
-                                    >
-                                        <Copy className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={() => {
-                                            setSelectedClient(client);
-                                            setIsDeleteDialogOpen(true);
-                                        }}
-                                        title="Deletar cliente"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            title="Copiar email"
+                                            onClick={() => copyToClipboard(client.email)}
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                        {/* Botão de copiar senha temporária */}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            title="Copiar senha"
+                                            onClick={() => copyToClipboard(client.password ?? 'Senha não disponível')}
+                                            disabled={!client.password}
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setSelectedClient(client);
+                                                setIsDeleteDialogOpen(true);
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
                     ))
                 ) : (
-                    <p className="col-span-full text-center text-muted-foreground">Nenhum cliente encontrado.</p>
+                    <p className="text-center text-muted-foreground pt-12">Nenhum cliente encontrado.</p>
                 )}
             </div>
 
@@ -262,13 +251,46 @@ const AdminClients = () => {
                     <DialogHeader>
                         <DialogTitle>Confirmar exclusão</DialogTitle>
                     </DialogHeader>
-                    <p>Tem certeza que deseja deletar o cliente <strong>{selectedClient?.name}</strong>? Esta ação não pode ser desfeita.</p>
-                    <DialogFooter>
+                    <p>
+                        Tem certeza que deseja excluir o cliente{' '}
+                        <strong>{selectedClient?.name}</strong>? Todas as suas galerias também serão removidas.
+                    </p>
+                    <DialogFooter className="flex justify-end gap-2">
                         <DialogClose asChild>
-                            <Button variant="secondary" disabled={isDeleting}>Cancelar</Button>
+                            <Button variant="secondary">Cancelar</Button>
                         </DialogClose>
-                        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-                            {isDeleting ? 'Deletando...' : 'Deletar'}
+                        <Button
+                            variant="destructive"
+                            disabled={isDeleting}
+                            onClick={async () => {
+                                if (!selectedClient) return;
+                                setIsDeleting(true);
+                                try {
+                                    const token = localStorage.getItem('authToken');
+                                    const response = await fetch(
+                                        `/api/admin/portal?action=deleteClient&clientId=${selectedClient._id}`,
+                                        {
+                                            method: 'DELETE',
+                                            headers: { Authorization: `Bearer ${token}` },
+                                        }
+                                    );
+                                    if (!response.ok) throw new Error('Falha ao excluir.');
+                                    toast({ title: 'Sucesso', description: 'Cliente excluído com sucesso.' });
+                                    fetchClients();
+                                } catch {
+                                    toast({
+                                        variant: 'destructive',
+                                        title: 'Erro',
+                                        description: 'Não foi possível excluir o cliente.',
+                                    });
+                                } finally {
+                                    setIsDeleting(false);
+                                    setIsDeleteDialogOpen(false);
+                                    setSelectedClient(null);
+                                }
+                            }}
+                        >
+                            {isDeleting ? 'Excluindo...' : 'Excluir'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
