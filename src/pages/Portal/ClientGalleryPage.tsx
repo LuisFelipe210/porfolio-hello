@@ -171,9 +171,7 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
                 />
             )}
 
-            <Button variant="ghost" onClick={() => { onBack(); setIsInGallery(false); }} className="mb-6">
-                <ArrowLeft className="mr-2 h-4 w-4" />Voltar para as galerias
-            </Button>
+            {/* Botão de voltar removido daqui. */}
 
             <Card className="mb-8">
                 <CardHeader>
