@@ -93,15 +93,24 @@ const ImageModal = ({
 };
 
 // --- Componente de Seleção ---
-const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery: Gallery; onBack: () => void; onSelectionSubmit: () => void }) => {
-    const { setIsInGallery } = useGallery();
+const GallerySelectionView = ({
+    gallery,
+    onSelectionSubmit,
+}: {
+    gallery: Gallery;
+    onSelectionSubmit: () => void;
+}) => {
+    // Removido o uso direto do botão de voltar interno; toda navegação deve ser feita via contexto/layout.
 
     const storageKey = `gallery-selection-${gallery._id}`;
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
         if (typeof window !== "undefined") {
             const saved = localStorage.getItem(storageKey);
             if (saved) {
-                try { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) return new Set(parsed); } catch {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) return new Set(parsed);
+                } catch {
                     // algo dentro
                 }
             }
@@ -111,7 +120,8 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalImageIndex, setModalImageIndex] = useState<number | null>(null);
     const { toast } = useToast();
-    const isSelectionComplete = gallery.status === 'selection_complete';
+    const isSelectionComplete = gallery.status === "selection_complete";
+    const { setIsInGallery } = useGallery();
 
     useEffect(() => {
         if (!isSelectionComplete) {
@@ -119,11 +129,14 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
         }
     }, [selectedImages, storageKey, isSelectionComplete]);
 
-    const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
+    const preloadImage = (url: string) => {
+        const img = new Image();
+        img.src = url;
+    };
 
     const toggleSelection = (imageUrl: string) => {
         if (isSelectionComplete) return;
-        setSelectedImages(prev => {
+        setSelectedImages((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(imageUrl)) newSet.delete(imageUrl);
             else newSet.add(imageUrl);
@@ -135,26 +148,41 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
     const handleSubmitSelection = async () => {
         setIsSubmitting(true);
         try {
-            const token = localStorage.getItem('clientAuthToken');
-            const response = await fetch('/api/portal?action=submitSelection', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }),
+            const token = localStorage.getItem("clientAuthToken");
+            const response = await fetch("/api/portal?action=submitSelection", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    galleryId: gallery._id,
+                    selectedImages: Array.from(selectedImages),
+                }),
             });
-            if (!response.ok) throw new Error('Falha ao enviar a seleção.');
-            toast({ title: 'Seleção Enviada!', description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
+            if (!response.ok) throw new Error("Falha ao enviar a seleção.");
+            toast({
+                title: "Seleção Enviada!",
+                description: "A sua seleção foi enviada com sucesso. Obrigado!",
+            });
             localStorage.removeItem(storageKey);
             setIsInGallery(false);
             onSelectionSubmit();
-        } catch(error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar a sua seleção.' });
-        } finally { setIsSubmitting(false); }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Erro",
+                description: "Não foi possível enviar a sua seleção.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleNavigateModal = (direction: 'prev' | 'next') => {
+    const handleNavigateModal = (direction: "prev" | "next") => {
         if (modalImageIndex === null) return;
-        if (direction === 'prev' && modalImageIndex > 0) setModalImageIndex(modalImageIndex - 1);
-        if (direction === 'next' && modalImageIndex < gallery.images.length - 1) setModalImageIndex(modalImageIndex + 1);
+        if (direction === "prev" && modalImageIndex > 0) setModalImageIndex(modalImageIndex - 1);
+        if (direction === "next" && modalImageIndex < gallery.images.length - 1) setModalImageIndex(modalImageIndex + 1);
     };
 
     return (
@@ -171,12 +199,14 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
                 />
             )}
 
-            {/* Botão de voltar removido daqui. */}
-
             <Card className="mb-8">
                 <CardHeader>
                     <CardTitle>{gallery.name}</CardTitle>
-                    <CardDescription>{isSelectionComplete ? "Seleção finalizada e enviada." : "Clique numa imagem para ver em detalhe e selecionar as suas favoritas."}</CardDescription>
+                    <CardDescription>
+                        {isSelectionComplete
+                            ? "Seleção finalizada e enviada."
+                            : "Clique numa imagem para ver em detalhe e selecionar as suas favoritas."}
+                    </CardDescription>
                 </CardHeader>
             </Card>
 
@@ -188,9 +218,15 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
                         onClick={() => setModalImageIndex(index)}
                         onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_1600"))}
                     >
-                        <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")} alt="Foto do ensaio" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                        <img
+                            src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")}
+                            alt="Foto do ensaio"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
                         {selectedImages.has(imageUrl) && (
-                            <div className="absolute top-2 right-2 bg-black/40 rounded-full p-1"><Heart className="h-4 w-4 text-white fill-current" /></div>
+                            <div className="absolute top-2 right-2 bg-black/40 rounded-full p-1">
+                                <Heart className="h-4 w-4 text-white fill-current" />
+                            </div>
                         )}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
@@ -219,7 +255,9 @@ const GallerySelectionView = ({ gallery, onBack, onSelectionSubmit }: { gallery:
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleSubmitSelection} disabled={isSubmitting}>{isSubmitting ? 'A enviar...' : 'Sim, enviar'}</AlertDialogAction>
+                                        <AlertDialogAction onClick={handleSubmitSelection} disabled={isSubmitting}>
+                                            {isSubmitting ? "A enviar..." : "Sim, enviar"}
+                                        </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
@@ -257,9 +295,18 @@ const ClientGalleryPage = () => {
 
     useEffect(() => { fetchGalleries(); }, []);
 
+    // Garantir que o estado do contexto isInGallery seja sempre sincronizado com a navegação
+    useEffect(() => {
+        // Quando uma galeria está ativa, setar isInGallery true, senão false
+        setIsInGallery(!!activeGallery);
+        // Limpar ao desmontar
+        return () => setIsInGallery(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeGallery]);
+
     const handleSelectionSubmit = () => {
         setActiveGallery(null);
-        setIsInGallery(false);
+        // setIsInGallery(false); // Agora controlado pelo useEffect acima
         fetchGalleries();
     }
 
@@ -268,7 +315,7 @@ const ClientGalleryPage = () => {
     }
 
     if (activeGallery) {
-        return <GallerySelectionView gallery={activeGallery} onBack={() => { setActiveGallery(null); setIsInGallery(false); }} onSelectionSubmit={handleSelectionSubmit} />
+        return <GallerySelectionView gallery={activeGallery} onSelectionSubmit={handleSelectionSubmit} />
     }
 
     return (
@@ -279,7 +326,7 @@ const ClientGalleryPage = () => {
                     {galleries.map((gallery) => (
                         <div
                             key={gallery._id}
-                            onClick={() => { setActiveGallery(gallery); setIsInGallery(true); }}
+                            onClick={() => { setActiveGallery(gallery); /* setIsInGallery(true); agora controlado pelo useEffect */ }}
                             className="relative flex flex-col bg-white/20 backdrop-blur-lg border border-white/25 rounded-[2rem] overflow-hidden shadow-xl cursor-pointer transition-transform hover:scale-105 hover:shadow-2xl"
                         >
                             <div className="w-full h-48 overflow-hidden">

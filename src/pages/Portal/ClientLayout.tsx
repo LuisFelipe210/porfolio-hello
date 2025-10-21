@@ -39,7 +39,7 @@ const ClientLayout = () => {
             <header className="sticky top-0 z-[100] flex items-center justify-between h-24 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-6 md:px-12">
                 {/* Left area: Back button */}
                 <div className="flex items-center w-1/4 justify-start">
-                    {isInGallery && (
+                    {isInGallery === true && (
                         <Button
                             variant="ghost"
                             size="icon"
