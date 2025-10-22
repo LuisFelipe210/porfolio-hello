@@ -9,7 +9,7 @@ import { Heart, CheckCircle, Send, X, ChevronLeft, ChevronRight } from 'lucide-r
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Interface para os dados da galeria
+// Interface para os dados da galeria //
 interface Gallery {
     _id: string;
     name: string;
