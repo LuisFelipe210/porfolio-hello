@@ -10,7 +10,7 @@ import { PlusCircle, Trash2, Edit } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { optimizeCloudinaryUrl } from '@/lib/utils'; // <-- CORREÇÃO: Importado
+import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 interface Post {
     _id: string;
@@ -19,6 +19,13 @@ interface Post {
     coverImage: string;
     createdAt: string;
 }
+
+// ======================================================================
+// ⚠️ ATENÇÃO: SUBSTITUA ESTES VALORES PELOS SEUS DA CLOUDINARY
+// O Upload Preset deve ser configurado como NÃO ASSINADO no painel da Cloudinary.
+const CLOUDINARY_CLOUD_NAME = "SEU_CLOUD_NAME";
+const CLOUDINARY_UPLOAD_PRESET = "SEU_UPLOAD_PRESET_NAO_ASSINADO";
+// ======================================================================
 
 const AdminBlog = () => {
     const [posts, setPosts] = useState<Post[]>([]);
@@ -77,22 +84,47 @@ const AdminBlog = () => {
         setIsDialogOpen(true);
     };
 
+    const handleCloudinaryUpload = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        // Opcional: Adicionar pasta para organização
+        formData.append('folder', 'borges-captures/blog');
+
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+        const uploadRes = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!uploadRes.ok) {
+            const error = await uploadRes.json();
+            console.error("Erro no Cloudinary:", error);
+            throw new Error('Falha no upload direto para Cloudinary.');
+        }
+
+        const uploadData = await uploadRes.json();
+        return uploadData.secure_url; // Retorna a URL segura da imagem
+    };
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!editingId && !file) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem de capa.' });
             return;
         }
+
         setIsSubmitting(true);
         try {
             let coverImage = '';
+
             if (file) {
-                const formData = new FormData();
-                formData.append('file', file);
-                const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-                if (!uploadRes.ok) throw new Error('Falha no upload da imagem.');
-                const { url } = await uploadRes.json();
-                coverImage = url;
+                // VVVV CORREÇÃO: Chamada direta ao Cloudinary VVVV
+                coverImage = await handleCloudinaryUpload(file);
+                // ^^^^ CORREÇÃO: Chamada direta ao Cloudinary ^^^^
             }
 
             const token = localStorage.getItem('authToken');
@@ -121,7 +153,7 @@ const AdminBlog = () => {
     };
 
     const handleDelete = async (id: string) => {
-        // Removed window.confirm and handleDelete logic since deletion is handled in modal
+        // A lógica de exclusão está no modal, mas esta função não é usada
     };
 
     return (
@@ -195,7 +227,6 @@ const AdminBlog = () => {
                                     <CardContent className="p-6 flex items-center justify-between gap-6">
                                         <div className="flex items-center gap-6">
                                             <img
-                                                // v-- CORREÇÃO APLICADA AQUI --v
                                                 src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
                                                 alt={post.title}
                                                 className="w-20 h-14 rounded-lg object-cover border"
