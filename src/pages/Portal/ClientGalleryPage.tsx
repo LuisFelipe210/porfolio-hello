@@ -9,7 +9,7 @@ import { Heart, CheckCircle, Send, X, ChevronLeft, ChevronRight } from 'lucide-r
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Interface para os dados da galeria //
+// Interface para os dados da galeria
 interface Gallery {
     _id: string;
     name: string;
@@ -95,10 +95,8 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
         if (typeof window !== "undefined") {
             const saved = localStorage.getItem(storageKey);
-            // Tenta carregar do localStorage (para persistência local)
             if (saved) { try { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) return new Set(parsed); } catch { /* ignore */ } }
         }
-        // Se não houver no localStorage, usa a seleção vinda do servidor (sincronizada)
         return new Set(gallery.selections || []);
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,48 +104,60 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
 
-    // NOVO: Função para salvar a seleção no servidor (Autosave)
-    const handleAutoSave = useCallback(async (currentSelections: string[]) => {
+    // NOVO: Ref para controlar o timeout do debounce (corrigindo o problema de repetição)
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Função para salvar a seleção no servidor (agora como função normal dentro do escopo)
+    const saveSelectionsToServer = async (currentSelections: string[]) => {
         try {
             const token = localStorage.getItem('clientAuthToken');
-            // ATENÇÃO: Verifique se o seu back-end suporta este endpoint e ação ('updateSelection')
+            // ATENÇÃO: endpoint 'updateSelection' deve estar configurado no seu back-end!
             const response = await fetch('/api/portal?action=updateSelection', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ galleryId: gallery._id, selectedImages: currentSelections }),
             });
             if (!response.ok) throw new Error('Falha ao salvar a seleção.');
-            // Opcional: toast({ title: 'Salvo', description: 'Seleção salva no servidor.', duration: 1500 });
+            console.log(`[SUCESSO] Autosave: ${currentSelections.length} fotos salvas.`);
         } catch (error) {
             console.error("Erro no autosave:", error);
-            // toast({ variant: 'destructive', title: 'Erro de Sincronização', description: 'Não foi possível salvar a sua seleção no servidor.' });
+            // Opcional: toast({ variant: 'destructive', title: 'Erro de Sincronização', description: 'Não foi possível salvar a sua seleção no servidor.' });
         }
-    }, [gallery._id]);
+    };
 
 
-    // useEffect para salvar a seleção no localStorage e disparar o Autosave
+    // useEffect para salvar a seleção no localStorage e disparar o Autosave (DEBOUNCE REVISADO)
     useEffect(() => {
         const selectionsArray = Array.from(selectedImages);
+
+        // 1. Limpa o timeout anterior (debounce)
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
         if (!isSelectionComplete) {
-            // 1. Salva no LocalStorage (para o mesmo dispositivo)
+            // 2. Salva no LocalStorage (sempre, para persistência imediata)
             localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
-            // 2. Notifica o componente pai
+            // 3. Notifica o componente pai
             onSelectionChange(gallery._id, selectionsArray);
 
-            // 3. Autosave com um delay (debounce) para salvar no servidor
-            const timeoutId = setTimeout(() => {
-                handleAutoSave(selectionsArray);
+            // 4. Define um novo timeout para salvar no servidor (Autosave)
+            timeoutRef.current = setTimeout(() => {
+                saveSelectionsToServer(selectionsArray);
             }, 3000); // Salva 3 segundos após o último clique/alteração
-
-            // Limpa o timeout se a seleção mudar novamente antes dos 3s
-            return () => clearTimeout(timeoutId);
-
         } else {
             // Se a seleção estiver completa, garante que o localstorage é limpo
             localStorage.removeItem(storageKey);
         }
 
-    }, [selectedImages, storageKey, isSelectionComplete, gallery._id, onSelectionChange, handleAutoSave]);
+        // 5. Cleanup: Garante que o último timeout é limpo se o componente desmontar
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+
+    }, [selectedImages, isSelectionComplete, gallery._id, storageKey, onSelectionChange]);
 
 
     const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
@@ -295,24 +305,19 @@ const ClientGalleryPage = () => {
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
 
-            // Lógica para priorizar a seleção local OU a seleção do servidor
             const galleriesWithLocalSelections = data.map((gallery: Gallery) => {
                 const storageKey = `gallery-selection-${gallery._id}`;
                 const savedSelections = localStorage.getItem(storageKey);
-
-                // Se a galeria NÃO estiver completa, e houver dados no localStorage, prioriza o local.
                 if (savedSelections && gallery.status !== 'selection_complete') {
                     try {
                         const parsed = JSON.parse(savedSelections);
                         if (Array.isArray(parsed)) {
-                            // Prioriza o estado local, que é o mais recente, até que o autosave sincronize.
                             return { ...gallery, selections: parsed };
                         }
                     } catch {
-                        // Se houver erro ao fazer parse, usa os dados do servidor que foram buscados.
+                        // Se houver erro ao fazer parse, usa os dados do servidor
                     }
                 }
-                // Se não houver local ou a seleção estiver completa, usa os dados do servidor.
                 return gallery;
             });
 
