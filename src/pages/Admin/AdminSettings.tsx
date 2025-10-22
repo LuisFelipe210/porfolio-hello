@@ -135,7 +135,7 @@ const AdminSettings = () => {
                 type={type}
                 value={value}
                 onChange={onChange}
-                className="rounded-md border-none bg-black/80 placeholder:text-white text-white focus:border-none focus:ring-1 focus:ring-white"
+                className="rounded-md border border-gray-500 bg-black/80 placeholder:text-white text-white focus:border-gray-300 focus:ring-1 focus:ring-white"
             />
         </div>
     );
