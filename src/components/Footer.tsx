@@ -48,7 +48,8 @@ const Footer = () => {
     return (
         <footer id="contact" className="bg-primary text-primary-foreground py-12">
             <div className="container mx-auto px-6 max-w-6xl">
-                <div className="grid md:grid-cols-4 gap-8 mb-8">
+                {/* CORREÇÃO: Usando 2 colunas para tablet (md) e 4 colunas para desktop (lg) */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     {/* Brand */}
                     <div>
                         <div className="flex items-center mb-4 space-x-3">
@@ -106,21 +107,23 @@ const Footer = () => {
                                 <>
                                     <div className="flex items-center">
                                         <MapPin className="w-4 h-4 mr-2 text-accent" />
-                                        <span>{settings.location}</span>
+                                        {/* CORREÇÃO: Quebra o endereço se for muito longo */}
+                                        <span className="break-words">{settings.location}</span>
                                     </div>
                                     <div className="elegant-border p-3 bg-primary/50">
                                         <div className="space-y-2 text-xs text-primary-foreground/80">
-                                            <div className="flex justify-between font-medium">
+                                            <div className="flex justify-between font-medium whitespace-nowrap">
                                                 <span>Segunda a Sexta</span>
                                                 <span>9h às 18h</span>
                                             </div>
-                                            <div className="flex justify-between font-medium">
+                                            <div className="flex justify-between font-medium whitespace-nowrap">
                                                 <span>Sábados</span>
                                                 <span>9h às 14h</span>
                                             </div>
                                             <div className="flex justify-between font-medium">
                                                 <span>Domingos</span>
-                                                <span>Mediante agendamento</span>
+                                                {/* CORREÇÃO: Texto de agendamento pode usar menos espaço */}
+                                                <span className="text-right ml-2">Mediante agendamento</span>
                                             </div>
                                         </div>
                                     </div>

@@ -41,12 +41,15 @@ const BlogPostPage = () => {
     }, [slug]);
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black">
+        // Fundo da página alterado para herdar o tema padrão
+        <div className="relative min-h-screen overflow-hidden">
             <Header />
+            {/* ESTRUTURA ORIGINAL RESTAURADA */}
             <main className="pt-24 md:pt-32">
                 <div className="container mx-auto max-w-3xl px-6 pb-16 md:pb-24">
 
                     <div className="mb-8">
+                        {/* CORREÇÃO: Link de volta para a página de blog (/blog) */}
                         <Link to="/blog" className="inline-flex items-center text-sm text-accent no-underline hover:underline">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Voltar para todos os artigos

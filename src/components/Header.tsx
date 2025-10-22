@@ -7,14 +7,18 @@ import { ThemeToggle } from "./ThemeToggle.tsx";
 
 interface HeaderProps {
     variant?: "default" | "minimal";
+    isLoginPage?: boolean; // NOVO: Prop para identificar se está na página de Login
 }
 
-const Header = ({ variant = "default" }: HeaderProps) => {
+const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const scrollToSection = (sectionId: string) => {
+        // Se estiver noutra página, navega para a página inicial com a hash
         if (window.location.pathname !== '/') {
-            window.location.href = `/#${sectionId}`;
+            // Este código CAUSA A RECARGA se for ativado!
+            // window.location.href = `/#${sectionId}`;
+            // MANTEMOS A FUNÇÃO, mas o link "Início" será corrigido abaixo para usar <Link to="/">
         } else {
             const element = document.getElementById(sectionId);
             if (element) {
@@ -44,71 +48,111 @@ const Header = ({ variant = "default" }: HeaderProps) => {
         { id: "blog", label: "Blog", isPage: true },
     ];
 
+    // FILTRAGEM: Se estiver na página de login, mostra apenas o link "Início"
+    const visibleNavLinks = isLoginPage
+        ? navLinks.filter(link => link.id === 'home')
+        : navLinks;
+
+
+    // Classes de texto forçadas: preto no claro, branco no escuro
+    const linkClasses = "drop-shadow-lg font-bold whitespace-nowrap text-black dark:text-white hover:text-orange-500 dark:hover:text-orange-500 transition-colors";
+
+    // Classes para Ícones e Botões de Login/Tema: NEUTRAS no hover
+    const buttonIconClasses = "text-black dark:text-white hover:text-black/80 dark:hover:text-white/80";
+
+
     return (
         <header
             className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] lg:w-auto transition-all duration-500 
         bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl`}
         >
             <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-between gap-3 md:gap-8">
-                <div className="flex items-center">
-                    <button onClick={() => scrollToSection("home")} className="focus:outline-none">
+                <div className="flex items-center shrink-0">
+                    {/* CORREÇÃO: Logo redireciona para a home sem recarga */}
+                    <Link to="/" onClick={() => scrollToSection("home")} className="focus:outline-none">
                         <img src={Logo} alt="Logo da Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
-                    </button>
+                    </Link>
                 </div>
 
                 {/* Navegação Desktop */}
                 <div className="hidden md:flex items-center space-x-6">
-                    {navLinks.map(({ id, label, isPage }) =>
-                        isPage ? (
-                            <Link key={id} to={`/${id}`} className="drop-shadow-lg font-bold whitespace-nowrap text-foreground/80 hover:text-foreground transition-colors">
+                    {visibleNavLinks.map(({ id, label, isPage }) => { // Usando visibleNavLinks
+                        // O link "Início" agora usa <Link to="/">
+                        if (id === 'home') {
+                            return (
+                                <Link key={id} to="/" onClick={() => scrollToSection(id)} className={linkClasses}>
+                                    {label}
+                                </Link>
+                            );
+                        }
+
+                        return isPage ? (
+                            <Link key={id} to={`/${id}`} className={linkClasses}>
                                 {label}
                             </Link>
                         ) : (
-                            <button key={id} onClick={() => scrollToSection(id)} className="drop-shadow-lg font-bold whitespace-nowrap text-foreground/80 hover:text-foreground transition-colors">
+                            <button key={id} onClick={() => scrollToSection(id)} className={linkClasses}>
                                 {label}
                             </button>
-                        )
-                    )}
+                        );
+                    })}
                 </div>
 
                 {/* Botões de Ação à Direita (Desktop) */}
-                <div className="hidden md:flex items-center gap-2">
-                    <Button variant="ghost" asChild>
-                        <Link to="/portal/login">
-                            <User className="mr-2 h-4 w-4" />
-                            Login
+                <div className="hidden md:flex items-center gap-1 shrink-0">
+
+                    {/* Login Button */}
+                    <Button
+                        variant="ghost"
+                        asChild
+                        className={`p-2 rounded-xl text-black dark:text-white font-extrabold ${buttonIconClasses}`}
+                    >
+                        <Link to="/portal/login" className="flex items-center">
+                            <User className="mr-2 h-5 w-5" />
+                            Entrar
                         </Link>
                     </Button>
-                    <ThemeToggle />
+
+                    {/* Theme Toggle */}
+                    <Button variant="ghost" size="icon" className={buttonIconClasses}>
+                        <ThemeToggle />
+                    </Button>
                 </div>
 
                 {/* Botões Mobile */}
-                <div className="flex items-center gap-2 md:hidden">
+                <div className="flex items-center gap-2 md:hidden shrink-0">
                     <ThemeToggle />
-                    <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                        {isMenuOpen ? <X size={24} className="text-foreground" /> : <Menu size={24} className="text-foreground" />}
+                    <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} className={buttonIconClasses}>
+                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </Button>
                 </div>
 
                 {/* Menu Mobile */}
                 {isMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-background/95 dark:bg-zinc-900/95 border-t border-border/20 rounded-b-2xl shadow-lg md:hidden backdrop-blur-xl">
+                    <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-zinc-900/95 border-t border-border/20 rounded-b-2xl shadow-lg md:hidden backdrop-blur-xl">
                         <div className="flex flex-col space-y-4 p-6">
-                            {navLinks.map(({ id, label, isPage }) =>
-                                isPage ? (
-                                    <Link key={id} to={`/${id}`} onClick={() => setIsMenuOpen(false)} className="drop-shadow-lg text-left text-sm font-bold text-foreground hover:text-accent transition-colors">
+                            {visibleNavLinks.map(({ id, label, isPage }) => { // Usando visibleNavLinks
+                                const linkTarget = id === 'home' ? '/' : `/${id}`;
+
+                                return isPage || id === 'home' ? (
+                                    <Link
+                                        key={id}
+                                        to={linkTarget}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors"
+                                    >
                                         {label}
                                     </Link>
                                 ) : (
-                                    <button key={id} onClick={() => scrollToSection(id)} className="drop-shadow-lg text-left text-sm font-bold text-foreground hover:text-accent transition-colors">
+                                    <button key={id} onClick={() => scrollToSection(id)} className="drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors">
                                         {label}
                                     </button>
-                                )
-                            )}
+                                );
+                            })}
                             {/* Link de Login no Menu Mobile */}
                             <div className="border-t border-border/20 pt-4 mt-2">
-                                <Link to="/portal/login" onClick={() => setIsMenuOpen(false)} className="flex items-center drop-shadow-lg text-left text-sm font-bold text-foreground hover:text-accent transition-colors">
-                                    <User className="mr-2 h-4 w-4" />
+                                <Link to="/portal/login" onClick={() => setIsMenuOpen(false)} className="flex items-center drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors">
+                                    <User className="mr-2 h-5 w-5" />
                                     Portal do Cliente
                                 </Link>
                             </div>
