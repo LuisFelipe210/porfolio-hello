@@ -129,7 +129,7 @@ const AdminSettings = () => {
         onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     }) => (
         <div className="flex flex-col">
-            <Label htmlFor={id} className="mb-1 font-semibold text-white bg-gray-700/50 px-2 py-1 rounded">{label}</Label>
+            <Label htmlFor={id} className="mb-1 font-semibold text-white">{label}</Label>
             <Input
                 id={id}
                 type={type}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -127,15 +127,15 @@ const AdminAbout = () => {
     };
 
     if (isLoading || !content) {
-        return <Skeleton className="h-[500px] w-full" />;
+        return <Skeleton className="h-[500px] w-full bg-black/60 rounded-xl" />;
     }
 
     return (
         <form onSubmit={handleSave}>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Gerir "Sobre Mim"</h1>
-                    <p className="text-muted-foreground">Edite os textos e as imagens da sua página de apresentação.</p>
+                    <h1 className="text-3xl font-bold text-white">Gerir "Sobre Mim"</h1>
+                    <p className="text-white/70">Edite os textos e as imagens da sua página de apresentação.</p>
                 </div>
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
@@ -144,25 +144,29 @@ const AdminAbout = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Coluna de Textos */}
-                <Card>
-                    <CardHeader><CardTitle>Textos</CardTitle></CardHeader>
+                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
+                    <CardHeader>
+                        <h2 className="text-white text-xl font-semibold">Textos</h2>
+                    </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="p1">Primeiro Parágrafo</Label>
+                            <Label htmlFor="p1" className="text-white mb-1 font-semibold">Primeiro Parágrafo</Label>
                             <Textarea
                                 id="p1"
                                 rows={6}
                                 value={content.paragraph1}
                                 onChange={(e) => setContent({ ...content, paragraph1: e.target.value })}
+                                className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="p2">Segundo Parágrafo</Label>
+                            <Label htmlFor="p2" className="text-white mb-1 font-semibold">Segundo Parágrafo</Label>
                             <Textarea
                                 id="p2"
                                 rows={6}
                                 value={content.paragraph2}
                                 onChange={(e) => setContent({ ...content, paragraph2: e.target.value })}
+                                className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
                             />
                         </div>
                     </CardContent>
@@ -200,10 +204,10 @@ const ImageManager = ({
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemove: (index: number) => void;
 }) => (
-    <Card>
+    <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
         <CardHeader>
-            <CardTitle>{title}</CardTitle>
-            <CardDescription>Adicione ou remova imagens para esta coluna.</CardDescription>
+            <h2 className="text-white text-xl font-semibold">{title}</h2>
+            <CardDescription className="text-white/70">Adicione ou remova imagens para esta coluna.</CardDescription>
         </CardHeader>
         <CardContent>
             <div className="grid grid-cols-3 gap-4 mb-4">
@@ -225,9 +229,9 @@ const ImageManager = ({
                     </div>
                 ))}
             </div>
-            <Label htmlFor={`upload-${title.replace(/\s+/g, '')}`} className="w-full">
-                <div className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted">
-                    <Upload className="h-5 w-5 mr-2" /> Adicionar Imagem
+            <Label htmlFor={`upload-${title.replace(/\s+/g, '')}`} className="w-full text-white mb-1 font-semibold cursor-pointer">
+                <div className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-white/10">
+                    <Upload className="h-5 w-5 mr-2 text-white" /> Adicionar Imagem
                 </div>
                 <Input
                     id={`upload-${title.replace(/\s+/g, '')}`}
