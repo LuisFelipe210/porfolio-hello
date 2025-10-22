@@ -70,7 +70,7 @@ const ImageModal = ({
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-white z-20 h-10 w-10 hover:bg-white/10" onClick={onClose}><X className="h-6 w-6" /></Button>
                 <Button variant="ghost" size="icon" className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 hover:bg-white/10 disabled:opacity-20" onClick={() => onNavigate('prev')} disabled={currentIndex === 0}><ChevronLeft className="h-10 w-10" /></Button>
                 <div className="relative flex flex-col items-center justify-center gap-4">
-                    <img src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1600")} alt="Foto do ensaio em tamanho grande" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl pointer-events-none" onContextMenu={(e) => e.preventDefault()} />
+                    <img src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,720")} alt="Foto do ensaio em tamanho grande" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl pointer-events-none" onContextMenu={(e) => e.preventDefault()} />
                     {!isSelectionComplete && (
                         <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/50 rounded-full p-2 shadow-md">
                             <Heart className={`h-6 w-6 ${isSelected ? 'fill-orange-500 text-orange-500' : 'text-gray-100'}`} />
@@ -158,7 +158,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                     <div key={imageUrl}
                          className="aspect-square overflow-hidden rounded-lg cursor-pointer group relative"
                          onClick={() => setModalImageIndex(index)}
-                         onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_1600"))}
+                         onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_720"))}
                     >
                         {/* Efeito de imagem: Scale e grayscale no hover */}
                         <img
