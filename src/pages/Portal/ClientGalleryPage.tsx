@@ -86,7 +86,11 @@ const ImageModal = ({
 };
 
 // --- Componente para a Vista de Seleção de UMA Galeria ---
-const GallerySelectionView = ({ gallery, onSelectionSubmit }: { gallery: Gallery; onSelectionSubmit: () => void }) => {
+const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }: {
+    gallery: Gallery;
+    onSelectionSubmit: () => void;
+    onSelectionChange: (galleryId: string, selections: string[]) => void; // <-- CORREÇÃO: Adicionada prop
+}) => {
     const storageKey = `gallery-selection-${gallery._id}`;
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
         if (typeof window !== "undefined") {
@@ -100,17 +104,23 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit }: { gallery: Gallery
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
 
-    useEffect(() => { if (!isSelectionComplete) { localStorage.setItem(storageKey, JSON.stringify(Array.from(selectedImages))); } }, [selectedImages, storageKey, isSelectionComplete]);
+    useEffect(() => {
+        const selectionsArray = Array.from(selectedImages);
+        if (!isSelectionComplete) {
+            localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
+            onSelectionChange(gallery._id, selectionsArray); // <-- CORREÇÃO: Chama a função do pai
+        }
+    }, [selectedImages, storageKey, isSelectionComplete, gallery._id, onSelectionChange]); // <-- CORREÇÃO: Adicionadas dependências
 
     const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
 
     const toggleSelection = (imageUrl: string, event?: React.MouseEvent) => {
         if (isSelectionComplete) return;
-        event?.stopPropagation(); // Impede que o clique no coração abra o modal da foto
+        event?.stopPropagation();
         setSelectedImages(prev => {
             const newSet = new Set(prev);
             if (newSet.has(imageUrl)) newSet.delete(imageUrl); else newSet.add(imageUrl);
-            localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
+            // O useEffect já trata de salvar no localStorage e notificar o pai
             return newSet;
         });
     };
@@ -223,12 +233,22 @@ const ClientGalleryPage = () => {
         fetchGalleries();
     }
 
+    // <-- CORREÇÃO: Função para atualizar o estado da contagem localmente -->
+    const handleSelectionChange = useCallback((galleryId: string, newSelections: string[]) => {
+        setGalleries(prevGalleries =>
+            prevGalleries.map(g =>
+                g._id === galleryId ? { ...g, selections: newSelections } : g
+            )
+        );
+    }, []);
+
     if (isLoading) {
         return <div className="grid grid-cols-1 md:grid-cols-2 gap-4"><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>;
     }
 
     if (activeGallery) {
-        return <GallerySelectionView gallery={activeGallery} onSelectionSubmit={handleSelectionSubmit} />
+        // <-- CORREÇÃO: Passa a função para o componente filho -->
+        return <GallerySelectionView gallery={activeGallery} onSelectionSubmit={handleSelectionSubmit} onSelectionChange={handleSelectionChange} />
     }
 
     return (
