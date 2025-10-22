@@ -137,7 +137,11 @@ const AdminAbout = () => {
                     <h1 className="text-3xl font-bold text-white">Gerir "Sobre Mim"</h1>
                     <p className="text-white/70">Edite os textos e as imagens da sua página de apresentação.</p>
                 </div>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all"
+                >
                     {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
             </div>

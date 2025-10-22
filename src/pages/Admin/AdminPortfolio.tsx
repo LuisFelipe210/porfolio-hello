@@ -411,7 +411,7 @@ const AdminPortfolio = () => {
                                     <Button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="text-white bg-black/80 border border-gray-500 hover:bg-white/10"
+                                        className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all"
                                     >
                                         {isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Item'}
                                     </Button>

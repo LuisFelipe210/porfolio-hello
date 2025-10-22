@@ -163,7 +163,11 @@ const AdminTestimonials = () => {
                                 <DialogClose asChild>
                                     <Button type="button" variant="secondary" className="text-white border-white hover:bg-white/10">Cancelar</Button>
                                 </DialogClose>
-                                <Button type="submit" disabled={isSubmitting} className="bg-white text-black hover:bg-white/90">
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all"
+                                >
                                     {isSubmitting ? 'Salvando...' : 'Salvar'}
                                 </Button>
                             </DialogFooter>

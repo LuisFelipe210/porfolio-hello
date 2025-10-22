@@ -75,6 +75,7 @@ const AdminMessages = () => {
         setIsViewDialogOpen(true);
     };
 
+    // Filtro original para mensagens de contato
     const filteredMessages = messages.filter((msg) =>
         msg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         msg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,6 +91,7 @@ const AdminMessages = () => {
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 text-white">Caixa de Entrada</h1>
+            {/* Caixa de busca para filtrar mensagens */}
             <input
                 type="text"
                 placeholder="Buscar por nome, email ou serviço..."
@@ -120,10 +122,10 @@ const AdminMessages = () => {
                                                 <p className="text-sm text-white/70 pr-4">{format(new Date(msg.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
                                             </div>
                                         </AccordionTrigger>
-                                        <AccordionContent className="px-4 pb-4">
-                                            <div className="border-t border-white/20 pt-4 space-y-4">
-                                                <p className="whitespace-pre-wrap text-white">{msg.message}</p>
-                                                <div className="flex justify-between items-center text-sm text-white/80">
+                                        <AccordionContent className="px-6 py-4 bg-black/80 rounded-xl shadow-md">
+                                            <div className="space-y-4">
+                                                <p className="whitespace-pre-wrap text-white p-4 rounded-xl bg-black/90">{msg.message}</p>
+                                                <div className="flex justify-between items-center text-sm text-white/80 bg-black/70 px-3 py-2 rounded-xl">
                                                     <div className="flex gap-4">
                                                         <a href={`mailto:${msg.email}`} className="flex items-center gap-1 hover:text-primary transition-colors"><Mail className="h-4 w-4"/> {msg.email}</a>
                                                         {msg.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4"/> {msg.phone}</span>}

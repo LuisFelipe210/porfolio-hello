@@ -159,42 +159,61 @@ const AdminBlog = () => {
     return (
         <div>
             <div className="py-6">
-                <h1 className="text-4xl font-bold tracking-tight">Gerir Blog</h1>
-                <p className="text-muted-foreground">Aqui você pode criar, editar e excluir artigos do blog.</p>
+                <h1 className="text-white font-bold text-2xl tracking-tight">Gerir Blog</h1>
+                <p className="text-white/80">Aqui você pode criar, editar e excluir artigos do blog.</p>
             </div>
             <div className="flex justify-between items-center mb-6">
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
                     <DialogTrigger asChild>
-                        <Button variant="default" onClick={() => handleOpenDialog()}>
+                        <Button variant="default" onClick={() => handleOpenDialog()} className="text-white hover:bg-white/10">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Novo Artigo
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-2xl">
+                    <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl border border-gray-500">
                         <DialogHeader>
-                            <DialogTitle className="text-2xl font-semibold">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
+                            <DialogTitle className="text-white font-bold text-xl">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
-                                <Label htmlFor="title">Título</Label>
-                                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                                <Label htmlFor="title" className="text-white font-bold">Título</Label>
+                                <Input
+                                    id="title"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    required
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                />
                             </div>
                             <div>
-                                <Label htmlFor="coverImage">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label>
-                                <Input id="coverImage" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required={!editingId} />
+                                <Label htmlFor="coverImage" className="text-white font-bold">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label>
+                                <Input
+                                    id="coverImage"
+                                    type="file"
+                                    onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                                    required={!editingId}
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                />
                                 {file && (
                                     <div className="mt-2">
-                                        <img src={URL.createObjectURL(file)} alt="Pré-visualização" className="w-40 h-28 object-cover rounded-lg border" />
+                                        <img src={URL.createObjectURL(file)} alt="Pré-visualização" className="w-40 h-28 object-cover rounded-lg border border-gray-500" />
                                     </div>
                                 )}
                             </div>
                             <div>
-                                <Label htmlFor="content">Conteúdo</Label>
-                                <Textarea id="content" rows={12} value={content} onChange={(e) => setContent(e.target.value)} required />
+                                <Label htmlFor="content" className="text-white font-bold">Conteúdo</Label>
+                                <Textarea
+                                    id="content"
+                                    rows={12}
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
+                                    required
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                />
                             </div>
                             <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
+                                <DialogClose asChild><Button type="button" variant="secondary" className="text-white hover:bg-white/10">Cancelar</Button></DialogClose>
+                                <Button type="submit" disabled={isSubmitting} className="text-white hover:bg-white/10">{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
@@ -206,12 +225,12 @@ const AdminBlog = () => {
                     placeholder="Buscar artigo..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-1/2"
+                    className="w-full sm:w-1/2 bg-black/50 text-white border border-gray-500 placeholder:text-white focus:border-gray-300 focus:ring-white"
                 />
                 <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
-                    className="border border-border/40 rounded-md bg-transparent px-3 py-2 text-sm"
+                    className="border border-gray-500 rounded-md bg-black/50 px-3 py-2 text-sm text-white focus:border-gray-300 focus:ring-white"
                 >
                     <option value="recent">Mais recentes</option>
                     <option value="oldest">Mais antigos</option>
@@ -219,25 +238,25 @@ const AdminBlog = () => {
             </div>
 
             <div className="space-y-6">
-                {isLoading ? <><Skeleton className="h-24 w-full" /><Skeleton className="h-24 w-full" /></>
+                {isLoading ? <><Skeleton className="h-24 w-full bg-black/60 rounded-xl" /><Skeleton className="h-24 w-full bg-black/60 rounded-xl" /></>
                     : filteredPosts.length > 0 ? (
                         filteredPosts.map((post) => (
                             <div key={post._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
-                                <Card className="bg-white/70 dark:bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+                                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                                     <CardContent className="p-6 flex items-center justify-between gap-6">
                                         <div className="flex items-center gap-6">
                                             <img
                                                 src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
                                                 alt={post.title}
-                                                className="w-20 h-14 rounded-lg object-cover border"
+                                                className="w-20 h-14 rounded-lg object-cover border border-gray-500"
                                             />
                                             <div>
-                                                <h3 className="text-lg font-semibold">{post.title}</h3>
-                                                <p className="text-sm text-muted-foreground">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+                                                <h3 className="text-white font-bold text-lg">{post.title}</h3>
+                                                <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(post)} className="text-white hover:bg-white/10"><Edit className="h-4 w-4" /></Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -245,8 +264,9 @@ const AdminBlog = () => {
                                                     setPostToDelete(post);
                                                     setIsDeleteDialogOpen(true);
                                                 }}
+                                                className="text-red-600 hover:bg-red-600/10"
                                             >
-                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     </CardContent>
@@ -254,20 +274,20 @@ const AdminBlog = () => {
                             </div>
                         ))
                     ) : (
-                        <p className="text-center text-muted-foreground pt-12">Nenhum artigo encontrado.</p>
+                        <p className="text-center text-white/80 pt-12">Nenhum artigo encontrado.</p>
                     )}
             </div>
 
             {postToDelete && (
                 <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent>
+                    <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl border border-gray-500">
                         <DialogHeader>
-                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                            <DialogTitle className="text-white font-bold text-xl">Confirmar exclusão</DialogTitle>
                         </DialogHeader>
-                        <p className="text-center mt-4">Tem certeza que deseja excluir o artigo "{postToDelete.title}"? Esta ação não pode ser desfeita.</p>
+                        <p className="text-center mt-4 text-white/80">Tem certeza que deseja excluir o artigo "{postToDelete.title}"? Esta ação não pode ser desfeita.</p>
                         <DialogFooter className="flex justify-end gap-2 mt-4">
                             <DialogClose asChild>
-                                <Button variant="secondary">Cancelar</Button>
+                                <Button variant="secondary" className="text-white hover:bg-white/10">Cancelar</Button>
                             </DialogClose>
                             <Button
                                 variant="destructive"
@@ -289,6 +309,7 @@ const AdminBlog = () => {
                                         setPostToDelete(null);
                                     }
                                 }}
+                                className="text-red-600 hover:bg-red-600/10"
                             >
                                 Excluir
                             </Button>

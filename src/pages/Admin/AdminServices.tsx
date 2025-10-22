@@ -102,8 +102,8 @@ const AdminServices = () => {
                             />
                         </div>
                         <div className="flex gap-2">
-                            <Button type="submit" disabled={isSubmitting} className="text-white hover:bg-white/10">{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
-                            <Button variant="outline" type="button" onClick={() => setEditingService(null)} className="text-white hover:bg-white/10">Cancelar</Button>
+                            <Button type="submit" disabled={isSubmitting} className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all">{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
+                            <Button variant="outline" type="button" onClick={() => setEditingService(null)} className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all">Cancelar</Button>
                         </div>
                     </form>
                 </CardContent>

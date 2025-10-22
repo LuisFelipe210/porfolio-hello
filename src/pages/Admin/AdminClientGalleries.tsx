@@ -279,24 +279,52 @@ const AdminClientGalleriesWithFunctions = () => {
         <div>
             <div className="flex items-center gap-4 mb-6">
                 <Link to="/admin/clients">
-                    <Button variant="outline" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" className="bg-black/70 backdrop-blur-md border-none text-white hover:bg-black/90 transition-all">
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
                 </Link>
                 <div>
-                    <h1 className="text-3xl font-bold">Galerias de {clientName}</h1>
-                    <p className="text-muted-foreground">Crie e gira as galerias de fotos para este cliente.</p>
+                    <h1 className="text-3xl font-bold text-white">Galerias de {clientName}</h1>
+                    <p className="text-white/80">Crie e gira as galerias de fotos para este cliente.</p>
                 </div>
             </div>
 
             <div className="flex justify-end mb-6">
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                    <DialogTrigger asChild><Button onClick={() => setIsCreateDialogOpen(true)}><PlusCircle className="mr-2 h-4 w-4" />Nova Galeria</Button></DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader><DialogTitle>Criar Nova Galeria</DialogTitle></DialogHeader>
+                    <DialogTrigger asChild>
+                        <Button
+                            onClick={() => setIsCreateDialogOpen(true)}
+                            className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-semibold transition-all"
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" />Nova Galeria
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl border-none">
+                        <DialogHeader>
+                            <DialogTitle className="text-white font-bold">Criar Nova Galeria</DialogTitle>
+                        </DialogHeader>
                         <form onSubmit={handleCreateGallery} className="space-y-4">
-                            <div><Label htmlFor="galleryName">Nome da Galeria</Label><Input id="galleryName" value={galleryName} onChange={(e) => setGalleryName(e.target.value)} required /></div>
+                            <div>
+                                <Label htmlFor="galleryName" className="text-white mb-1 font-semibold">Nome da Galeria</Label>
+                                <Input
+                                    id="galleryName"
+                                    value={galleryName}
+                                    onChange={(e) => setGalleryName(e.target.value)}
+                                    required
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white rounded-xl"
+                                />
+                            </div>
                             <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Criando...' : 'Criar Galeria'}</Button>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary" className="rounded-xl">Cancelar</Button>
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-semibold transition-all"
+                                >
+                                    {isSubmitting ? 'Criando...' : 'Criar Galeria'}
+                                </Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
@@ -304,52 +332,66 @@ const AdminClientGalleriesWithFunctions = () => {
             </div>
 
             <div className="space-y-4">
-                {isLoading ? <><Skeleton className="h-28 w-full" /><Skeleton className="h-28 w-full" /></>
-                    : galleries.length > 0 ? (
-                        galleries.map((gallery) => (
-                            <Card key={gallery._id}>
-                                <CardHeader>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <CardTitle>{gallery.name}</CardTitle>
-                                            <CardDescription>{gallery.images.length} fotos | {gallery.selections.length} selecionadas</CardDescription>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 justify-end">
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => {
-                                                    if (gallery.status === 'selection_complete' || gallery.selections.length > 0) {
-                                                        toast({
-                                                            variant: 'destructive',
-                                                            title: 'Galeria finalizada',
-                                                            description: 'Não é possível adicionar novas fotos em uma galeria finalizada ou com seleções.'
-                                                        });
-                                                        return;
-                                                    }
-                                                    openUploadDialog(gallery);
-                                                }}
-                                                disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0}
-                                            >
-                                                <Upload className="mr-2 h-4 w-4" />Adicionar Fotos
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                disabled={gallery.status !== 'selection_complete'}
-                                                onClick={() => openViewDialog(gallery)}
-                                            >
-                                                <Eye className="mr-2 h-4 w-4"/>Ver Seleção
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
+                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
+                    </>
+                ) : galleries.length > 0 ? (
+                    galleries.map((gallery) => (
+                        <Card
+                            key={gallery._id}
+                            className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none"
+                        >
+                            <CardHeader>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <CardTitle className="text-white font-bold">{gallery.name}</CardTitle>
+                                        <CardDescription className="text-white/80">
+                                            {gallery.images.length} fotos | {gallery.selections.length} selecionadas
+                                        </CardDescription>
                                     </div>
-                                </CardHeader>
-                            </Card>
-                        ))
-                    ) : (
-                        <p className="text-center text-muted-foreground pt-12">Nenhuma galeria encontrada. Crie a primeira!</p>
-                    )}
+                                    <div className="flex flex-wrap gap-2 justify-end">
+                                        <Button
+                                            onClick={() => {
+                                                if (gallery.status === 'selection_complete' || gallery.selections.length > 0) {
+                                                    toast({
+                                                        variant: 'destructive',
+                                                        title: 'Galeria finalizada',
+                                                        description: 'Não é possível adicionar novas fotos em uma galeria finalizada ou com seleções.'
+                                                    });
+                                                    return;
+                                                }
+                                                openUploadDialog(gallery);
+                                            }}
+                                            disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0}
+                                            className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-semibold transition-all"
+                                        >
+                                            <Upload className="mr-2 h-4 w-4" />Adicionar Fotos
+                                        </Button>
+                                        <Button
+                                            disabled={gallery.status !== 'selection_complete'}
+                                            onClick={() => openViewDialog(gallery)}
+                                            className="bg-white/10 hover:bg-white/20 text-orange-400 rounded-xl font-semibold transition-all border border-orange-500"
+                                        >
+                                            <Eye className="mr-2 h-4 w-4"/>Ver Seleção
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}
+                                            className="hover:bg-red-700/20 transition-all rounded-xl"
+                                        >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    ))
+                ) : (
+                    <p className="text-center text-white/60 pt-12">Nenhuma galeria encontrada. Crie a primeira!</p>
+                )}
             </div>
 
             {selectedGallery && (
@@ -373,17 +415,19 @@ const AdminClientGalleriesWithFunctions = () => {
 
             {galleryToDelete && (
                 <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent>
+                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl border-none">
                         <DialogHeader>
-                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                            <DialogTitle className="text-white font-bold">Confirmar exclusão</DialogTitle>
                         </DialogHeader>
-                        <p>Tem certeza que deseja excluir a galeria "{galleryToDelete.name}"? Todas as fotos serão perdidas.</p>
+                        <p className="text-white/80">
+                            Tem certeza que deseja excluir a galeria "{galleryToDelete.name}"? Todas as fotos serão perdidas.
+                        </p>
                         <DialogFooter className="flex justify-end gap-2">
                             <DialogClose asChild>
-                                <Button variant="secondary">Cancelar</Button>
+                                <Button variant="secondary" className="rounded-xl">Cancelar</Button>
                             </DialogClose>
                             <Button
-                                variant="destructive"
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all"
                                 onClick={() => {
                                     if (galleryToDelete) {
                                         handleDeleteGallery(galleryToDelete._id);
