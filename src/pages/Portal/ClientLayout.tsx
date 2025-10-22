@@ -54,7 +54,6 @@ const ClientLayout = () => {
                 {/* Contêiner central para Logo e Título */}
                 <div className="absolute inset-x-0 flex justify-center items-center space-x-2 pointer-events-none px-4">
                     <img src={Logo} alt="Hellô Borges" className="h-10 md:h-12 w-auto" />
-                    <span className="text-lg md:text-xl font-bold text-white truncate">Portal do Cliente</span>
                 </div>
 
                 {/* Contêiner para o botão Sair */}
