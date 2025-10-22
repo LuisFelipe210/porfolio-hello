@@ -201,7 +201,7 @@ const AdminPortfolio = () => {
     const renderContent = () => {
         if (isLoading) {
             return isMobile ? (
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
                     <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
                     <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
                 </div>
@@ -214,7 +214,9 @@ const AdminPortfolio = () => {
 
         if (items.length === 0) {
             return isMobile ? (
-                <p className="text-center text-white/80 mt-8">Nenhum item encontrado. Adicione o primeiro!</p>
+                <div className="space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
+                    <p className="text-center text-white/80 mt-8">Nenhum item encontrado. Adicione o primeiro!</p>
+                </div>
             ) : (
                 <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center text-white/80 bg-black/60 rounded-xl">Nenhum item encontrado. Adicione o primeiro!</TableCell>
@@ -224,7 +226,7 @@ const AdminPortfolio = () => {
 
         if (isMobile) {
             return (
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
                     {items.map((item) => (
                         <div
                             key={item._id}
@@ -423,7 +425,7 @@ const AdminPortfolio = () => {
                 </div>
 
                 {isMobile ? renderContent() : (
-                    <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-2">
+                    <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-2 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
                         <Table>
                             <TableHeader>
                                 <TableRow>
