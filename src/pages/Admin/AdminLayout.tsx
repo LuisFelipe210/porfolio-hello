@@ -148,7 +148,7 @@ const AdminLayout = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <div className="fixed inset-0 z-0">
+            <div className="fixes inset-0 z-0">
                 <img
                     src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
                     alt="Background"
