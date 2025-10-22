@@ -27,7 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Edit } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
-import { optimizeCloudinaryUrl } from '@/lib/utils'; // <-- CORREÇÃO: Importado
+import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 interface PortfolioItem {
     _id: string;
@@ -36,6 +36,9 @@ interface PortfolioItem {
     description: string;
     image: string;
 }
+
+const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
+const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
 const AdminPortfolio = () => {
     const [items, setItems] = useState<PortfolioItem[]>([]);
@@ -91,12 +94,39 @@ const AdminPortfolio = () => {
         setIsDialogOpen(true);
     };
 
+    const handleCloudinaryUpload = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        // Opcional: Adicionar pasta para organização
+        formData.append('folder', 'borges-captures/portfolio');
+
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+        const uploadResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+            const error = await uploadResponse.json();
+            console.error("Erro no Cloudinary:", error);
+            throw new Error('Falha no upload direto para Cloudinary.');
+        }
+
+        const uploadData = await uploadResponse.json();
+        return uploadData.secure_url; // Retorna a URL segura da imagem
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validação básica para evitar uploads desnecessários
         if (!editingId && !file) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem para um novo item.' });
             return;
         }
+
         setIsSubmitting(true);
 
         try {
@@ -104,12 +134,9 @@ const AdminPortfolio = () => {
 
             // 1. Faz o upload da imagem SOMENTE se uma nova foi selecionada
             if (file) {
-                const formData = new FormData();
-                formData.append('file', file);
-                const uploadResponse = await fetch('/api/upload', { method: 'POST', body: formData });
-                if (!uploadResponse.ok) throw new Error('Falha ao fazer o upload da imagem.');
-                const uploadData = await uploadResponse.json();
-                imageUrl = uploadData.url;
+                // VVVV CORREÇÃO: Chamada direta ao Cloudinary VVVV
+                imageUrl = await handleCloudinaryUpload(file);
+                // ^^^^ CORREÇÃO: Chamada direta ao Cloudinary ^^^^
             }
 
             const token = localStorage.getItem('authToken');
@@ -120,7 +147,7 @@ const AdminPortfolio = () => {
                 title,
                 category,
                 description,
-                ...(imageUrl && { image: imageUrl }) // Só envia a propriedade 'image' se uma nova imagem foi enviada
+                ...(imageUrl && { image: imageUrl })
             };
 
             const response = await fetch(url, {
@@ -198,7 +225,6 @@ const AdminPortfolio = () => {
                         <Card key={item._id}>
                             <CardContent className="p-4 flex gap-4">
                                 <img
-                                    // v-- CORREÇÃO APLICADA AQUI (MOBILE) --v
                                     src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200")}
                                     alt={item.title}
                                     className="h-24 w-24 object-cover rounded-md"
@@ -231,7 +257,6 @@ const AdminPortfolio = () => {
                     <TableRow key={item._id}>
                         <TableCell>
                             <img
-                                // v-- CORREÇÃO APLICADA AQUI (DESKTOP) --v
                                 src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200")}
                                 alt={item.title}
                                 className="h-16 w-16 object-cover rounded-md"
