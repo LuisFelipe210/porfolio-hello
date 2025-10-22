@@ -139,16 +139,16 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                     const serverSelections = currentGallery.selections;
                     const currentLocalSelections = Array.from(selectedImagesRef.current);
 
-                    // Só atualiza se:
+                    // Só sincroniza se:
                     // 1. Houver diferença real
-                    // 2. Passou tempo suficiente desde a última atualização local (evita sobrescrever mudanças recentes)
-                    const timeSinceLastUpdate = Date.now() - lastServerUpdateRef.current;
+                    // 2. Passou tempo suficiente (15s) desde a última mudança local
+                    const timeSinceLastLocalChange = Date.now() - lastServerUpdateRef.current;
                     const isDifferent =
                         serverSelections.length !== currentLocalSelections.length ||
                         serverSelections.some(img => !selectedImagesRef.current.has(img)) ||
                         currentLocalSelections.some(img => !serverSelections.includes(img));
 
-                    if (isDifferent && timeSinceLastUpdate > 5000) { // Só sincroniza se passou 5s desde última mudança local
+                    if (isDifferent && timeSinceLastLocalChange > 15000) {
                         console.log('[SYNC] Atualizando seleções do servidor:', serverSelections.length);
                         const newSet = new Set<string>(serverSelections);
                         setSelectedImages(newSet);
