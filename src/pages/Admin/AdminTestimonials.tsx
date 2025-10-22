@@ -184,8 +184,8 @@ const AdminTestimonials = () => {
                             <CardHeader>
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h2 className="text-white text-xl font-semibold">{item.author}</h2>
-                                        <p className="text-white">{item.role}</p>
+                                        <h2 className="text-white font-bold text-xl">{item.author}</h2>
+                                        <p className="text-white/80">{item.role}</p>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button
@@ -210,7 +210,7 @@ const AdminTestimonials = () => {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-white italic">"{item.text}"</p>
+                                <p className="text-white/80 italic">"{item.text}"</p>
                             </CardContent>
                         </Card>
                     ))
