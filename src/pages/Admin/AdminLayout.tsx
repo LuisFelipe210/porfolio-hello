@@ -113,31 +113,37 @@ const AdminLayout = () => {
     if (isMobile) {
         return (
             <div className="min-h-screen w-full">
-                <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
-                    <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
-                    <span className="text-lg font-semibold">Painel Admin</span>
-                    <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="icon">
-                                <Menu className="h-6 w-6" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="flex flex-col p-0">
-                            <div className="flex items-center gap-2 p-4 border-b">
-                                <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
-                                <span className="text-lg font-semibold">Painel Admin</span>
-                            </div>
-                            <div className="py-4">
-                                <NavLinks />
-                            </div>
-                            <div className="mt-auto p-4 border-t">
-                                <Button variant="outline" className="w-full" onClick={handleLogout}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Sair
+                <header className="fixed top-0 left-0 w-full z-[100] flex items-center justify-center h-16 bg-white shadow-md px-4">
+                    {/* Logo central */}
+                    <div className="flex-1 flex justify-center">
+                        <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
+                    </div>
+
+                    {/* Botão do menu no canto direito */}
+                    <div className="absolute right-4">
+                        <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" size="icon">
+                                    <Menu className="h-6 w-6" />
                                 </Button>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="flex flex-col p-0">
+                                <div className="flex items-center gap-2 p-4 border-b">
+                                    <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
+                                    <span className="text-lg font-semibold">Painel Admin</span>
+                                </div>
+                                <div className="py-4">
+                                    <NavLinks />
+                                </div>
+                                <div className="mt-auto p-4 border-t">
+                                    <Button variant="outline" className="w-full" onClick={handleLogout}>
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Sair
+                                    </Button>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
                 </header>
                 <main className="relative z-10 p-4">
                     <Outlet />
@@ -147,7 +153,7 @@ const AdminLayout = () => {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-zinc-900 text-gray-200">
+        <div className="flex flex-col min-h-screen">
             <div className="fixed inset-0 z-0">
                 <img
                     src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
@@ -157,22 +163,22 @@ const AdminLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-zinc-900 text-gray-200 border-b border-zinc-700 shadow-md backdrop-blur-sm">
+            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 border-b border-zinc-200/20 shadow-md backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold">Painel Admin</span>
                 </div>
-                <Button variant="outline" className="h-10 text-gray-200 border-gray-600" onClick={handleLogout}>
+                <Button variant="outline" className="h-10" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sair
                 </Button>
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <aside className="fixed top-0 left-0 h-full w-64 bg-zinc-800 border-r border-zinc-700 p-4 flex flex-col z-10">
+                <aside className="w-64 bg-card border-r p-4 flex flex-col relative z-10">
                     <NavLinks />
                 </aside>
-                <main className="relative z-10 flex-1 ml-64 p-6 md:p-8 pt-24 bg-zinc-900 overflow-auto">
+                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto">
                     <Outlet />
                 </main>
             </div>
