@@ -129,7 +129,7 @@ const AdminSettings = () => {
         onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     }) => (
         <div className="flex flex-col">
-            <Label htmlFor={id} className="mb-1 font-semibold text-white">{label}</Label>
+            <Label htmlFor={id} className="mb-1 font-semibold text-white bg-gray-700/50 px-2 py-1 rounded">{label}</Label>
             <Input
                 id={id}
                 type={type}
@@ -143,9 +143,9 @@ const AdminSettings = () => {
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-white mb-4">Configurações Gerais</h1>
+            <p className="text-white mb-4">Edite informações globais que aparecem em várias partes do site.</p>
             <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
                 <CardHeader>
-                    <CardDescription className="text-white">Edite informações globais que aparecem em várias partes do site.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <form onSubmit={handleSavePage}>
