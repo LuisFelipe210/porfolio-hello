@@ -29,7 +29,7 @@ const Header = ({ variant = "default" }: HeaderProps) => {
             <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] lg:w-auto transition-all duration-500 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl">
                 <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-center">
                     <button onClick={() => scrollToSection("home")} className="focus:outline-none">
-                        <img src={Logo} alt="Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
+                        <img src={Logo} alt="Logo da Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
                     </button>
                 </nav>
             </header>
@@ -52,7 +52,7 @@ const Header = ({ variant = "default" }: HeaderProps) => {
             <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-between gap-3 md:gap-8">
                 <div className="flex items-center">
                     <button onClick={() => scrollToSection("home")} className="focus:outline-none">
-                        <img src={Logo} alt="Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
+                        <img src={Logo} alt="Logo da Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
                     </button>
                 </div>
 
