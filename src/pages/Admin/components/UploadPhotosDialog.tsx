@@ -38,18 +38,31 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
         const uploadedUrls: string[] = [];
         let completed = 0;
 
+        const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
+        const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
+
         const uploadPromises = files.map(async (file) => {
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            formData.append('folder', 'borges-captures/galleries'); // opcional
+
+            const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
             try {
-                const response = await fetch('/api/upload', {
+                const uploadResponse = await fetch(uploadUrl, {
                     method: 'POST',
                     body: formData,
                 });
-                if (!response.ok) throw new Error(`Falha ao enviar ${file.name}`);
 
-                const { url } = await response.json();
-                uploadedUrls.push(url);
+                if (!uploadResponse.ok) {
+                    const error = await uploadResponse.json();
+                    console.error("Erro no Cloudinary:", error);
+                    throw new Error(`Falha no upload de ${file.name}`);
+                }
+
+                const uploadData = await uploadResponse.json();
+                uploadedUrls.push(uploadData.secure_url);
                 completed++;
                 setProgress((completed / files.length) * 100);
             } catch (error) {
@@ -69,7 +82,7 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
             const token = localStorage.getItem('authToken');
             const updatedImages = [...existingImages, ...uploadedUrls];
 
-            const response = await fetch(`/api/admin/portal?action=updateGalleryImages&galleryId=${galleryId}`, { // <-- ALTERADO AQUI
+            const response = await fetch(`/api/admin/portal?action=updateGalleryImages&galleryId=${galleryId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -84,7 +97,6 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
             onUploadComplete();
             setFiles([]);
             onOpenChange(false);
-
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Erro', description: error.message });
         } finally {
