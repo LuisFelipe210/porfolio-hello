@@ -37,65 +37,65 @@ const AdminLayout = () => {
         <nav className="flex flex-col gap-2 px-4">
             <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/clients') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/clients') ? 'bg-black text-white' : ''}`}
                 >
-                    <Users className="mr-2 h-4 w-4" />
+                    <Users className="mr-2 h-5 w-5" />
                     Clientes
                 </Button>
             </Link>
             <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/portfolio') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/portfolio') ? 'bg-black text-white' : ''}`}
                 >
-                    <ImageIcon className="mr-2 h-4 w-4" />
+                    <ImageIcon className="mr-2 h-5 w-5" />
                     Portfólio
                 </Button>
             </Link>
             <Link to="/admin/services" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/services') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/services') ? 'bg-black text-white' : ''}`}
                 >
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <LayoutDashboard className="mr-2 h-5 w-5" />
                     Serviços
                 </Button>
             </Link>
             <Link to="/admin/about" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/about') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/about') ? 'bg-black text-white' : ''}`}
                 >
-                    <User className="mr-2 h-4 w-4" />
+                    <User className="mr-2 h-5 w-5" />
                     Sobre Mim
                 </Button>
             </Link>
             <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/testimonials') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/testimonials') ? 'bg-black text-white' : ''}`}
                 >
-                    <MessageSquareQuote className="mr-2 h-4 w-4" />
+                    <MessageSquareQuote className="mr-2 h-5 w-5" />
                     Depoimentos
                 </Button>
             </Link>
             <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/messages') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/messages') ? 'bg-black text-white' : ''}`}
                 >
-                    <Inbox className="mr-2 h-4 w-4" />
+                    <Inbox className="mr-2 h-5 w-5" />
                     Mensagens
                 </Button>
             </Link>
             <Link to="/admin/blog" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/blog') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/blog') ? 'bg-black text-white' : ''}`}
                 >
-                    <Rss className="mr-2 h-4 w-4" />
+                    <Rss className="mr-2 h-5 w-5" />
                     Blog
                 </Button>
             </Link>
             <Link to="/admin/settings" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none ${isLinkActive('/admin/settings') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/settings') ? 'bg-black text-white' : ''}`}
                 >
-                    <Settings className="mr-2 h-4 w-4" />
+                    <Settings className="mr-2 h-5 w-5" />
                     Configurações
                 </Button>
             </Link>
@@ -154,17 +154,17 @@ const AdminLayout = () => {
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold text-gray-200">Painel Admin</span>
                 </div>
-                <Button className="h-10 bg-gray-900 text-gray-200 hover:bg-gray-800 border-none" onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
+                <Button className="h-12 bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-5 w-5" />
                     Sair
                 </Button>
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-white/10 backdrop-blur-lg border-r border-gray-800 p-4 flex flex-col relative z-10 text-gray-200">
+                <aside className="fixed top-24 left-0 w-64 h-[calc(100vh-6rem)] bg-white/10 backdrop-blur-lg border-r border-gray-800 p-4 flex flex-col z-20 text-gray-200">
                     <NavLinks />
                 </aside>
-                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto backdrop-blur-lg text-gray-200">
+                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 ml-64 overflow-auto text-gray-200">
                     <Outlet />
                 </main>
             </div>
