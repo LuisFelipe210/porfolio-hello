@@ -101,15 +101,15 @@ const AdminSettings = () => {
 
     if (isLoading || !settings) {
         return (
-            <Card className="rounded-3xl bg-orange-200/20 backdrop-blur-sm border border-orange-300 shadow-md">
+            <Card className="rounded-3xl bg-black/30 backdrop-blur-sm border border-white shadow-md">
                 <CardHeader>
-                    <Skeleton className="h-8 w-64 rounded-xl bg-orange-200/40" />
-                    <Skeleton className="h-4 w-full mt-2 rounded-xl bg-orange-200/40" />
+                    <Skeleton className="h-8 w-64 rounded-xl bg-black/40" />
+                    <Skeleton className="h-4 w-full mt-2 rounded-xl bg-black/40" />
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <Skeleton className="h-10 w-full rounded-xl bg-orange-200/40" />
-                    <Skeleton className="h-10 w-full rounded-xl bg-orange-200/40" />
-                    <Skeleton className="h-10 w-full rounded-xl bg-orange-200/40" />
+                    <Skeleton className="h-10 w-full rounded-xl bg-black/40" />
+                    <Skeleton className="h-10 w-full rounded-xl bg-black/40" />
+                    <Skeleton className="h-10 w-full rounded-xl bg-black/40" />
                 </CardContent>
             </Card>
         );
@@ -129,27 +129,27 @@ const AdminSettings = () => {
         onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     }) => (
         <div className="flex flex-col">
-            <Label htmlFor={id} className="mb-1 font-semibold text-gray-800">{label}</Label>
+            <Label htmlFor={id} className="mb-1 font-semibold text-white">{label}</Label>
             <Input
                 id={id}
                 type={type}
                 value={value}
                 onChange={onChange}
-                className="rounded-md border border-orange-300 bg-white/30 backdrop-blur-sm placeholder:text-orange-300 focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                className="rounded-md border border-white bg-black/30 placeholder:text-white text-white focus:border-white focus:ring-1 focus:ring-white"
             />
         </div>
     );
 
     return (
         <div className="space-y-8">
-            <Card className="rounded-3xl bg-orange-200/20 backdrop-blur-sm border border-orange-300 shadow-md">
+            <Card className="rounded-3xl bg-black/30 backdrop-blur-sm border border-white shadow-md">
                 <CardHeader>
-                    <CardTitle className="text-3xl font-bold text-gray-900">Configurações Gerais</CardTitle>
-                    <CardDescription className="text-gray-700">Edite informações globais que aparecem em várias partes do site.</CardDescription>
+                    <CardTitle className="text-3xl font-bold text-white">Configurações Gerais</CardTitle>
+                    <CardDescription className="text-white">Edite informações globais que aparecem em várias partes do site.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <form onSubmit={handleSavePage}>
-                        <CardTitle className="text-2xl font-semibold border-b border-orange-300 pb-3 mb-6 text-gray-900">Página Inicial</CardTitle>
+                        <CardTitle className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Página Inicial</CardTitle>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <InputField
                                 id="heroTitle"
@@ -173,10 +173,10 @@ const AdminSettings = () => {
                 </CardContent>
             </Card>
 
-            <Card className="rounded-3xl bg-orange-200/20 backdrop-blur-sm border border-orange-300 shadow-md">
+            <Card className="rounded-3xl bg-black/30 backdrop-blur-sm border border-white shadow-md">
                 <CardContent className="space-y-6">
                     <form onSubmit={handleSaveContacts}>
-                        <CardTitle className="text-2xl font-semibold border-b border-orange-300 pb-3 mb-6 text-gray-900">Contatos e Redes</CardTitle>
+                        <CardTitle className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Contatos e Redes</CardTitle>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <InputField
                                 id="whatsapp"
