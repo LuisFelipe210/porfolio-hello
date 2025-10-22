@@ -147,7 +147,7 @@ const AdminLayout = () => {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-zinc-900 text-gray-200">
+        <div className="flex flex-col min-h-screen">
             <div className="fixed inset-0 z-0">
                 <img
                     src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
@@ -157,7 +157,7 @@ const AdminLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-zinc-900 border-b border-zinc-700 shadow-md">
+            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-zinc-900 border-b border-zinc-200/20 shadow-md backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold">Painel Admin</span>
@@ -169,10 +169,10 @@ const AdminLayout = () => {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <aside className="fixed top-24 left-0 w-64 h-full bg-zinc-900 border-r p-4 flex flex-col z-10 text-gray-200">
+                <aside className="fixed h-full w-64 bg-zinc-900 border-r p-4 flex flex-col relative z-10">
                     <NavLinks />
                 </aside>
-                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto">
+                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 ml-64 bg-zinc-900 overflow-auto">
                     <Outlet />
                 </main>
             </div>
