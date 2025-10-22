@@ -37,7 +37,7 @@ const AdminLayout = () => {
         <nav className="flex flex-col gap-2 px-4">
             <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/clients') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/clients') ? 'bg-black text-white' : ''}`}
                 >
                     <Users className="mr-2 h-5 w-5" />
                     Clientes
@@ -45,7 +45,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/portfolio') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/portfolio') ? 'bg-black text-white' : ''}`}
                 >
                     <ImageIcon className="mr-2 h-5 w-5" />
                     Portfólio
@@ -53,7 +53,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/services" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/services') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/services') ? 'bg-black text-white' : ''}`}
                 >
                     <LayoutDashboard className="mr-2 h-5 w-5" />
                     Serviços
@@ -61,7 +61,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/about" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/about') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/about') ? 'bg-black text-white' : ''}`}
                 >
                     <User className="mr-2 h-5 w-5" />
                     Sobre Mim
@@ -69,7 +69,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/testimonials') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/testimonials') ? 'bg-black text-white' : ''}`}
                 >
                     <MessageSquareQuote className="mr-2 h-5 w-5" />
                     Depoimentos
@@ -77,7 +77,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/messages') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/messages') ? 'bg-black text-white' : ''}`}
                 >
                     <Inbox className="mr-2 h-5 w-5" />
                     Mensagens
@@ -85,7 +85,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/blog" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/blog') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/blog') ? 'bg-black text-white' : ''}`}
                 >
                     <Rss className="mr-2 h-5 w-5" />
                     Blog
@@ -93,7 +93,7 @@ const AdminLayout = () => {
             </Link>
             <Link to="/admin/settings" onClick={() => setSheetOpen(false)}>
                 <Button
-                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-lg h-12 ${isLinkActive('/admin/settings') ? 'bg-black text-white' : ''}`}
+                    className={`w-full justify-start bg-gray-900 text-gray-200 hover:bg-gray-800 border-none rounded-none border border-orange-500 h-12 ${isLinkActive('/admin/settings') ? 'bg-black text-white' : ''}`}
                 >
                     <Settings className="mr-2 h-5 w-5" />
                     Configurações
@@ -149,7 +149,7 @@ const AdminLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-white/10 backdrop-blur-lg border-b border-gray-800 shadow-md text-gray-200">
+            <header className="fixed top-0 z-[100] flex h-24 items-center justify-between px-6 md:px-12 bg-white/10 backdrop-blur-lg border-b border-gray-800 shadow-md text-gray-200">
                 <div className="flex items-center gap-2">
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold text-gray-200">Painel Admin</span>
