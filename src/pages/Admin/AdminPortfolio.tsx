@@ -35,7 +35,7 @@ interface PortfolioItem {
     category: string;
     description: string;
     image: string;
-}
+} //
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
