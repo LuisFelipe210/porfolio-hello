@@ -131,7 +131,7 @@ const AdminLayout = () => {
                     <span className="text-lg font-semibold text-gray-200">Painel Admin</span>
                     <div />
                 </header>
-                <main className="relative z-10 p-4 bg-white/10 backdrop-blur-lg min-h-[calc(100vh-4rem)] text-gray-200">
+                <main className="relative z-10 p-4 backdrop-blur-lg min-h-[calc(100vh-4rem)] text-gray-200">
                     <Outlet />
                 </main>
             </div>
@@ -164,7 +164,7 @@ const AdminLayout = () => {
                 <aside className="w-64 bg-white/10 backdrop-blur-lg border-r border-gray-800 p-4 flex flex-col relative z-10 text-gray-200">
                     <NavLinks />
                 </aside>
-                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto bg-white/10 backdrop-blur-lg text-gray-200">
+                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto backdrop-blur-lg text-gray-200">
                     <Outlet />
                 </main>
             </div>
