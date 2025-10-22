@@ -425,7 +425,7 @@ const AdminPortfolio = () => {
                 </div>
 
                 {isMobile ? renderContent() : (
-                    <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-2 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
+                    <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-2 max-h-[calc(100vh-6rem)] max-w-[95%] mx-auto overflow-y-auto pr-2">
                         <Table>
                             <TableHeader>
                                 <TableRow>
