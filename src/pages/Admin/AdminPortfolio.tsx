@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Edit } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
+import { optimizeCloudinaryUrl } from '@/lib/utils'; // <-- CORREÇÃO: Importado
 
 interface PortfolioItem {
     _id: string;
@@ -196,7 +197,12 @@ const AdminPortfolio = () => {
                     {items.map((item) => (
                         <Card key={item._id}>
                             <CardContent className="p-4 flex gap-4">
-                                <img src={item.image} alt={item.title} className="h-24 w-24 object-cover rounded-md" />
+                                <img
+                                    // v-- CORREÇÃO APLICADA AQUI (MOBILE) --v
+                                    src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200")}
+                                    alt={item.title}
+                                    className="h-24 w-24 object-cover rounded-md"
+                                />
                                 <div className="flex-1">
                                     <h3 className="font-semibold">{item.title}</h3>
                                     <p className="text-sm text-muted-foreground capitalize">{item.category}</p>
@@ -224,7 +230,12 @@ const AdminPortfolio = () => {
                 {items.map((item) => (
                     <TableRow key={item._id}>
                         <TableCell>
-                            <img src={item.image} alt={item.title} className="h-16 w-16 object-cover rounded-md" />
+                            <img
+                                // v-- CORREÇÃO APLICADA AQUI (DESKTOP) --v
+                                src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200")}
+                                alt={item.title}
+                                className="h-16 w-16 object-cover rounded-md"
+                            />
                         </TableCell>
                         <TableCell className="font-medium">{item.title}</TableCell>
                         <TableCell className="capitalize">{item.category}</TableCell>

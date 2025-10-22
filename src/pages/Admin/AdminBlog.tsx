@@ -10,6 +10,7 @@ import { PlusCircle, Trash2, Edit } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { optimizeCloudinaryUrl } from '@/lib/utils'; // <-- CORREÇÃO: Importado
 
 interface Post {
     _id: string;
@@ -193,7 +194,12 @@ const AdminBlog = () => {
                                 <Card className="bg-white/70 dark:bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
                                     <CardContent className="p-6 flex items-center justify-between gap-6">
                                         <div className="flex items-center gap-6">
-                                            <img src={post.coverImage} alt={post.title} className="w-20 h-14 rounded-lg object-cover border" />
+                                            <img
+                                                // v-- CORREÇÃO APLICADA AQUI --v
+                                                src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
+                                                alt={post.title}
+                                                className="w-20 h-14 rounded-lg object-cover border"
+                                            />
                                             <div>
                                                 <h3 className="text-lg font-semibold">{post.title}</h3>
                                                 <p className="text-sm text-muted-foreground">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>

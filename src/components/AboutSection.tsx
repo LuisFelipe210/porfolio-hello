@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Camera, Heart, Users } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { optimizeCloudinaryUrl } from "@/lib/utils";
 
 interface Image {
     src: string;
@@ -105,14 +106,14 @@ const AboutSection = () => {
                                 <div className="w-1/2 h-[300px] md:h-[600px] overflow-hidden">
                                     <div key={keyCol1} className={`flex flex-col space-y-4 ${animate ? "animate-teleportScroll" : ""}`}>
                                         {[...content.imagesColumn1, ...content.imagesColumn1].map((img, index) => (
-                                            <div key={index} className="overflow-hidden rounded-lg"><img src={img.src} alt={img.alt} className="w-full h-full object-cover" /></div>
+                                            <div key={index} className="overflow-hidden rounded-lg"><img src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_400")} alt={img.alt} className="w-full h-full object-cover" /></div>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="w-1/2 h-[300px] md:h-[600px] overflow-hidden">
                                     <div key={keyCol2} className={`flex flex-col space-y-4 ${animate ? "animate-teleportScroll" : ""}`}>
                                         {[...content.imagesColumn2, ...content.imagesColumn2].map((img, index) => (
-                                            <div key={index} className="overflow-hidden rounded-lg"><img src={img.src} alt={img.alt} className="w-full h-full object-cover" /></div>
+                                            <div key={index} className="overflow-hidden rounded-lg"><img src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_400")} alt={img.alt} className="w-full h-full object-cover" /></div>
                                         ))}
                                     </div>
                                 </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FiShare2 } from "react-icons/fi";
 import { Skeleton } from "./ui/skeleton";
-import { optimizeCloudinaryUrl } from "@/lib/utils"
+import { optimizeCloudinaryUrl } from "@/lib/utils";
 
 const PortfolioSection = () => {
     // Estado para armazenar os itens do portfólio vindos da API
@@ -229,8 +229,9 @@ const PortfolioSection = () => {
                                         <FiShare2 className="w-5 h-5" />
                                     </button>
                                     <img
-                                        src={item.image}
+                                        src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")}
                                         alt={item.title}
+                                        loading="lazy"
                                         className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 rounded-lg"
                                     />
                                     {index === pagedItems.length - 1 && filteredItems.length > ITEMS_PER_PAGE && (
@@ -279,8 +280,9 @@ const PortfolioSection = () => {
                                         <FiShare2 className="w-5 h-5" />
                                     </button>
                                     <img
-                                        src={item.image}
+                                        src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")}
                                         alt={item.title}
+                                        loading="lazy"
                                         className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
                                         style={{ transitionProperty: "transform, filter" }}
                                     />
@@ -340,7 +342,7 @@ const PortfolioSection = () => {
                                     onTouchEnd={handleTouchEnd}
                                 >
                                     <img
-                                        src={filteredItems[selectedIndex].image}
+                                        src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1600")}
                                         alt={filteredItems[selectedIndex].title}
                                         className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300"
                                     />

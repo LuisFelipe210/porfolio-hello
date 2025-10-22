@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
+import { optimizeCloudinaryUrl } from '@/lib/utils'; // <-- CORREÇÃO: Importado
 
 const AdminLogin = () => {
     const [username, setUsername] = useState('');
@@ -54,7 +55,8 @@ const AdminLogin = () => {
             {/* Background Image e Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
+                    // v-- CORREÇÃO APLICADA AQUI --v
+                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")}
                     alt="Background"
                     className="w-full h-full object-cover"
                 />

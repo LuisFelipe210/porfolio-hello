@@ -3,6 +3,7 @@ import { ArrowDown } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
 import { Skeleton } from "./ui/skeleton.tsx";
+import { optimizeCloudinaryUrl } from "@/lib/utils";
 
 const HeroSection = () => {
     const [settings, setSettings] = useState<{ heroTitle?: string; heroSubtitle?: string }>({});
@@ -41,7 +42,7 @@ const HeroSection = () => {
     return (
         <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 z-0">
-                <img src={"https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"} alt="Hello Borges" className="w-full h-full min-h-screen object-cover" />
+                <img src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")} alt="Hello Borges" className="w-full h-full min-h-screen object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
             </div>
