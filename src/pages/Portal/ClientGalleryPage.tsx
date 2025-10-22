@@ -436,5 +436,5 @@ const ClientGalleryPage = () => {
         </div>
     );
 };
-//
+
 export default ClientGalleryPage;
