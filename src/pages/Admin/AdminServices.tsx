@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -71,36 +71,39 @@ const AdminServices = () => {
 
     if (editingService) {
         return (
-            <Card>
+            <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
                 <CardHeader>
-                    <CardTitle>Editando: {editingService.title}</CardTitle>
+                    <h2 className="text-xl font-semibold text-white">Editando: {editingService.title}</h2>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSave} className="space-y-4">
                         <div>
-                            <Label>Descrição</Label>
+                            <Label className="text-white mb-1 font-semibold">Descrição</Label>
                             <Textarea
+                                className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
                                 value={editingService.description}
                                 onChange={(e) => setEditingService({...editingService, description: e.target.value})}
                             />
                         </div>
                         <div>
-                            <Label>Características (separadas por vírgula)</Label>
+                            <Label className="text-white mb-1 font-semibold">Características (separadas por vírgula)</Label>
                             <Input
+                                className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
                                 value={editingService.features.join(', ')}
                                 onChange={(e) => setEditingService({...editingService, features: e.target.value.split(',').map(f => f.trim())})}
                             />
                         </div>
                         <div>
-                            <Label>Preço (texto)</Label>
+                            <Label className="text-white mb-1 font-semibold">Preço (texto)</Label>
                             <Input
+                                className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
                                 value={editingService.price}
                                 onChange={(e) => setEditingService({...editingService, price: e.target.value})}
                             />
                         </div>
                         <div className="flex gap-2">
-                            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
-                            <Button variant="outline" type="button" onClick={() => setEditingService(null)}>Cancelar</Button>
+                            <Button type="submit" disabled={isSubmitting} className="text-white hover:bg-white/10">{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
+                            <Button variant="outline" type="button" onClick={() => setEditingService(null)} className="text-white hover:bg-white/10">Cancelar</Button>
                         </div>
                     </form>
                 </CardContent>
@@ -110,27 +113,27 @@ const AdminServices = () => {
 
     return (
         <div>
-            <h1 className="text-3xl font-bold mb-6">Gerenciar Serviços</h1>
+            <h1 className="text-3xl font-bold mb-6 text-white">Gerenciar Serviços</h1>
             {isLoading ? (
                 <div className="grid gap-6 md:grid-cols-2">
-                    <Skeleton className="h-40 w-full" />
-                    <Skeleton className="h-40 w-full" />
-                    <Skeleton className="h-40 w-full" />
-                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className="h-40 w-full bg-black/60 rounded-xl" />
+                    <Skeleton className="h-40 w-full bg-black/60 rounded-xl" />
+                    <Skeleton className="h-40 w-full bg-black/60 rounded-xl" />
+                    <Skeleton className="h-40 w-full bg-black/60 rounded-xl" />
                 </div>
             ) : (
                 <div className="grid gap-6 md:grid-cols-2">
                     {services.map((service) => (
-                        <Card key={service._id}>
+                        <Card key={service._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle>{service.title}</CardTitle>
-                                <Button variant="ghost" size="icon" onClick={() => setEditingService(service)}>
+                                <h2 className="text-xl font-semibold text-white">{service.title}</h2>
+                                <Button variant="ghost" size="icon" onClick={() => setEditingService(service)} className="text-white hover:bg-white/10">
                                     <Edit className="h-4 w-4" />
                                 </Button>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-muted-foreground">{service.description}</p>
-                                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                                <p className="text-white/80">{service.description}</p>
+                                <ul className="mt-2 space-y-1 text-xs text-white/80 list-disc list-inside">
                                     {service.features.map(f => <li key={f}>• {f}</li>)}
                                 </ul>
                             </CardContent>

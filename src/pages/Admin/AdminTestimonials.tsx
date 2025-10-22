@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -113,18 +113,59 @@ const AdminTestimonials = () => {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Gerir Depoimentos</h1>
+                <h1 className="text-3xl font-bold text-white">Gerir Depoimentos</h1>
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                    <DialogTrigger asChild><Button onClick={() => handleOpenDialog()}><PlusCircle className="mr-2 h-4 w-4" />Adicionar</Button></DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader><DialogTitle>{editingId ? "Editar Depoimento" : "Adicionar Novo Depoimento"}</DialogTitle></DialogHeader>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="text-white border-white hover:bg-white/10" onClick={() => handleOpenDialog()}>
+                            <PlusCircle className="mr-2 h-4 w-4" />Adicionar
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
+                        <DialogHeader>
+                            <DialogTitle className="text-white text-xl font-semibold">{editingId ? "Editar Depoimento" : "Adicionar Novo Depoimento"}</DialogTitle>
+                        </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div><Label htmlFor="author">Autor</Label><Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required /></div>
-                            <div><Label htmlFor="role">Cargo / Serviço (ex: Cliente de Casamento)</Label><Input id="role" value={role} onChange={(e) => setRole(e.target.value)} required /></div>
-                            <div><Label htmlFor="text">Texto do Depoimento</Label><Textarea id="text" rows={5} value={text} onChange={(e) => setText(e.target.value)} required /></div>
+                            <div>
+                                <Label htmlFor="author" className="text-white mb-1 font-semibold">Autor</Label>
+                                <Input
+                                    id="author"
+                                    value={author}
+                                    onChange={(e) => setAuthor(e.target.value)}
+                                    required
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                    placeholder="Nome do autor"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="role" className="text-white mb-1 font-semibold">Cargo / Serviço (ex: Cliente de Casamento)</Label>
+                                <Input
+                                    id="role"
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value)}
+                                    required
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                    placeholder="Cargo ou serviço"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="text" className="text-white mb-1 font-semibold">Texto do Depoimento</Label>
+                                <Textarea
+                                    id="text"
+                                    rows={5}
+                                    value={text}
+                                    onChange={(e) => setText(e.target.value)}
+                                    required
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                    placeholder="Depoimento"
+                                />
+                            </div>
                             <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary" className="text-white border-white hover:bg-white/10">Cancelar</Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={isSubmitting} className="bg-white text-black hover:bg-white/90">
+                                    {isSubmitting ? 'Salvando...' : 'Salvar'}
+                                </Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
@@ -133,42 +174,61 @@ const AdminTestimonials = () => {
 
             <div className="space-y-4">
                 {isLoading ? (
-                    <><Skeleton className="h-28 w-full" /><Skeleton className="h-28 w-full" /></>
+                    <>
+                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
+                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
+                    </>
                 ) : testimonials.length > 0 ? (
                     testimonials.map((item) => (
-                        <Card key={item._id}>
+                        <Card key={item._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                             <CardHeader>
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <CardTitle>{item.author}</CardTitle>
-                                        <CardDescription>{item.role}</CardDescription>
+                                        <h2 className="text-white text-xl font-semibold">{item.author}</h2>
+                                        <p className="text-white">{item.role}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button>
-                                        <Button variant="ghost" size="icon" onClick={() => { setTestimonialToDelete(item); setIsDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-white hover:bg-white/10"
+                                            onClick={() => handleOpenDialog(item)}
+                                            aria-label="Editar depoimento"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-destructive hover:bg-destructive/10"
+                                            onClick={() => { setTestimonialToDelete(item); setIsDeleteDialogOpen(true); }}
+                                            aria-label="Excluir depoimento"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-muted-foreground italic">"{item.text}"</p>
+                                <p className="text-white italic">"{item.text}"</p>
                             </CardContent>
                         </Card>
                     ))
                 ) : (
-                    <p className="text-center text-muted-foreground pt-12">Nenhum depoimento encontrado. Adicione o primeiro!</p>
+                    <p className="text-center text-white pt-12">Nenhum depoimento encontrado. Adicione o primeiro!</p>
                 )}
             </div>
 
             {testimonialToDelete && (
                 <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent>
+                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                         <DialogHeader>
-                            <DialogTitle>Confirmar exclusão</DialogTitle>
+                            <DialogTitle className="text-white text-xl font-semibold">Confirmar exclusão</DialogTitle>
                         </DialogHeader>
-                        <p>Tem certeza que deseja excluir o depoimento de "{testimonialToDelete.author}"?</p>
+                        <p className="text-white">Tem certeza que deseja excluir o depoimento de "{testimonialToDelete.author}"?</p>
                         <DialogFooter className="flex justify-end gap-2">
                             <DialogClose asChild>
-                                <Button variant="secondary">Cancelar</Button>
+                                <Button variant="secondary" className="text-white border-white hover:bg-white/10">Cancelar</Button>
                             </DialogClose>
                             <Button
                                 variant="destructive"
@@ -178,6 +238,7 @@ const AdminTestimonials = () => {
                                         setIsDeleteDialogOpen(false);
                                     }
                                 }}
+                                className="bg-red-600 text-white hover:bg-red-700"
                             >
                                 Excluir
                             </Button>

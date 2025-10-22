@@ -202,19 +202,23 @@ const AdminPortfolio = () => {
         if (isLoading) {
             return isMobile ? (
                 <div className="space-y-4">
-                    <Skeleton className="h-32 w-full rounded-lg" />
-                    <Skeleton className="h-32 w-full rounded-lg" />
+                    <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
+                    <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
                 </div>
             ) : (
-                <TableRow><TableCell colSpan={4} className="h-24 text-center">Carregando...</TableCell></TableRow>
+                <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center text-white/80 bg-black/60 rounded-xl">Carregando...</TableCell>
+                </TableRow>
             );
         }
 
         if (items.length === 0) {
             return isMobile ? (
-                <p className="text-center text-muted-foreground mt-8">Nenhum item encontrado. Adicione o primeiro!</p>
+                <p className="text-center text-white/80 mt-8">Nenhum item encontrado. Adicione o primeiro!</p>
             ) : (
-                <TableRow><TableCell colSpan={4} className="h-24 text-center">Nenhum item encontrado. Adicione o primeiro!</TableCell></TableRow>
+                <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center text-white/80 bg-black/60 rounded-xl">Nenhum item encontrado. Adicione o primeiro!</TableCell>
+                </TableRow>
             );
         }
 
@@ -222,30 +226,41 @@ const AdminPortfolio = () => {
             return (
                 <div className="space-y-4">
                     {items.map((item) => (
-                        <Card key={item._id}>
-                            <CardContent className="p-4 flex gap-4">
-                                <img
-                                    src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200")}
-                                    alt={item.title}
-                                    className="h-24 w-24 object-cover rounded-md"
-                                />
-                                <div className="flex-1">
-                                    <h3 className="font-semibold">{item.title}</h3>
-                                    <p className="text-sm text-muted-foreground capitalize">{item.category}</p>
-                                    <div className="mt-2">
-                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(item)}>
-                                            <Edit className="h-4 w-4 mr-1" /> Editar
-                                        </Button>
-                                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => {
+                        <div
+                            key={item._id}
+                            className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md px-4 py-4 flex gap-4"
+                        >
+                            <img
+                                src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200")}
+                                alt={item.title}
+                                className="h-24 w-24 object-cover rounded-xl"
+                            />
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-white text-lg">{item.title}</h3>
+                                <p className="text-sm text-white/80 capitalize">{item.category}</p>
+                                <div className="mt-2 flex space-x-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-white hover:bg-white/10"
+                                        onClick={() => handleOpenDialog(item)}
+                                    >
+                                        <Edit className="h-4 w-4 mr-1" /> Editar
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-500 hover:bg-red-500/10"
+                                        onClick={() => {
                                             setSelectedItemToDelete(item);
                                             setIsDeleteModalOpen(true);
-                                        }}>
-                                            <Trash2 className="h-4 w-4 mr-1" /> Excluir
-                                        </Button>
-                                    </div>
+                                        }}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                                    </Button>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     ))}
                 </div>
             );
@@ -254,22 +269,36 @@ const AdminPortfolio = () => {
         return (
             <TableBody>
                 {items.map((item) => (
-                    <TableRow key={item._id}>
+                    <TableRow key={item._id} className="bg-black/70 backdrop-blur-md rounded-3xl">
                         <TableCell>
                             <img
                                 src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200")}
                                 alt={item.title}
-                                className="h-16 w-16 object-cover rounded-md"
+                                className="h-16 w-16 object-cover rounded-xl"
                             />
                         </TableCell>
-                        <TableCell className="font-medium">{item.title}</TableCell>
-                        <TableCell className="capitalize">{item.category}</TableCell>
+                        <TableCell className="font-medium text-white">{item.title}</TableCell>
+                        <TableCell className="capitalize text-white/80">{item.category}</TableCell>
                         <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => {
-                                setSelectedItemToDelete(item);
-                                setIsDeleteModalOpen(true);
-                            }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-white hover:bg-white/10"
+                                onClick={() => handleOpenDialog(item)}
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500 hover:bg-red-500/10"
+                                onClick={() => {
+                                    setSelectedItemToDelete(item);
+                                    setIsDeleteModalOpen(true);
+                                }}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </TableCell>
                     </TableRow>
                 ))}
@@ -280,20 +309,20 @@ const AdminPortfolio = () => {
     return (
         <>
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent>
+                <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                     <DialogHeader>
-                        <DialogTitle>Confirmar exclusão</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="text-white">Confirmar exclusão</DialogTitle>
+                        <DialogDescription className="text-white/80">
                             Tem certeza que deseja excluir <strong>{selectedItemToDelete?.title}</strong>? Esta ação não pode ser desfeita.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+                            <Button variant="secondary" className="text-white hover:bg-white/10" onClick={() => setIsDeleteModalOpen(false)}>
                                 Cancelar
                             </Button>
                         </DialogClose>
-                        <Button variant="destructive" onClick={handleDelete}>
+                        <Button variant="destructive" className="hover:bg-red-600/80" onClick={handleDelete}>
                             Excluir
                         </Button>
                     </DialogFooter>
@@ -302,41 +331,90 @@ const AdminPortfolio = () => {
 
             <div>
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl md:text-3xl font-bold">Gerenciar Portfólio</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">Gerenciar Portfólio</h1>
                     <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { setIsDialogOpen(isOpen); if (!isOpen) resetForm(); }}>
                         <DialogTrigger asChild>
-                            <Button size={isMobile ? "sm" : "default"} onClick={() => handleOpenDialog()}>
+                            <Button
+                                size={isMobile ? "sm" : "default"}
+                                className="text-white bg-black/80 border border-gray-500 hover:bg-white/10"
+                                onClick={() => handleOpenDialog()}
+                            >
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Adicionar
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                             <DialogHeader>
-                                <DialogTitle>{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
-                                <DialogDescription>
+                                <DialogTitle className="text-white">{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
+                                <DialogDescription className="text-white/80">
                                     {editingId ? "Altere as informações abaixo. Apenas selecione uma nova imagem se desejar substituí-la." : "Preencha os detalhes e faça o upload da imagem."}
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div><Label htmlFor="title">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                                 <div>
-                                    <Label htmlFor="category">Categoria</Label>
+                                    <Label htmlFor="title" className="text-white mb-1 font-semibold">Título</Label>
+                                    <Input
+                                        id="title"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        required
+                                        className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="category" className="text-white mb-1 font-semibold">Categoria</Label>
                                     <Select onValueChange={setCategory} value={category}>
-                                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="portrait">Retratos</SelectItem>
-                                            <SelectItem value="wedding">Casamentos</SelectItem>
-                                            <SelectItem value="maternity">Maternidade</SelectItem>
-                                            <SelectItem value="family">Família</SelectItem>
-                                            <SelectItem value="events">Eventos</SelectItem>
+                                        <SelectTrigger className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white">
+                                            <SelectValue placeholder="Selecione..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-black/90 text-white border border-gray-500">
+                                            <SelectItem value="portrait" className="text-white">Retratos</SelectItem>
+                                            <SelectItem value="wedding" className="text-white">Casamentos</SelectItem>
+                                            <SelectItem value="maternity" className="text-white">Maternidade</SelectItem>
+                                            <SelectItem value="family" className="text-white">Família</SelectItem>
+                                            <SelectItem value="events" className="text-white">Eventos</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div><Label htmlFor="description">Descrição</Label><Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required /></div>
-                                <div><Label htmlFor="file">Imagem {editingId ? "(Opcional: selecione para substituir)" : ""}</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} required={!editingId} /></div>
+                                <div>
+                                    <Label htmlFor="description" className="text-white mb-1 font-semibold">Descrição</Label>
+                                    <Textarea
+                                        id="description"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        required
+                                        className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="file" className="text-white mb-1 font-semibold">
+                                        Imagem {editingId ? "(Opcional: selecione para substituir)" : ""}
+                                    </Label>
+                                    <Input
+                                        id="file"
+                                        type="file"
+                                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                                        required={!editingId}
+                                        className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white file:text-white file:bg-black/80 file:border-0"
+                                    />
+                                </div>
                                 <DialogFooter>
-                                    <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                                    <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Item'}</Button>
+                                    <DialogClose asChild>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            className="text-white hover:bg-white/10"
+                                        >
+                                            Cancelar
+                                        </Button>
+                                    </DialogClose>
+                                    <Button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="text-white bg-black/80 border border-gray-500 hover:bg-white/10"
+                                    >
+                                        {isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Item'}
+                                    </Button>
                                 </DialogFooter>
                             </form>
                         </DialogContent>
@@ -344,19 +422,19 @@ const AdminPortfolio = () => {
                 </div>
 
                 {isMobile ? renderContent() : (
-                    <Card>
+                    <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-2">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[100px]">Imagem</TableHead>
-                                    <TableHead>Título</TableHead>
-                                    <TableHead>Categoria</TableHead>
-                                    <TableHead className="text-right">Ações</TableHead>
+                                    <TableHead className="w-[100px] text-white">Imagem</TableHead>
+                                    <TableHead className="text-white">Título</TableHead>
+                                    <TableHead className="text-white">Categoria</TableHead>
+                                    <TableHead className="text-right text-white">Ações</TableHead>
                                 </TableRow>
                             </TableHeader>
                             {renderContent()}
                         </Table>
-                    </Card>
+                    </div>
                 )}
             </div>
         </>
