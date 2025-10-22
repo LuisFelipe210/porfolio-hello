@@ -24,7 +24,7 @@ const ClientLayout = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen bg-zinc-900 text-gray-200">
             {/* Background Image e Overlay */}
             <div className="fixed inset-0 z-0">
                 <img
@@ -35,7 +35,7 @@ const ClientLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="sticky top-0 z-[100] flex h-20 md:h-24 items-center justify-between bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 shadow-md border-b border-zinc-200/20 px-4 md:px-12 relative">
+            <header className="sticky top-0 z-[100] flex h-20 md:h-24 items-center justify-between bg-zinc-900 text-gray-200 shadow-md border-b border-zinc-200/20 px-4 md:px-12 relative">
                 {/* Contêiner para o botão de Voltar */}
                 <div className="w-24">
                     {/* O botão só é renderizado se 'headerBackAction' for uma função */}
@@ -58,7 +58,7 @@ const ClientLayout = () => {
 
                 {/* Contêiner para o botão Sair i*/}
                 <div className="w-24 flex justify-end">
-                    <Button variant="outline" onClick={handleLogout} className="text-sm md:text-base px-3 py-1 rounded-md">
+                    <Button variant="outline" onClick={handleLogout} className="text-gray-200 text-sm md:text-base px-3 py-1 rounded-md">
                         <LogOut className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                         Sair
                     </Button>
