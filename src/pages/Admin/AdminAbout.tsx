@@ -8,6 +8,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Upload } from 'lucide-react';
 
+// ======================================================================
+// ⚠️ ATENÇÃO: SUBSTITUA ESTES VALORES PELOS SEUS DA CLOUDINARY
+// O Upload Preset deve ser configurado como NÃO ASSINADO no painel da Cloudinary.
+const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
+const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
+// ======================================================================
+
 interface Image {
     src: string;
     alt: string;
@@ -43,21 +50,45 @@ const AdminAbout = () => {
         fetchContent();
     }, [toast]);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, column: 'imagesColumn1' | 'imagesColumn2') => {
+    // ======== Função de upload direto ao Cloudinary (igual à do portfolio) ========
+    const handleCloudinaryUpload = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', 'borges-captures/about'); // opcional: pasta separada
+
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+        const uploadResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+            const error = await uploadResponse.json();
+            console.error("Erro no Cloudinary:", error);
+            throw new Error('Falha no upload direto para Cloudinary.');
+        }
+
+        const uploadData = await uploadResponse.json();
+        return uploadData.secure_url;
+    };
+    // =====================================================================
+
+    const handleFileChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+        column: 'imagesColumn1' | 'imagesColumn2'
+    ) => {
         const file = e.target.files?.[0];
         if (!file || !content) return;
 
-        const formData = new FormData();
-        formData.append('file', file);
-
         try {
-            const uploadResponse = await fetch('/api/upload', { method: 'POST', body: formData });
-            if (!uploadResponse.ok) throw new Error('Upload falhou');
-            const { url } = await uploadResponse.json();
+            const uploadedUrl = await handleCloudinaryUpload(file);
 
-            const newImage: Image = { src: url, alt: 'Nova imagem da secção sobre' };
+            const newImage: Image = { src: uploadedUrl, alt: 'Nova imagem da seção sobre' };
             setContent({ ...content, [column]: [...content[column], newImage] });
 
+            toast({ title: 'Upload concluído!', description: 'Imagem adicionada com sucesso.' });
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro de Upload', description: 'Não foi possível enviar a imagem.' });
         }
@@ -79,7 +110,10 @@ const AdminAbout = () => {
             const token = localStorage.getItem('authToken');
             const response = await fetch('/api/about', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: JSON.stringify(content),
             });
 
@@ -103,7 +137,9 @@ const AdminAbout = () => {
                     <h1 className="text-3xl font-bold">Gerir "Sobre Mim"</h1>
                     <p className="text-muted-foreground">Edite os textos e as imagens da sua página de apresentação.</p>
                 </div>
-                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Salvar Alterações'}</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -113,19 +149,39 @@ const AdminAbout = () => {
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="p1">Primeiro Parágrafo</Label>
-                            <Textarea id="p1" rows={6} value={content.paragraph1} onChange={(e) => setContent({ ...content, paragraph1: e.target.value })} />
+                            <Textarea
+                                id="p1"
+                                rows={6}
+                                value={content.paragraph1}
+                                onChange={(e) => setContent({ ...content, paragraph1: e.target.value })}
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="p2">Segundo Parágrafo</Label>
-                            <Textarea id="p2" rows={6} value={content.paragraph2} onChange={(e) => setContent({ ...content, paragraph2: e.target.value })} />
+                            <Textarea
+                                id="p2"
+                                rows={6}
+                                value={content.paragraph2}
+                                onChange={(e) => setContent({ ...content, paragraph2: e.target.value })}
+                            />
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Coluna de Imagens */}
                 <div className="space-y-8">
-                    <ImageManager title="Imagens da Coluna 1" images={content.imagesColumn1} onFileChange={(e) => handleFileChange(e, 'imagesColumn1')} onRemove={(i) => handleRemoveImage(i, 'imagesColumn1')} />
-                    <ImageManager title="Imagens da Coluna 2" images={content.imagesColumn2} onFileChange={(e) => handleFileChange(e, 'imagesColumn2')} onRemove={(i) => handleRemoveImage(i, 'imagesColumn2')} />
+                    <ImageManager
+                        title="Imagens da Coluna 1"
+                        images={content.imagesColumn1}
+                        onFileChange={(e) => handleFileChange(e, 'imagesColumn1')}
+                        onRemove={(i) => handleRemoveImage(i, 'imagesColumn1')}
+                    />
+                    <ImageManager
+                        title="Imagens da Coluna 2"
+                        images={content.imagesColumn2}
+                        onFileChange={(e) => handleFileChange(e, 'imagesColumn2')}
+                        onRemove={(i) => handleRemoveImage(i, 'imagesColumn2')}
+                    />
                 </div>
             </div>
         </form>
@@ -133,7 +189,17 @@ const AdminAbout = () => {
 };
 
 // Componente auxiliar para gerir as imagens
-const ImageManager = ({ title, images, onFileChange, onRemove }: { title: string, images: Image[], onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void, onRemove: (index: number) => void }) => (
+const ImageManager = ({
+                          title,
+                          images,
+                          onFileChange,
+                          onRemove
+                      }: {
+    title: string;
+    images: Image[];
+    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onRemove: (index: number) => void;
+}) => (
     <Card>
         <CardHeader>
             <CardTitle>{title}</CardTitle>
@@ -143,8 +209,17 @@ const ImageManager = ({ title, images, onFileChange, onRemove }: { title: string
             <div className="grid grid-cols-3 gap-4 mb-4">
                 {images.map((img, index) => (
                     <div key={index} className="relative group">
-                        <img src={img.src} alt={img.alt} className="w-full h-24 object-cover rounded-md" />
-                        <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => onRemove(index)}>
+                        <img
+                            src={img.src}
+                            alt={img.alt}
+                            className="w-full h-24 object-cover rounded-md"
+                        />
+                        <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                            onClick={() => onRemove(index)}
+                        >
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
@@ -154,7 +229,13 @@ const ImageManager = ({ title, images, onFileChange, onRemove }: { title: string
                 <div className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted">
                     <Upload className="h-5 w-5 mr-2" /> Adicionar Imagem
                 </div>
-                <Input id={`upload-${title.replace(/\s+/g, '')}`} type="file" className="hidden" onChange={onFileChange} />
+                <Input
+                    id={`upload-${title.replace(/\s+/g, '')}`}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={onFileChange}
+                />
             </Label>
         </CardContent>
     </Card>
