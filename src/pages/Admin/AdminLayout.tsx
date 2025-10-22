@@ -112,23 +112,23 @@ const AdminLayout = () => {
 
     if (isMobile) {
         return (
-            <div className="min-h-screen w-full">
-                <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4">
+            <div className="min-h-screen w-full flex flex-col">
+                <header className="sticky top-0 z-20 flex h-16 items-center justify-between bg-background px-4 shadow-md border-b">
                     <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
                         <SheetTrigger asChild>
                             <Button variant="outline" size="icon">
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="flex flex-col p-0">
+                        <SheetContent side="left" className="flex flex-col p-0 w-64">
                             <div className="flex items-center gap-2 p-4 border-b">
                                 <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                                 <span className="text-lg font-semibold">Painel Admin</span>
                             </div>
-                            <div className="py-4">
+                            <div className="flex-1 overflow-y-auto py-4">
                                 <NavLinks />
                             </div>
-                            <div className="mt-auto p-4 border-t">
+                            <div className="p-4 border-t">
                                 <Button variant="outline" className="w-full" onClick={handleLogout}>
                                     <LogOut className="mr-2 h-4 w-4" />
                                     Sair
@@ -137,9 +137,9 @@ const AdminLayout = () => {
                         </SheetContent>
                     </Sheet>
                     <span className="text-lg font-semibold">Painel Admin</span>
-                    <div />
+                    <div /> {/* Espaço vazio para alinhar centralizado */}
                 </header>
-                <main className="relative z-10 p-4">
+                <main className="flex-1 p-4 overflow-auto">
                     <Outlet />
                 </main>
             </div>
@@ -148,7 +148,7 @@ const AdminLayout = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <div className="absolute inset-0 z-0">
+            <div className="fixed inset-0 z-0">
                 <img
                     src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
                     alt="Background"
