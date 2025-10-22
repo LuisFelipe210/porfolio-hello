@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogOut, ArrowLeft } from 'lucide-react';
-import { optimizeCloudinaryUrl } from "@/lib/utils";
-
+import Logo from "@/assets/logo.svg";
 import React from 'react';
+import {optimizeCloudinaryUrl} from "@/lib/utils.ts";
 
 const ClientLayout = () => {
     const navigate = useNavigate();
@@ -28,7 +28,7 @@ const ClientLayout = () => {
             {/* Background Image e Overlay */}
             <div className="fixed inset-0 z-0">
                 <img
-                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
+                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")}
                     alt="Background"
                     className="w-full h-full object-cover"
                 />
@@ -52,10 +52,9 @@ const ClientLayout = () => {
                 </div>
 
                 {/* Contêiner central para Logo e Título */}
-                <div className="fixed inset-x-0 flex justify-center items-center space-x-2 pointer-events-none">
-                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")}
-                    alt="Background"
-                    className="w-full h-full object-cover"
+                <div className="absolute inset-x-0 flex justify-center items-center space-x-2 pointer-events-none">
+                    <img src={Logo} alt="Hellô Borges" className="h-12 w-auto" />
+                    <span className="text-xl font-bold text-white">Portal do Cliente</span>
                 </div>
 
                 {/* Contêiner para o botão Sair */}
