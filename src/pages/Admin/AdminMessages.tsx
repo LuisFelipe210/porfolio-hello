@@ -130,9 +130,13 @@ const AdminMessages = () => {
                                                         <a href={`mailto:${msg.email}`} className="flex items-center gap-1 hover:text-primary transition-colors"><Mail className="h-4 w-4"/> {msg.email}</a>
                                                         {msg.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4"/> {msg.phone}</span>}
                                                     </div>
-                                                    <Button variant="ghost" size="icon" className="text-white hover:text-red-500 transition-colors" onClick={() => { setDeleteId(msg._id); setIsDeleteDialogOpen(true); }}>
+                                                    <button
+                                                        type="button"
+                                                        className="border border-red-500 text-red-500 hover:bg-red-600/20 rounded-xl p-2 transition-all"
+                                                        onClick={() => { setDeleteId(msg._id); setIsDeleteDialogOpen(true); }}
+                                                    >
                                                         <Trash2 className="h-4 w-4" />
-                                                    </Button>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </AccordionContent>
@@ -153,9 +157,13 @@ const AdminMessages = () => {
                                             <CardDescription className="text-white/80">Galeria: "{gallery.name}"</CardDescription>
                                             <p className="text-xs text-white/70 mt-1">Seleção finalizada em {format(new Date(gallery.selectionDate), "dd/MM/yyyy", { locale: ptBR })}</p>
                                         </div>
-                                        <Button variant="outline" className="text-white border-white hover:bg-white/10 transition-colors" onClick={() => openViewDialog(gallery)}>
+                                        <button
+                                            type="button"
+                                            className="bg-black text-white rounded-xl px-4 py-2 flex items-center hover:bg-gray-800 transition-all"
+                                            onClick={() => openViewDialog(gallery)}
+                                        >
                                             <Eye className="mr-2 h-4 w-4"/>Ver {gallery.selections.length} fotos
-                                        </Button>
+                                        </button>
                                     </CardHeader>
                                 </Card>
                             ))}
@@ -180,8 +188,20 @@ const AdminMessages = () => {
                     </DialogHeader>
                     <p>Deseja realmente excluir esta mensagem?</p>
                     <DialogFooter className="mt-4 flex justify-end gap-2">
-                        <Button variant="outline" className="text-white border-white hover:bg-white/10 transition-colors" onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</Button>
-                        <Button variant="destructive" className="text-white hover:bg-red-600 transition-colors" onClick={handleDeleteMessage}>Excluir</Button>
+                        <button
+                            type="button"
+                            className="bg-black text-white rounded-xl px-4 py-2 hover:bg-gray-800 transition-all"
+                            onClick={() => setIsDeleteDialogOpen(false)}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            className="border border-red-500 text-red-500 rounded-xl px-4 py-2 hover:bg-red-600/20 transition-all"
+                            onClick={handleDeleteMessage}
+                        >
+                            Excluir
+                        </button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

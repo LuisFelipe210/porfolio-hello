@@ -240,23 +240,21 @@ const AdminPortfolio = () => {
                                 <p className="text-sm text-white/80 capitalize">{item.category}</p>
                                 <div className="mt-2 flex space-x-2">
                                     <Button
-                                        variant="ghost"
                                         size="sm"
-                                        className="text-white hover:bg-white/10"
+                                        className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all flex items-center"
                                         onClick={() => handleOpenDialog(item)}
                                     >
                                         <Edit className="h-4 w-4 mr-1" /> Editar
                                     </Button>
                                     <Button
-                                        variant="ghost"
                                         size="sm"
-                                        className="text-red-500 hover:bg-red-500/10"
+                                        className="bg-black rounded-xl hover:bg-red-600/20 transition-all flex items-center"
                                         onClick={() => {
                                             setSelectedItemToDelete(item);
                                             setIsDeleteModalOpen(true);
                                         }}
                                     >
-                                        <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                                        <Trash2 className="h-4 w-4 mr-1 text-red-500" /> Excluir
                                     </Button>
                                 </div>
                             </div>
@@ -279,25 +277,23 @@ const AdminPortfolio = () => {
                         </TableCell>
                         <TableCell className="font-medium text-white">{item.title}</TableCell>
                         <TableCell className="capitalize text-white/80">{item.category}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right flex gap-2 justify-end">
                             <Button
-                                variant="ghost"
                                 size="icon"
-                                className="text-white hover:bg-white/10"
+                                className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
                                 onClick={() => handleOpenDialog(item)}
                             >
                                 <Edit className="h-4 w-4" />
                             </Button>
                             <Button
-                                variant="ghost"
                                 size="icon"
-                                className="text-red-500 hover:bg-red-500/10"
+                                className="bg-black rounded-xl hover:bg-red-600/20 transition-all"
                                 onClick={() => {
                                     setSelectedItemToDelete(item);
                                     setIsDeleteModalOpen(true);
                                 }}
                             >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                         </TableCell>
                     </TableRow>
@@ -318,12 +314,18 @@ const AdminPortfolio = () => {
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="secondary" className="text-white hover:bg-white/10" onClick={() => setIsDeleteModalOpen(false)}>
+                            <Button
+                                className="bg-black text-white rounded-xl hover:bg-white/10 transition-all"
+                                onClick={() => setIsDeleteModalOpen(false)}
+                            >
                                 Cancelar
                             </Button>
                         </DialogClose>
-                        <Button variant="destructive" className="hover:bg-red-600/80" onClick={handleDelete}>
-                            Excluir
+                        <Button
+                            className="bg-black rounded-xl hover:bg-red-600/20 transition-all flex items-center"
+                            onClick={handleDelete}
+                        >
+                            <Trash2 className="h-4 w-4 mr-1 text-red-500" /> Excluir
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -336,7 +338,7 @@ const AdminPortfolio = () => {
                         <DialogTrigger asChild>
                             <Button
                                 size={isMobile ? "sm" : "default"}
-                                className="text-white bg-black/80 border border-gray-500 hover:bg-white/10"
+                                className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all flex items-center"
                                 onClick={() => handleOpenDialog()}
                             >
                                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -402,8 +404,7 @@ const AdminPortfolio = () => {
                                     <DialogClose asChild>
                                         <Button
                                             type="button"
-                                            variant="secondary"
-                                            className="text-white hover:bg-white/10"
+                                            className="bg-black text-white rounded-xl hover:bg-white/10 transition-all"
                                         >
                                             Cancelar
                                         </Button>
@@ -411,7 +412,7 @@ const AdminPortfolio = () => {
                                     <Button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all"
+                                        className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white transition-all"
                                     >
                                         {isSubmitting ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Item'}
                                     </Button>

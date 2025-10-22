@@ -135,7 +135,7 @@ const AdminAbout = () => {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Gerir "Sobre Mim"</h1>
-                    <p className="text-white/70">Edite os textos e as imagens da sua página de apresentação.</p>
+                    <p className="text-white/80">Edite os textos e as imagens da sua página de apresentação.</p>
                 </div>
                 <Button
                     type="submit"
@@ -150,7 +150,7 @@ const AdminAbout = () => {
                 {/* Coluna de Textos */}
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
                     <CardHeader>
-                        <h2 className="text-white text-xl font-semibold">Textos</h2>
+                        <h2 className="text-white text-xl font-bold">Textos</h2>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
@@ -210,8 +210,8 @@ const ImageManager = ({
 }) => (
     <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
         <CardHeader>
-            <h2 className="text-white text-xl font-semibold">{title}</h2>
-            <CardDescription className="text-white/70">Adicione ou remova imagens para esta coluna.</CardDescription>
+            <h2 className="text-white text-xl font-bold">{title}</h2>
+            <CardDescription className="text-white/80">Adicione ou remova imagens para esta coluna.</CardDescription>
         </CardHeader>
         <CardContent>
             <div className="grid grid-cols-3 gap-4 mb-4">
@@ -223,9 +223,9 @@ const ImageManager = ({
                             className="w-full h-24 object-cover rounded-md"
                         />
                         <Button
-                            variant="destructive"
+                            variant="outline"
                             size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
                             onClick={() => onRemove(index)}
                         >
                             <Trash2 className="h-4 w-4" />

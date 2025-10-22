@@ -174,15 +174,15 @@ const AdminClients = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-white">Gerir Clientes</h1>
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                    <DialogTrigger asChild>
-                        <Button
-                            onClick={() => handleOpenDialog(null)}
-                            className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md text-white hover:bg-white/10 transition-all"
-                        >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Novo Cliente
-                        </Button>
-                    </DialogTrigger>
+                <DialogTrigger asChild>
+                    <Button
+                        onClick={() => handleOpenDialog(null)}
+                        className="bg-black/70 rounded-xl text-white hover:bg-white/10 transition-all"
+                    >
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Novo Cliente
+                    </Button>
+                </DialogTrigger>
                     <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-semibold text-white">
@@ -217,7 +217,7 @@ const AdminClients = () => {
                                             size="icon"
                                             onClick={generateRandomEmail}
                                             title="Gerar email aleatório"
-                                            className="bg-black/70 hover:bg-white/10 text-white rounded-xl"
+                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
                                         >
                                             <RefreshCw className="h-4 w-4" />
                                         </Button>
@@ -227,7 +227,7 @@ const AdminClients = () => {
                                         size="icon"
                                         onClick={() => copyToClipboard(email)}
                                         title="Copiar email"
-                                        className="bg-black/70 hover:bg-white/10 text-white rounded-xl"
+                                        className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
                                     >
                                         <Copy className="h-4 w-4" />
                                     </Button>
@@ -262,7 +262,7 @@ const AdminClients = () => {
                                             size="icon"
                                             onClick={generateRandomPassword}
                                             title="Gerar senha aleatória"
-                                            className="bg-black/70 hover:bg-white/10 text-white rounded-xl"
+                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
                                         >
                                             <RefreshCw className="h-4 w-4" />
                                         </Button>
@@ -271,7 +271,7 @@ const AdminClients = () => {
                                             size="icon"
                                             onClick={() => copyToClipboard(password)}
                                             title="Copiar senha"
-                                            className="bg-black/70 hover:bg-white/10 text-white rounded-xl"
+                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
                                         >
                                             <Copy className="h-4 w-4" />
                                         </Button>
@@ -337,7 +337,7 @@ const AdminClients = () => {
                                         size="icon"
                                         title="Editar Cliente"
                                         onClick={() => handleOpenDialog(client)}
-                                        className="text-white hover:bg-white/10 rounded-xl"
+                                        className="text-white rounded-xl hover:bg-white/10 transition-all"
                                     >
                                         <Edit className="h-4 w-4" />
                                     </Button>
@@ -346,7 +346,7 @@ const AdminClients = () => {
                                     <div className="flex gap-2">
                                         <Button
                                             asChild
-                                            className="w-full bg-black/70 hover:bg-white/10 text-white rounded-xl transition-all"
+                                            className="w-full bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
                                         >
                                             <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
                                                 <GalleryHorizontal className="mr-2 h-4 w-4"/>
@@ -358,19 +358,19 @@ const AdminClients = () => {
                                             size="icon"
                                             title="Copiar email"
                                             onClick={() => copyToClipboard(client.email)}
-                                            className="bg-black/70 hover:bg-white/10 text-white rounded-xl"
+                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
                                         >
                                             <Copy className="h-4 w-4" />
                                         </Button>
                                         <Button
-                                            variant="ghost"
+                                            type="button"
                                             size="icon"
                                             title="Excluir Cliente"
                                             onClick={() => {
                                                 setCurrentClient(client);
                                                 setIsDeleteDialogOpen(true);
                                             }}
-                                            className="hover:bg-red-600/20 rounded-xl"
+                                            className="bg-transparent border-0 rounded-xl hover:bg-red-600/20 transition-all"
                                         >
                                             <Trash2 className="h-4 w-4 text-red-500" />
                                         </Button>
@@ -398,11 +398,12 @@ const AdminClients = () => {
                             <Button variant="secondary" className="rounded-xl">Cancelar</Button>
                         </DialogClose>
                         <Button
-                            variant="destructive"
+                            type="button"
                             disabled={isDeleting}
                             onClick={handleDeleteClient}
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all"
+                            className="bg-transparent border-0 rounded-xl hover:bg-red-600/20 text-red-500 transition-all flex items-center"
                         >
+                            <Trash2 className="h-4 w-4 mr-2 text-red-500" />
                             {isDeleting ? 'Excluindo...' : 'Excluir'}
                         </Button>
                     </DialogFooter>

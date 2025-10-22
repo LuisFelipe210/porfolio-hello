@@ -279,7 +279,11 @@ const AdminClientGalleriesWithFunctions = () => {
         <div>
             <div className="flex items-center gap-4 mb-6">
                 <Link to="/admin/clients">
-                    <Button variant="outline" size="icon" className="bg-black/70 backdrop-blur-md border-none text-white hover:bg-black/90 transition-all">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-black/70 backdrop-blur-md border-none text-white hover:bg-gray-800/20 transition-all rounded-xl"
+                    >
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                 </Link>
@@ -305,7 +309,7 @@ const AdminClientGalleriesWithFunctions = () => {
                         </DialogHeader>
                         <form onSubmit={handleCreateGallery} className="space-y-4">
                             <div>
-                                <Label htmlFor="galleryName" className="text-white mb-1 font-semibold">Nome da Galeria</Label>
+                                <Label htmlFor="galleryName" className="text-white mb-1 font-bold">Nome da Galeria</Label>
                                 <Input
                                     id="galleryName"
                                     value={galleryName}
@@ -316,7 +320,7 @@ const AdminClientGalleriesWithFunctions = () => {
                             </div>
                             <DialogFooter>
                                 <DialogClose asChild>
-                                    <Button type="button" variant="secondary" className="rounded-xl">Cancelar</Button>
+                                    <Button type="button" variant="secondary" className="rounded-xl hover:bg-gray-800/20 transition-all">Cancelar</Button>
                                 </DialogClose>
                                 <Button
                                     type="submit"
@@ -334,8 +338,8 @@ const AdminClientGalleriesWithFunctions = () => {
             <div className="space-y-4">
                 {isLoading ? (
                     <>
-                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
-                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
+                        <Skeleton className="h-28 w-full bg-black/60 rounded-3xl" />
+                        <Skeleton className="h-28 w-full bg-black/60 rounded-3xl" />
                     </>
                 ) : galleries.length > 0 ? (
                     galleries.map((gallery) => (
@@ -380,7 +384,7 @@ const AdminClientGalleriesWithFunctions = () => {
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}
-                                            className="hover:bg-red-700/20 transition-all rounded-xl"
+                                            className="border border-red-500 hover:bg-red-700/20 transition-all rounded-xl"
                                         >
                                             <Trash2 className="h-4 w-4 text-red-500" />
                                         </Button>
@@ -424,10 +428,10 @@ const AdminClientGalleriesWithFunctions = () => {
                         </p>
                         <DialogFooter className="flex justify-end gap-2">
                             <DialogClose asChild>
-                                <Button variant="secondary" className="rounded-xl">Cancelar</Button>
+                                <Button variant="secondary" className="rounded-xl hover:bg-gray-800/20 transition-all">Cancelar</Button>
                             </DialogClose>
                             <Button
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all"
+                                className="border border-red-500 hover:bg-red-700/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent"
                                 onClick={() => {
                                     if (galleryToDelete) {
                                         handleDeleteGallery(galleryToDelete._id);
@@ -435,7 +439,7 @@ const AdminClientGalleriesWithFunctions = () => {
                                     }
                                 }}
                             >
-                                Excluir
+                                <Trash2 className="mr-2 h-4 w-4 text-red-500" />Excluir
                             </Button>
                         </DialogFooter>
                     </DialogContent>

@@ -103,7 +103,7 @@ const AdminServices = () => {
                         </div>
                         <div className="flex gap-2">
                             <Button type="submit" disabled={isSubmitting} className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all">{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
-                            <Button variant="outline" type="button" onClick={() => setEditingService(null)} className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all">Cancelar</Button>
+                            <Button type="button" onClick={() => setEditingService(null)} className="text-white bg-black/70 rounded-xl hover:bg-gray-800 transition-all">Cancelar</Button>
                         </div>
                     </form>
                 </CardContent>
@@ -127,7 +127,7 @@ const AdminServices = () => {
                         <Card key={service._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <h2 className="text-xl font-semibold text-white">{service.title}</h2>
-                                <Button variant="ghost" size="icon" onClick={() => setEditingService(service)} className="text-white hover:bg-white/10">
+                                <Button size="icon" onClick={() => setEditingService(service)} className="text-white bg-black/70 rounded-xl hover:bg-white/10 transition-all">
                                     <Edit className="h-4 w-4" />
                                 </Button>
                             </CardHeader>

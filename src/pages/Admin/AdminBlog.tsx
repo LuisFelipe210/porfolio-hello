@@ -165,12 +165,16 @@ const AdminBlog = () => {
             <div className="flex justify-between items-center mb-6">
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
                     <DialogTrigger asChild>
-                        <Button variant="default" onClick={() => handleOpenDialog()} className="text-white hover:bg-white/10">
+                        <Button
+                            variant="default"
+                            onClick={() => handleOpenDialog()}
+                            className="bg-black rounded-xl text-white font-bold hover:bg-gray-800/20 transition-all flex items-center"
+                        >
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Novo Artigo
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl border border-gray-500">
+                    <DialogContent className="sm:max-w-2xl bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                         <DialogHeader>
                             <DialogTitle className="text-white font-bold text-xl">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
                         </DialogHeader>
@@ -196,7 +200,7 @@ const AdminBlog = () => {
                                 />
                                 {file && (
                                     <div className="mt-2">
-                                        <img src={URL.createObjectURL(file)} alt="Pré-visualização" className="w-40 h-28 object-cover rounded-lg border border-gray-500" />
+                                        <img src={URL.createObjectURL(file)} alt="Pré-visualização" className="w-40 h-28 object-cover rounded-xl border border-gray-500" />
                                     </div>
                                 )}
                             </div>
@@ -212,8 +216,22 @@ const AdminBlog = () => {
                                 />
                             </div>
                             <DialogFooter>
-                                <DialogClose asChild><Button type="button" variant="secondary" className="text-white hover:bg-white/10">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={isSubmitting} className="text-white hover:bg-white/10">{isSubmitting ? 'Salvando...' : 'Salvar'}</Button>
+                                <DialogClose asChild>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
+                                    >
+                                        Cancelar
+                                    </Button>
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-bold transition-all"
+                                >
+                                    {isSubmitting ? 'Salvando...' : 'Salvar'}
+                                </Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
@@ -230,7 +248,7 @@ const AdminBlog = () => {
                 <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
-                    className="border border-gray-500 rounded-md bg-black/50 px-3 py-2 text-sm text-white focus:border-gray-300 focus:ring-white"
+                    className="border border-gray-500 rounded-xl bg-black/50 px-3 py-2 text-sm text-white focus:border-gray-300 focus:ring-white"
                 >
                     <option value="recent">Mais recentes</option>
                     <option value="oldest">Mais antigos</option>
@@ -238,56 +256,72 @@ const AdminBlog = () => {
             </div>
 
             <div className="space-y-6">
-                {isLoading ? <><Skeleton className="h-24 w-full bg-black/60 rounded-xl" /><Skeleton className="h-24 w-full bg-black/60 rounded-xl" /></>
-                    : filteredPosts.length > 0 ? (
-                        filteredPosts.map((post) => (
-                            <div key={post._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
-                                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
-                                    <CardContent className="p-6 flex items-center justify-between gap-6">
-                                        <div className="flex items-center gap-6">
-                                            <img
-                                                src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
-                                                alt={post.title}
-                                                className="w-20 h-14 rounded-lg object-cover border border-gray-500"
-                                            />
-                                            <div>
-                                                <h3 className="text-white font-bold text-lg">{post.title}</h3>
-                                                <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
-                                            </div>
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
+                        <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
+                    </>
+                ) : filteredPosts.length > 0 ? (
+                    filteredPosts.map((post) => (
+                        <div key={post._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
+                            <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
+                                <CardContent className="p-6 flex items-center justify-between gap-6">
+                                    <div className="flex items-center gap-6">
+                                        <img
+                                            src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
+                                            alt={post.title}
+                                            className="w-20 h-14 rounded-xl object-cover border border-gray-500"
+                                        />
+                                        <div>
+                                            <h3 className="text-white font-bold text-lg">{post.title}</h3>
+                                            <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(post)} className="text-white hover:bg-white/10"><Edit className="h-4 w-4" /></Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => {
-                                                    setPostToDelete(post);
-                                                    setIsDeleteDialogOpen(true);
-                                                }}
-                                                className="text-red-600 hover:bg-red-600/10"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-center text-white/80 pt-12">Nenhum artigo encontrado.</p>
-                    )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleOpenDialog(post)}
+                                            className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setPostToDelete(post);
+                                                setIsDeleteDialogOpen(true);
+                                            }}
+                                            className="border border-red-600 text-red-600 rounded-xl hover:bg-red-600/10 transition-all"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-center text-white/80 pt-12">Nenhum artigo encontrado.</p>
+                )}
             </div>
 
             {postToDelete && (
                 <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl border border-gray-500">
+                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                         <DialogHeader>
                             <DialogTitle className="text-white font-bold text-xl">Confirmar exclusão</DialogTitle>
                         </DialogHeader>
                         <p className="text-center mt-4 text-white/80">Tem certeza que deseja excluir o artigo "{postToDelete.title}"? Esta ação não pode ser desfeita.</p>
                         <DialogFooter className="flex justify-end gap-2 mt-4">
                             <DialogClose asChild>
-                                <Button variant="secondary" className="text-white hover:bg-white/10">Cancelar</Button>
+                                <Button
+                                    variant="secondary"
+                                    className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
+                                >
+                                    Cancelar
+                                </Button>
                             </DialogClose>
                             <Button
                                 variant="destructive"
@@ -309,7 +343,7 @@ const AdminBlog = () => {
                                         setPostToDelete(null);
                                     }
                                 }}
-                                className="text-red-600 hover:bg-red-600/10"
+                                className="border border-red-600 text-red-600 rounded-xl hover:bg-red-600/10 transition-all"
                             >
                                 Excluir
                             </Button>

@@ -115,11 +115,14 @@ const AdminTestimonials = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-white">Gerir Depoimentos</h1>
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" className="text-white border-white hover:bg-white/10" onClick={() => handleOpenDialog()}>
-                            <PlusCircle className="mr-2 h-4 w-4" />Adicionar
-                        </Button>
-                    </DialogTrigger>
+                <DialogTrigger asChild>
+                    <Button
+                        className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
+                        onClick={() => handleOpenDialog()}
+                    >
+                        <PlusCircle className="mr-2 h-4 w-4" />Adicionar
+                    </Button>
+                </DialogTrigger>
                     <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                         <DialogHeader>
                             <DialogTitle className="text-white text-xl font-semibold">{editingId ? "Editar Depoimento" : "Adicionar Novo Depoimento"}</DialogTitle>
@@ -161,12 +164,17 @@ const AdminTestimonials = () => {
                             </div>
                             <DialogFooter>
                                 <DialogClose asChild>
-                                    <Button type="button" variant="secondary" className="text-white border-white hover:bg-white/10">Cancelar</Button>
+                                    <Button
+                                        type="button"
+                                        className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
+                                    >
+                                        Cancelar
+                                    </Button>
                                 </DialogClose>
                                 <Button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all"
+                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white transition-all"
                                 >
                                     {isSubmitting ? 'Salvando...' : 'Salvar'}
                                 </Button>
@@ -193,22 +201,20 @@ const AdminTestimonials = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <Button
-                                            variant="ghost"
                                             size="icon"
-                                            className="text-white hover:bg-white/10"
+                                            className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
                                             onClick={() => handleOpenDialog(item)}
                                             aria-label="Editar depoimento"
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Button>
                                         <Button
-                                            variant="ghost"
                                             size="icon"
-                                            className="text-destructive hover:bg-destructive/10"
+                                            className="bg-black rounded-xl hover:bg-red-600/20 transition-all"
                                             onClick={() => { setTestimonialToDelete(item); setIsDeleteDialogOpen(true); }}
                                             aria-label="Excluir depoimento"
                                         >
-                                            <Trash2 className="h-4 w-4" />
+                                            <Trash2 className="h-4 w-4 text-red-600" />
                                         </Button>
                                     </div>
                                 </div>
@@ -232,18 +238,22 @@ const AdminTestimonials = () => {
                         <p className="text-white">Tem certeza que deseja excluir o depoimento de "{testimonialToDelete.author}"?</p>
                         <DialogFooter className="flex justify-end gap-2">
                             <DialogClose asChild>
-                                <Button variant="secondary" className="text-white border-white hover:bg-white/10">Cancelar</Button>
+                                <Button
+                                    className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
+                                >
+                                    Cancelar
+                                </Button>
                             </DialogClose>
                             <Button
-                                variant="destructive"
                                 onClick={() => {
                                     if (testimonialToDelete) {
                                         handleDelete(testimonialToDelete._id);
                                         setIsDeleteDialogOpen(false);
                                     }
                                 }}
-                                className="bg-red-600 text-white hover:bg-red-700"
+                                className="bg-black rounded-xl hover:bg-red-600/20 transition-all"
                             >
+                                <Trash2 className="h-4 w-4 mr-2 text-red-600" />
                                 Excluir
                             </Button>
                         </DialogFooter>
