@@ -20,6 +20,25 @@ const AdminLayout = () => {
         }
     }, [navigate]);
 
+    // Força o tema escuro
+    useEffect(() => {
+        const html = document.documentElement;
+        const observer = new MutationObserver(() => {
+            if (!html.classList.contains('dark')) {
+                html.classList.add('dark');
+                html.classList.remove('light');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+        observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+        html.classList.add('dark');
+        html.classList.remove('light');
+        localStorage.setItem('theme', 'dark');
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
     useEffect(() => {
         if (location.pathname === '/admin') {
             navigate('/admin/clients');
@@ -113,7 +132,7 @@ const AdminLayout = () => {
     if (isMobile) {
         return (
             <div className="min-h-screen w-full">
-                <header className="fixed top-0 left-0 w-full z-[100] flex items-center justify-center h-16 bg-white shadow-md px-4">
+                <header className="relative z-[100] flex h-24 items-center justify-between px-6 md:px-12 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 border-b border-zinc-200/20 shadow-md backdrop-blur-sm">
                     {/* Logo central */}
                     <div className="flex-1 flex justify-center">
                         <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
@@ -145,7 +164,8 @@ const AdminLayout = () => {
                         </Sheet>
                     </div>
                 </header>
-                <main className="relative z-10 p-4">
+                {/* CORREÇÃO: Adicionada margem superior para compensar o cabeçalho fixo no mobile */}
+                <main className="relative z-10 p-4 pt-20">
                     <Outlet />
                 </main>
             </div>
@@ -153,7 +173,8 @@ const AdminLayout = () => {
     }
 
     return (
-        <div className="flex flex-col min-h-screen">
+        // CORREÇÃO: Alterado de min-h-screen para h-screen e adicionado overflow-hidden
+        <div className="flex flex-col h-screen overflow-hidden">
             <div className="fixed inset-0 z-0">
                 <img
                     src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
@@ -163,7 +184,8 @@ const AdminLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 border-b border-zinc-200/20 shadow-md backdrop-blur-sm">
+            {/* CORREÇÃO: Removido 'sticky top-0' */}
+            <header className="relative z-[100] flex h-24 items-center justify-between px-6 md:px-12 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80 border-b border-zinc-200/20 shadow-md backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold">Painel Admin</span>
@@ -173,12 +195,13 @@ const AdminLayout = () => {
                     Sair
                 </Button>
             </header>
-
             <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-card border-r p-4 flex flex-col relative z-10">
+                {/* aside: com rolagem interna se a lista de links for longa */}
+                <aside className="w-64 bg-card border-r p-4 flex flex-col relative z-10 overflow-y-auto">
                     <NavLinks />
                 </aside>
-                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto">
+                {/* 2. <main> agora tem altura total (flex-1) mas NÃO rola. */}
+                <main className="relative z-10 flex-1 p-6 md:p-8 overflow-hidden">
                     <Outlet />
                 </main>
             </div>

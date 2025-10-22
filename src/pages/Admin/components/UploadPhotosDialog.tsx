@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "@/components/ui/progress"; // <-- Componente de progresso
 import { useToast } from '@/hooks/use-toast';
 import { Upload } from 'lucide-react';
 
@@ -18,7 +18,7 @@ interface UploadPhotosDialogProps {
 export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChange, onUploadComplete }: UploadPhotosDialogProps) => {
     const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [progress, setProgress] = useState(0);
+    const [progress, setProgress] = useState(0); // <-- Estado do progresso
     const { toast } = useToast();
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,11 +35,11 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
         setIsUploading(true);
         setProgress(0);
 
-        const uploadedUrls: string[] = [];
-        let completed = 0;
-
         const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
         const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
+
+        const uploadedUrls: string[] = [];
+        let completed = 0;
 
         const uploadPromises = files.map(async (file) => {
             const formData = new FormData();
@@ -64,6 +64,7 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
                 const uploadData = await uploadResponse.json();
                 uploadedUrls.push(uploadData.secure_url);
                 completed++;
+                // Lógica de atualização do progresso (por arquivo concluído)
                 setProgress((completed / files.length) * 100);
             } catch (error) {
                 throw new Error(`Erro no upload de ${file.name}`);
@@ -106,26 +107,47 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            {/* Ajuste de estilo para Dark Mode/Transparente */}
+            <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl border-white/10 text-white">
                 <DialogHeader>
-                    <DialogTitle>Adicionar Fotos à Galeria</DialogTitle>
+                    <DialogTitle className="text-white">Adicionar Fotos à Galeria</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div>
-                        <Label htmlFor="photo-upload">Selecionar fotos</Label>
-                        <Input id="photo-upload" type="file" multiple onChange={handleFileSelect} />
-                        {files.length > 0 && <p className="text-sm text-muted-foreground mt-2">{files.length} ficheiros selecionados.</p>}
+                        <Label htmlFor="photo-upload" className="text-white">Selecionar fotos</Label>
+                        <Input
+                            id="photo-upload"
+                            type="file"
+                            multiple
+                            onChange={handleFileSelect}
+                            className="bg-black/80 border border-gray-500 text-white placeholder:text-white rounded-xl file:text-white file:bg-black/70 file:border-0"
+                        />
+                        <p className="text-sm text-white/70 mt-2">{files.length > 0 ? `${files.length} ficheiros selecionados.` : 'Nenhum ficheiro selecionado.'}</p>
                     </div>
+
+                    {/* Exibição do progresso */}
                     {isUploading && (
                         <div className="space-y-2">
                             <Progress value={progress} />
-                            <p className="text-sm text-muted-foreground">Enviando... {Math.round(progress)}%</p>
+                            <p className="text-sm text-white/70">Enviando... {Math.round(progress)}%</p>
                         </div>
                     )}
                 </div>
                 <DialogFooter>
-                    <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button onClick={handleUpload} disabled={isUploading || files.length === 0}>
+                    <Button
+                        variant="secondary"
+                        onClick={() => onOpenChange(false)}
+                        // CORREÇÃO: Adicionada classe rounded-xl
+                        className="bg-gray-700 hover:bg-gray-600 text-white rounded-xl"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleUpload}
+                        disabled={isUploading || files.length === 0}
+                        // CORREÇÃO: Adicionada classe rounded-xl
+                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl"
+                    >
                         <Upload className="mr-2 h-4 w-4" />
                         {isUploading ? 'Enviando...' : `Enviar ${files.length} Fotos`}
                     </Button>

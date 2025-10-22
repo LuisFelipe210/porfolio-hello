@@ -72,9 +72,9 @@ const ImageModal = ({
                 <div className="relative flex flex-col items-center justify-center gap-4">
                     <img src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1600")} alt="Foto do ensaio em tamanho grande" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl pointer-events-none" onContextMenu={(e) => e.preventDefault()} />
                     {!isSelectionComplete && (
-                        <div className="absolute top-4 right-4 flex items-center gap-2 bg-white/60 rounded-full p-2 shadow-md">
-                            <Heart className={`h-6 w-6 ${isSelected ? 'fill-orange-500 text-orange-500' : 'text-gray-800'}`} />
-                            <button onClick={() => toggleSelection(currentImage)} className="text-sm font-medium text-gray-900 hover:text-gray-700">{isSelected ? 'Remover' : 'Selecionar'}</button>
+                        <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/50 rounded-full p-2 shadow-md">
+                            <Heart className={`h-6 w-6 ${isSelected ? 'fill-orange-500 text-orange-500' : 'text-gray-100'}`} />
+                            <button onClick={() => toggleSelection(currentImage)} className="text-sm font-medium text-white hover:text-gray-300">{isSelected ? 'Remover' : 'Selecionar'}</button>
                         </div>
                     )}
                 </div>
@@ -89,7 +89,7 @@ const ImageModal = ({
 const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }: {
     gallery: Gallery;
     onSelectionSubmit: () => void;
-    onSelectionChange: (galleryId: string, selections: string[]) => void; // <-- CORREÇÃO: Adicionada prop
+    onSelectionChange: (galleryId: string, selections: string[]) => void;
 }) => {
     const storageKey = `gallery-selection-${gallery._id}`;
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
@@ -108,9 +108,9 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         const selectionsArray = Array.from(selectedImages);
         if (!isSelectionComplete) {
             localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
-            onSelectionChange(gallery._id, selectionsArray); // <-- CORREÇÃO: Chama a função do pai
+            onSelectionChange(gallery._id, selectionsArray);
         }
-    }, [selectedImages, storageKey, isSelectionComplete, gallery._id, onSelectionChange]); // <-- CORREÇÃO: Adicionadas dependências
+    }, [selectedImages, storageKey, isSelectionComplete, gallery._id, onSelectionChange]);
 
     const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
 
@@ -146,9 +146,13 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     return (
         <div>
             {modalImageIndex !== null && <ImageModal images={gallery.images} currentIndex={modalImageIndex} onClose={() => setModalImageIndex(null)} onNavigate={handleNavigateModal} selectedImages={selectedImages} toggleSelection={toggleSelection} isSelectionComplete={isSelectionComplete} />}
-            <Card className="mb-8">
-                <CardHeader><CardTitle>{gallery.name}</CardTitle><CardDescription>{isSelectionComplete ? "Seleção finalizada e enviada." : "Clique numa imagem para a ver em detalhe e selecionar as suas favoritas."}</CardDescription></CardHeader>
-            </Card>
+
+            {/* CORREÇÃO: Removido o Card e deixado apenas o texto flutuando */}
+            <div className="mb-8 text-white">
+                <h2 className="text-3xl font-bold">{gallery.name}</h2>
+                <p className="text-lg text-white/80">{isSelectionComplete ? "Seleção finalizada e enviada." : "Clique numa imagem para a ver em detalhe e selecionar as suas favoritas."}</p>
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
                 {gallery.images.map((imageUrl, index) => (
                     <div key={imageUrl}
@@ -156,11 +160,16 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                          onClick={() => setModalImageIndex(index)}
                          onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_1600"))}
                     >
-                        <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")} alt="Foto do ensaio" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                        {/* Efeito de imagem: Scale e grayscale no hover */}
+                        <img
+                            src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")}
+                            alt="Foto do ensaio"
+                            className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:filter group-hover:grayscale-50"
+                        />
 
                         {!isSelectionComplete && (
                             <button
-                                className="absolute top-2 right-2 p-1 rounded-full bg-black/40 hover:bg-black/60 transition-colors z-10"
+                                className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 transition-colors z-10"
                                 onClick={(e) => toggleSelection(imageUrl, e)}
                                 aria-label={selectedImages.has(imageUrl) ? "Remover seleção" : "Selecionar foto"}
                             >
@@ -168,20 +177,51 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                             </button>
                         )}
 
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                 ))}
             </div>
+
+            {/* Barra de resumo fixa no rodapé com fundo mais sólido */}
             {!isSelectionComplete && (
-                <div className="sticky bottom-4 mt-8 z-20 flex justify-center">
-                    <Card className="p-2 shadow-lg"><div className="flex items-center gap-4">
-                        <CardContent className="p-2"><p className="font-bold text-lg">{selectedImages.size} fotos selecionadas</p></CardContent>
-                        <AlertDialog><AlertDialogTrigger asChild><Button size="lg" disabled={selectedImages.size === 0}><Send className="mr-2 h-4 w-4" /> Finalizar Seleção</Button></AlertDialogTrigger>
-                            <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Confirmar Envio</AlertDialogTitle><AlertDialogDescription>Tem a certeza que deseja finalizar a sua seleção de {selectedImages.size} fotos? Não poderá fazer alterações após o envio.</AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleSubmitSelection} disabled={isSubmitting}>{isSubmitting ? 'A enviar...' : 'Sim, enviar'}</AlertDialogAction></AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div></Card>
+                <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center py-4 bg-black/80 shadow-[0_-5px_15px_rgba(0,0,0,0.5)]">
+                    <Card className="p-2 shadow-lg bg-black/0 border-none">
+                        <div className="flex items-center gap-6">
+                            <CardContent className="p-2 text-white">
+                                <p className="font-bold text-lg">{selectedImages.size} fotos selecionadas</p>
+                            </CardContent>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        size="lg"
+                                        disabled={selectedImages.size === 0}
+                                        // Estilo de botão de destaque
+                                        className="bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors"
+                                    >
+                                        <Send className="mr-2 h-4 w-4" /> Finalizar Seleção
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-black/80 border-white/20 text-white">
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Confirmar Envio</AlertDialogTitle>
+                                        <AlertDialogDescription className="text-white/80">
+                                            Tem a certeza que deseja finalizar a sua seleção de {selectedImages.size} fotos? Não poderá fazer alterações após o envio.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600 border-none text-white">Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={handleSubmitSelection}
+                                            disabled={isSubmitting}
+                                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                                        >
+                                            {isSubmitting ? 'A enviar...' : 'Sim, enviar'}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    </Card>
                 </div>
             )}
         </div>
@@ -250,7 +290,7 @@ const ClientGalleryPage = () => {
         fetchGalleries();
     }
 
-    // <-- CORREÇÃO: Função para atualizar o estado da contagem localmente -->
+    // Função para atualizar o estado da contagem localmente
     const handleSelectionChange = useCallback((galleryId: string, newSelections: string[]) => {
         setGalleries(prevGalleries =>
             prevGalleries.map(g =>
@@ -264,27 +304,28 @@ const ClientGalleryPage = () => {
     }
 
     if (activeGallery) {
-        // <-- CORREÇÃO: Passa a função para o componente filho -->
         return <GallerySelectionView gallery={activeGallery} onSelectionSubmit={handleSelectionSubmit} onSelectionChange={handleSelectionChange} />
     }
 
     return (
         <div>
-            <h1 className="text-3xl font-bold mb-6">As Suas Galerias</h1>
+            <h1 className="text-3xl font-bold mb-6 text-white">As Suas Galerias</h1>
             {galleries.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {galleries.map((gallery) => (
                         <div
                             key={gallery._id}
                             onClick={() => setActiveGallery(gallery)}
-                            className="relative flex flex-col bg-white/10 backdrop-blur-lg border border-white/20 rounded-[2rem] overflow-hidden shadow-xl cursor-pointer transition-transform hover:scale-105 hover:shadow-2xl"
+                            // NOVO: Estilo mais limpo e focado na borda laranja no hover
+                            className="relative flex flex-col bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl cursor-pointer transition-all duration-300 hover:border-orange-500/80 hover:shadow-orange-500/30"
                         >
                             <div className="w-full h-48 overflow-hidden">
                                 {gallery.images[0] ? (
                                     <img
                                         src={optimizeCloudinaryUrl(gallery.images[0], 'f_auto,q_auto,w_600')}
                                         alt={gallery.name}
-                                        className="w-full h-full object-cover"
+                                        // NOVO: Efeito de desaturação e scale no hover
+                                        className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:grayscale-50"
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
@@ -296,7 +337,7 @@ const ClientGalleryPage = () => {
                                 <h2 className="text-lg font-bold text-white">{gallery.name}</h2>
                                 <p className="text-sm text-white/90">{gallery.images.length} fotos</p>
                                 {gallery.status === 'selection_complete' ? (
-                                    <div className="flex items-center text-green-500 text-sm">
+                                    <div className="flex items-center text-green-400 text-sm">
                                         <CheckCircle className="h-4 w-4 mr-2" /> Seleção finalizada
                                     </div>
                                 ) : (

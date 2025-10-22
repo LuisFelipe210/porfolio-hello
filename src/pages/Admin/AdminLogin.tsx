@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
-import { optimizeCloudinaryUrl } from '@/lib/utils'; // <-- CORREÇÃO: Importado
+import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 const AdminLogin = () => {
     const [username, setUsername] = useState('');
@@ -38,7 +38,8 @@ const AdminLogin = () => {
                 description: 'Redirecionando para o painel...',
             });
 
-            navigate('/admin/portfolio');
+            // CORREÇÃO: Redirecionado para a página de clientes
+            navigate('/admin/clients');
         } catch (error) {
             toast({
                 variant: 'destructive',

@@ -20,12 +20,8 @@ interface Post {
     createdAt: string;
 }
 
-// ======================================================================
-// ⚠️ ATENÇÃO: SUBSTITUA ESTES VALORES PELOS SEUS DA CLOUDINARY
-// O Upload Preset deve ser configurado como NÃO ASSINADO no painel da Cloudinary.
-const CLOUDINARY_CLOUD_NAME = "SEU_CLOUD_NAME";
-const CLOUDINARY_UPLOAD_PRESET = "SEU_UPLOAD_PRESET_NAO_ASSINADO";
-// ======================================================================
+const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
+const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
 const AdminBlog = () => {
     const [posts, setPosts] = useState<Post[]>([]);
@@ -157,12 +153,16 @@ const AdminBlog = () => {
     };
 
     return (
-        <div>
-            <div className="py-6">
+        // Container principal: Ocupa a altura total disponível e define o layout como coluna.
+        <div className="flex flex-col h-full">
+            {/* Título: Fixo no topo (shrink-0) */}
+            <div className="py-6 shrink-0">
                 <h1 className="text-white font-bold text-2xl tracking-tight">Gerir Blog</h1>
                 <p className="text-white/80">Aqui você pode criar, editar e excluir artigos do blog.</p>
             </div>
-            <div className="flex justify-between items-center mb-6">
+
+            {/* Botão de Novo Artigo: Fixo no topo (shrink-0) */}
+            <div className="flex justify-end items-center mb-6 shrink-0">
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
                     <DialogTrigger asChild>
                         <Button
@@ -238,7 +238,8 @@ const AdminBlog = () => {
                 </Dialog>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+            {/* Busca e Filtro: Fixo no topo (shrink-0) */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
                 <Input
                     placeholder="Buscar artigo..."
                     value={searchTerm}
@@ -255,56 +256,59 @@ const AdminBlog = () => {
                 </select>
             </div>
 
-            <div className="space-y-6">
-                {isLoading ? (
-                    <>
-                        <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
-                        <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
-                    </>
-                ) : filteredPosts.length > 0 ? (
-                    filteredPosts.map((post) => (
-                        <div key={post._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
-                            <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
-                                <CardContent className="p-6 flex items-center justify-between gap-6">
-                                    <div className="flex items-center gap-6">
-                                        <img
-                                            src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
-                                            alt={post.title}
-                                            className="w-20 h-14 rounded-xl object-cover border border-gray-500"
-                                        />
-                                        <div>
-                                            <h3 className="text-white font-bold text-lg">{post.title}</h3>
-                                            <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+            {/* Container da Lista de Artigos: Ocupa o espaço restante e tem rolagem */}
+            <div className="flex-1 overflow-y-auto scrollbar-visible pr-2">
+                <div className="space-y-6">
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
+                            <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
+                        </>
+                    ) : filteredPosts.length > 0 ? (
+                        filteredPosts.map((post) => (
+                            <div key={post._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
+                                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
+                                    <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                                        <div className="flex items-center gap-6">
+                                            <img
+                                                src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
+                                                alt={post.title}
+                                                className="w-20 h-14 rounded-xl object-cover border border-gray-500 shrink-0"
+                                            />
+                                            <div>
+                                                <h3 className="text-white font-bold text-lg">{post.title}</h3>
+                                                <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleOpenDialog(post)}
-                                            className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => {
-                                                setPostToDelete(post);
-                                                setIsDeleteDialogOpen(true);
-                                            }}
-                                            className="border border-red-600 text-red-600 rounded-xl hover:bg-red-600/10 transition-all"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-center text-white/80 pt-12">Nenhum artigo encontrado.</p>
-                )}
+                                        <div className="flex gap-2 self-end sm:self-center">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleOpenDialog(post)}
+                                                className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => {
+                                                    setPostToDelete(post);
+                                                    setIsDeleteDialogOpen(true);
+                                                }}
+                                                className="border border-red-600 text-red-600 rounded-xl hover:bg-red-600/10 transition-all"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-center text-white/80 pt-12">Nenhum artigo encontrado.</p>
+                    )}
+                </div>
             </div>
 
             {postToDelete && (

@@ -342,7 +342,7 @@ const PortfolioSection = () => {
                                     onTouchEnd={handleTouchEnd}
                                 >
                                     <img
-                                        src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1600")}
+                                        src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_720")}
                                         alt={filteredItems[selectedIndex].title}
                                         className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300"
                                     />

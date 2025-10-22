@@ -276,8 +276,10 @@ const AdminClientGalleriesWithFunctions = () => {
     };
 
     return (
-        <div>
-            <div className="flex items-center gap-4 mb-6">
+        // Container principal: Ocupa a altura total disponível e define o layout como coluna.
+        <div className="flex flex-col h-full">
+            {/* Header Block 1: Título e botão de voltar (shrink-0) */}
+            <div className="flex items-center gap-4 mb-6 shrink-0">
                 <Link to="/admin/clients">
                     <Button
                         variant="outline"
@@ -293,7 +295,8 @@ const AdminClientGalleriesWithFunctions = () => {
                 </div>
             </div>
 
-            <div className="flex justify-end mb-6">
+            {/* Header Block 2: Botão de criar nova galeria (shrink-0) */}
+            <div className="flex justify-end mb-6 shrink-0">
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                     <DialogTrigger asChild>
                         <Button
@@ -335,67 +338,70 @@ const AdminClientGalleriesWithFunctions = () => {
                 </Dialog>
             </div>
 
-            <div className="space-y-4">
-                {isLoading ? (
-                    <>
-                        <Skeleton className="h-28 w-full bg-black/60 rounded-3xl" />
-                        <Skeleton className="h-28 w-full bg-black/60 rounded-3xl" />
-                    </>
-                ) : galleries.length > 0 ? (
-                    galleries.map((gallery) => (
-                        <Card
-                            key={gallery._id}
-                            className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none"
-                        >
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-white font-bold">{gallery.name}</CardTitle>
-                                        <CardDescription className="text-white/80">
-                                            {gallery.images.length} fotos | {gallery.selections.length} selecionadas
-                                        </CardDescription>
+            {/* Container da Lista de Cards: Ocupa o espaço restante e tem rolagem */}
+            <div className="flex-1 overflow-y-auto scrollbar-visible pr-2">
+                <div className="space-y-4">
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-28 w-full bg-black/60 rounded-3xl" />
+                            <Skeleton className="h-28 w-full bg-black/60 rounded-3xl" />
+                        </>
+                    ) : galleries.length > 0 ? (
+                        galleries.map((gallery) => (
+                            <Card
+                                key={gallery._id}
+                                className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none"
+                            >
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle className="text-white font-bold">{gallery.name}</CardTitle>
+                                            <CardDescription className="text-white/80">
+                                                {gallery.images.length} fotos | {gallery.selections.length} selecionadas
+                                            </CardDescription>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2 justify-end">
+                                            <Button
+                                                onClick={() => {
+                                                    if (gallery.status === 'selection_complete' || gallery.selections.length > 0) {
+                                                        toast({
+                                                            variant: 'destructive',
+                                                            title: 'Galeria finalizada',
+                                                            description: 'Não é possível adicionar novas fotos em uma galeria finalizada ou com seleções.'
+                                                        });
+                                                        return;
+                                                    }
+                                                    openUploadDialog(gallery);
+                                                }}
+                                                disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0}
+                                                className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-semibold transition-all"
+                                            >
+                                                <Upload className="mr-2 h-4 w-4" />Adicionar Fotos
+                                            </Button>
+                                            <Button
+                                                disabled={gallery.status !== 'selection_complete'}
+                                                onClick={() => openViewDialog(gallery)}
+                                                className="bg-white/10 hover:bg-white/20 text-orange-400 rounded-xl font-semibold transition-all border border-orange-500"
+                                            >
+                                                <Eye className="mr-2 h-4 w-4"/>Ver Seleção
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}
+                                                className="border border-red-500 hover:bg-red-700/20 transition-all rounded-xl"
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 justify-end">
-                                        <Button
-                                            onClick={() => {
-                                                if (gallery.status === 'selection_complete' || gallery.selections.length > 0) {
-                                                    toast({
-                                                        variant: 'destructive',
-                                                        title: 'Galeria finalizada',
-                                                        description: 'Não é possível adicionar novas fotos em uma galeria finalizada ou com seleções.'
-                                                    });
-                                                    return;
-                                                }
-                                                openUploadDialog(gallery);
-                                            }}
-                                            disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0}
-                                            className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-semibold transition-all"
-                                        >
-                                            <Upload className="mr-2 h-4 w-4" />Adicionar Fotos
-                                        </Button>
-                                        <Button
-                                            disabled={gallery.status !== 'selection_complete'}
-                                            onClick={() => openViewDialog(gallery)}
-                                            className="bg-white/10 hover:bg-white/20 text-orange-400 rounded-xl font-semibold transition-all border border-orange-500"
-                                        >
-                                            <Eye className="mr-2 h-4 w-4"/>Ver Seleção
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}
-                                            className="border border-red-500 hover:bg-red-700/20 transition-all rounded-xl"
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                        </Card>
-                    ))
-                ) : (
-                    <p className="text-center text-white/60 pt-12">Nenhuma galeria encontrada. Crie a primeira!</p>
-                )}
+                                </CardHeader>
+                            </Card>
+                        ))
+                    ) : (
+                        <p className="text-center text-white/60 pt-12">Nenhuma galeria encontrada. Crie a primeira!</p>
+                    )}
+                </div>
             </div>
 
             {selectedGallery && (

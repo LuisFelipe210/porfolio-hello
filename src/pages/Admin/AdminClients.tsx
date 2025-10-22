@@ -170,19 +170,21 @@ const AdminClients = () => {
         .sort((a, b) => sortOrder === 'recent' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
+        // Container principal: Ocupa a altura total disponível e define o layout como coluna.
+        <div className="flex flex-col h-full">
+            {/* Título e Botão: Fixo no topo (shrink-0) */}
+            <div className="flex justify-between items-center mb-6 shrink-0">
                 <h1 className="text-3xl font-bold text-white">Gerir Clientes</h1>
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild>
-                    <Button
-                        onClick={() => handleOpenDialog(null)}
-                        className="bg-black/70 rounded-xl text-white hover:bg-white/10 transition-all"
-                    >
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Novo Cliente
-                    </Button>
-                </DialogTrigger>
+                    <DialogTrigger asChild>
+                        <Button
+                            onClick={() => handleOpenDialog(null)}
+                            className="bg-black/70 rounded-xl text-white hover:bg-white/10 transition-all"
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Novo Cliente
+                        </Button>
+                    </DialogTrigger>
                     <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-semibold text-white">
@@ -299,7 +301,8 @@ const AdminClients = () => {
                 </Dialog>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+            {/* Busca e Filtro: Fixo no topo (shrink-0) */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
                 <Input
                     placeholder="Buscar cliente..."
                     value={searchTerm}
@@ -316,72 +319,75 @@ const AdminClients = () => {
                 </select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                    <>
-                        <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
-                        <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
-                        <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
-                    </>
-                ) : filteredClients.length > 0 ? (
-                    filteredClients.map((client) => (
-                        <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
-                            <div className="flex flex-col p-6 gap-4 bg-black/70 backdrop-blur-md rounded-3xl shadow-md transition-all duration-300 hover:bg-black/80">
-                                <div className="flex-1 flex flex-row items-center justify-between p-0">
-                                    <div className="flex flex-col">
-                                        <h2 className="text-xl font-semibold text-white">{client.name}</h2>
-                                        <span className="text-white/80">{client.email}</span>
+            {/* Container da Lista de Cards: Ocupa o espaço restante e tem rolagem */}
+            <div className="flex-1 overflow-y-auto pr-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
+                            <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
+                            <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
+                        </>
+                    ) : filteredClients.length > 0 ? (
+                        filteredClients.map((client) => (
+                            <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
+                                <div className="flex flex-col p-6 gap-4 bg-black/70 backdrop-blur-md rounded-3xl shadow-md transition-all duration-300 hover:bg-black/80">
+                                    <div className="flex-1 flex flex-row items-center justify-between p-0">
+                                        <div className="flex flex-col">
+                                            <h2 className="text-xl font-semibold text-white">{client.name}</h2>
+                                            <span className="text-white/80">{client.email}</span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            title="Editar Cliente"
+                                            onClick={() => handleOpenDialog(client)}
+                                            className="text-white rounded-xl hover:bg-white/10 transition-all"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        title="Editar Cliente"
-                                        onClick={() => handleOpenDialog(client)}
-                                        className="text-white rounded-xl hover:bg-white/10 transition-all"
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                                <div className="p-0">
-                                    <div className="flex gap-2">
-                                        <Button
-                                            asChild
-                                            className="w-full bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                        >
-                                            <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                                                <GalleryHorizontal className="mr-2 h-4 w-4"/>
-                                                Gerir Galerias
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            title="Copiar email"
-                                            onClick={() => copyToClipboard(client.email)}
-                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            title="Excluir Cliente"
-                                            onClick={() => {
-                                                setCurrentClient(client);
-                                                setIsDeleteDialogOpen(true);
-                                            }}
-                                            className="bg-transparent border-0 rounded-xl hover:bg-red-600/20 transition-all"
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
+                                    <div className="p-0">
+                                        <div className="flex gap-2">
+                                            <Button
+                                                asChild
+                                                className="w-full bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
+                                            >
+                                                <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
+                                                    <GalleryHorizontal className="mr-2 h-4 w-4"/>
+                                                    Gerir Galerias
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="icon"
+                                                title="Copiar email"
+                                                onClick={() => copyToClipboard(client.email)}
+                                                className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
+                                            >
+                                                <Copy className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="icon"
+                                                title="Excluir Cliente"
+                                                onClick={() => {
+                                                    setCurrentClient(client);
+                                                    setIsDeleteDialogOpen(true);
+                                                }}
+                                                className="bg-transparent border-0 rounded-xl hover:bg-red-600/20 transition-all"
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-center text-white/60 pt-12">Nenhum cliente encontrado.</p>
-                )}
+                        ))
+                    ) : (
+                        <p className="text-center text-white/60 pt-12">Nenhum cliente encontrado.</p>
+                    )}
+                </div>
             </div>
 
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -414,4 +420,3 @@ const AdminClients = () => {
 };
 
 export default AdminClients;
-

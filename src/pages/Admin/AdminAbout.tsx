@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Upload } from 'lucide-react';
+import { Trash2, Upload, Loader2 } from 'lucide-react';
 
 // ======================================================================
 // ⚠️ ATENÇÃO: SUBSTITUA ESTES VALORES PELOS SEUS DA CLOUDINARY
@@ -28,11 +28,34 @@ interface AboutContent {
     imagesColumn2: Image[];
 }
 
+// Função utilitária para comparar os estados, ignorando a ordem das imagens (deep equality)
+const areContentsEqual = (content1: AboutContent | null, content2: AboutContent | null) => {
+    if (!content1 || !content2) return content1 === content2;
+
+    const serialize = (content: AboutContent) => {
+        return JSON.stringify({
+            paragraph1: content.paragraph1,
+            paragraph2: content.paragraph2,
+            // Ordena as listas de imagens para garantir que a ordem não cause false negatives
+            imagesColumn1: [...content.imagesColumn1].sort((a, b) => a.src.localeCompare(b.src)),
+            imagesColumn2: [...content.imagesColumn2].sort((a, b) => a.src.localeCompare(b.src)),
+        });
+    };
+
+    return serialize(content1) === serialize(content2);
+};
+
 const AdminAbout = () => {
     const [content, setContent] = useState<AboutContent | null>(null);
+    // NOVO ESTADO: Armazena o estado inicial para comparação
+    const [initialContent, setInitialContent] = useState<AboutContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState<'column1' | 'column2' | null>(null);
     const { toast } = useToast();
+
+    // Calcula se houve alguma mudança
+    const isModified = !areContentsEqual(content, initialContent);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -40,7 +63,11 @@ const AdminAbout = () => {
                 setIsLoading(true);
                 const response = await fetch('/api/about');
                 const data = await response.json();
+
+                // Define ambos os estados com o conteúdo carregado
                 setContent(data);
+                setInitialContent(data);
+
             } catch (error) {
                 toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar o conteúdo.' });
             } finally {
@@ -83,14 +110,19 @@ const AdminAbout = () => {
         if (!file || !content) return;
 
         try {
+            setIsUploading(column === 'imagesColumn1' ? 'column1' : 'column2');
+
             const uploadedUrl = await handleCloudinaryUpload(file);
 
             const newImage: Image = { src: uploadedUrl, alt: 'Nova imagem da seção sobre' };
+            // Atualiza o estado de 'content'
             setContent({ ...content, [column]: [...content[column], newImage] });
 
             toast({ title: 'Upload concluído!', description: 'Imagem adicionada com sucesso.' });
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro de Upload', description: 'Não foi possível enviar a imagem.' });
+        } finally {
+            setIsUploading(null);
         }
     };
 
@@ -98,6 +130,7 @@ const AdminAbout = () => {
         if (!content) return;
         const updatedImages = [...content[column]];
         updatedImages.splice(index, 1);
+        // Atualiza o estado de 'content'
         setContent({ ...content, [column]: updatedImages });
     };
 
@@ -119,6 +152,10 @@ const AdminAbout = () => {
 
             if (!response.ok) throw new Error('Falha ao salvar as alterações.');
             toast({ title: 'Sucesso!', description: 'A sua secção "Sobre Mim" foi atualizada.' });
+
+            // IMPORTANTE: Atualiza o estado inicial para o conteúdo atual após o salvamento
+            setInitialContent(content);
+
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });
         } finally {
@@ -139,7 +176,7 @@ const AdminAbout = () => {
                 </div>
                 <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isModified} // Botão desativado se estiver enviando ou não modificado
                     className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all"
                 >
                     {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
@@ -183,12 +220,14 @@ const AdminAbout = () => {
                         images={content.imagesColumn1}
                         onFileChange={(e) => handleFileChange(e, 'imagesColumn1')}
                         onRemove={(i) => handleRemoveImage(i, 'imagesColumn1')}
+                        isUploading={isUploading === 'column1'}
                     />
                     <ImageManager
                         title="Imagens da Coluna 2"
                         images={content.imagesColumn2}
                         onFileChange={(e) => handleFileChange(e, 'imagesColumn2')}
                         onRemove={(i) => handleRemoveImage(i, 'imagesColumn2')}
+                        isUploading={isUploading === 'column2'}
                     />
                 </div>
             </div>
@@ -201,12 +240,14 @@ const ImageManager = ({
                           title,
                           images,
                           onFileChange,
-                          onRemove
+                          onRemove,
+                          isUploading
                       }: {
     title: string;
     images: Image[];
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemove: (index: number) => void;
+    isUploading: boolean;
 }) => (
     <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
         <CardHeader>
@@ -232,6 +273,12 @@ const ImageManager = ({
                         </Button>
                     </div>
                 ))}
+                {/* Exibe o indicador de carregamento enquanto o upload está ativo */}
+                {isUploading && (
+                    <div className="relative flex items-center justify-center w-full h-24 bg-black/80 border border-gray-500 rounded-md">
+                        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                    </div>
+                )}
             </div>
             <Label htmlFor={`upload-${title.replace(/\s+/g, '')}`} className="w-full text-white mb-1 font-semibold cursor-pointer">
                 <div className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-white/10">

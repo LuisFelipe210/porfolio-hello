@@ -111,18 +111,20 @@ const AdminTestimonials = () => {
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
+        // Container principal: Ocupa a altura total disponível e define o layout como coluna.
+        <div className="flex flex-col h-full">
+            {/* Título e Botão: Fixo no topo (shrink-0) */}
+            <div className="flex justify-between items-center mb-6 shrink-0">
                 <h1 className="text-3xl font-bold text-white">Gerir Depoimentos</h1>
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild>
-                    <Button
-                        className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
-                        onClick={() => handleOpenDialog()}
-                    >
-                        <PlusCircle className="mr-2 h-4 w-4" />Adicionar
-                    </Button>
-                </DialogTrigger>
+                    <DialogTrigger asChild>
+                        <Button
+                            className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
+                            onClick={() => handleOpenDialog()}
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" />Adicionar
+                        </Button>
+                    </DialogTrigger>
                     <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                         <DialogHeader>
                             <DialogTitle className="text-white text-xl font-semibold">{editingId ? "Editar Depoimento" : "Adicionar Novo Depoimento"}</DialogTitle>
@@ -184,49 +186,52 @@ const AdminTestimonials = () => {
                 </Dialog>
             </div>
 
-            <div className="space-y-4">
-                {isLoading ? (
-                    <>
-                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
-                        <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
-                    </>
-                ) : testimonials.length > 0 ? (
-                    testimonials.map((item) => (
-                        <Card key={item._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h2 className="text-white font-bold text-xl">{item.author}</h2>
-                                        <p className="text-white/80">{item.role}</p>
+            {/* Container da Lista de Cards: Ocupa o espaço restante e tem rolagem */}
+            <div className="flex-1 overflow-y-auto pr-2 scrollbar-visible">
+                <div className="space-y-4">
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
+                            <Skeleton className="h-28 w-full bg-black/60 rounded-xl" />
+                        </>
+                    ) : testimonials.length > 0 ? (
+                        testimonials.map((item) => (
+                            <Card key={item._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h2 className="text-white font-bold text-xl">{item.author}</h2>
+                                            <p className="text-white/80">{item.role}</p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="icon"
+                                                className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
+                                                onClick={() => handleOpenDialog(item)}
+                                                aria-label="Editar depoimento"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                className="bg-black rounded-xl hover:bg-red-600/20 transition-all"
+                                                onClick={() => { setTestimonialToDelete(item); setIsDeleteDialogOpen(true); }}
+                                                aria-label="Excluir depoimento"
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            size="icon"
-                                            className="bg-black text-white rounded-xl hover:bg-gray-800/20 transition-all"
-                                            onClick={() => handleOpenDialog(item)}
-                                            aria-label="Editar depoimento"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            className="bg-black rounded-xl hover:bg-red-600/20 transition-all"
-                                            onClick={() => { setTestimonialToDelete(item); setIsDeleteDialogOpen(true); }}
-                                            aria-label="Excluir depoimento"
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-white/80 italic">"{item.text}"</p>
-                            </CardContent>
-                        </Card>
-                    ))
-                ) : (
-                    <p className="text-center text-white pt-12">Nenhum depoimento encontrado. Adicione o primeiro!</p>
-                )}
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-white/80 italic">"{item.text}"</p>
+                                </CardContent>
+                            </Card>
+                        ))
+                    ) : (
+                        <p className="text-center text-white pt-12">Nenhum depoimento encontrado. Adicione o primeiro!</p>
+                    )}
+                </div>
             </div>
 
             {testimonialToDelete && (

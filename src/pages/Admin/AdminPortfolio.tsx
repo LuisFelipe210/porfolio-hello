@@ -201,32 +201,39 @@ const AdminPortfolio = () => {
     const renderContent = () => {
         if (isLoading) {
             return isMobile ? (
-                <div className="space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
+                // MOBILE: h-full e overflow-y-auto para rolagem interna
+                <div className="h-full space-y-4 overflow-y-auto pr-2">
                     <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
                     <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
                 </div>
             ) : (
-                <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-white/80 bg-black/60 rounded-xl">Carregando...</TableCell>
-                </TableRow>
+                <TableBody>
+                    <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center text-white/80 bg-black/60 rounded-xl">Carregando...</TableCell>
+                    </TableRow>
+                </TableBody>
             );
         }
 
         if (items.length === 0) {
             return isMobile ? (
-                <div className="space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
+                // MOBILE: h-full e overflow-y-auto para rolagem interna
+                <div className="h-full space-y-4 overflow-y-auto pr-2">
                     <p className="text-center text-white/80 mt-8">Nenhum item encontrado. Adicione o primeiro!</p>
                 </div>
             ) : (
-                <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-white/80 bg-black/60 rounded-xl">Nenhum item encontrado. Adicione o primeiro!</TableCell>
-                </TableRow>
+                <TableBody>
+                    <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center text-white/80 bg-black/60 rounded-xl">Nenhum item encontrado. Adicione o primeiro!</TableCell>
+                    </TableRow>
+                </TableBody>
             );
         }
 
         if (isMobile) {
+            // MOBILE: h-full e overflow-y-auto para rolagem interna
             return (
-                <div className="space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
+                <div className="h-full space-y-4 overflow-y-auto pr-2">
                     {items.map((item) => (
                         <div
                             key={item._id}
@@ -333,8 +340,10 @@ const AdminPortfolio = () => {
                 </DialogContent>
             </Dialog>
 
-            <div>
-                <div className="flex justify-between items-center mb-6">
+            {/* Container principal para o AdminPortfolio: Ocupa toda a altura do <main> */}
+            <div className="flex flex-col h-full">
+                {/* Cabeçalho da página (Título e Botão Adicionar): Fixo no topo da div */}
+                <div className="flex justify-between items-center mb-6 shrink-0">
                     <h1 className="text-2xl md:text-3xl font-bold text-white">Gerenciar Portfólio</h1>
                     <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { setIsDialogOpen(isOpen); if (!isOpen) resetForm(); }}>
                         <DialogTrigger asChild>
@@ -424,10 +433,12 @@ const AdminPortfolio = () => {
                     </Dialog>
                 </div>
 
+                {/* Conteúdo da Tabela/Cards: Ocupa o espaço restante (flex-1) e tem rolagem */}
                 {isMobile ? renderContent() : (
-                    <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-2 max-h-[calc(100vh-6rem)] max-w-[95%] mx-auto overflow-y-auto pr-2">
+                    <div className="flex-1 bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-2 overflow-y-auto">
                         <Table>
-                            <TableHeader>
+                            {/* CORREÇÃO: TableHeader fixo no topo da rolagem */}
+                            <TableHeader className="sticky top-0 z-10 bg-black/80 backdrop-blur-md rounded-t-3xl shadow-md">
                                 <TableRow>
                                     <TableHead className="w-[100px] text-white">Imagem</TableHead>
                                     <TableHead className="text-white">Título</TableHead>
