@@ -56,7 +56,7 @@ const ClientLayout = () => {
                     <img src={Logo} alt="Hellô Borges" className="h-10 md:h-12 w-auto" />
                 </div>
 
-                {/* Contêiner para o botão Sair */}
+                {/* Contêiner para o botão Sair i*/}
                 <div className="w-24 flex justify-end">
                     <Button variant="outline" onClick={handleLogout} className="text-sm md:text-base px-3 py-1 rounded-md">
                         <LogOut className="mr-2 h-4 w-4 md:h-5 md:w-5" />
