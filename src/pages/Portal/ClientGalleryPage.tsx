@@ -126,12 +126,12 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                 });
                 if (!response.ok) return;
 
-                const galleries = await response.json();
+                const galleries: Gallery[] = await response.json();
                 const currentGallery = galleries.find((g: Gallery) => g._id === gallery._id);
 
-                if (currentGallery && currentGallery.selections) {
+                if (currentGallery && currentGallery.selections && Array.isArray(currentGallery.selections)) {
                     // Atualizar apenas se houver diferenças
-                    const serverSelections = new Set(currentGallery.selections);
+                    const serverSelections = new Set<string>(currentGallery.selections);
                     const localSelections = selectedImages;
 
                     if (serverSelections.size !== localSelections.size ||
@@ -327,13 +327,32 @@ const ClientGalleryPage = () => {
     useEffect(() => {
         fetchGalleries();
 
-        // NOVO: Atualizar a lista de galerias periodicamente
-        const refreshInterval = setInterval(() => {
-            fetchGalleries();
-        }, 15000); // Atualiza a cada 15 segundos
+        // NOVO: Atualizar a lista de galerias periodicamente (SEM piscar!)
+        const refreshInterval = setInterval(async () => {
+            try {
+                const token = localStorage.getItem('clientAuthToken');
+                const response = await fetch('/api/portal?action=getGalleries', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!response.ok) return;
+                const data = await response.json();
+
+                // Só atualiza se houver mudanças reais
+                setGalleries(prevGalleries => {
+                    const hasChanges = data.some((newGallery: Gallery) => {
+                        const oldGallery = prevGalleries.find(g => g._id === newGallery._id);
+                        if (!oldGallery) return true;
+                        return oldGallery.selections.length !== newGallery.selections.length ||
+                            oldGallery.status !== newGallery.status;
+                    });
+
+                    return hasChanges ? data : prevGalleries;
+                });
+            } catch (error) {
+                console.error('[SYNC] Erro ao sincronizar galerias:', error);
+            }
+        }, 15000);
 
         return () => clearInterval(refreshInterval);
-    }, [fetchGalleries]);
+    }, []);
 
     const handleSelectionSubmit = () => {
         setActiveGallery(null);
