@@ -196,7 +196,32 @@ export default async function handler(req, res) {
             return res.status(200).json(galleries);
         }
 
-        // --- AÇÃO: SUBMETER SELEÇÃO DE FOTOS ---
+        // --- AÇÃO NOVA: ATUALIZAR SELEÇÃO (AUTOSAVE) ---
+        if (action === 'updateSelection' && req.method === 'POST') {
+            const { galleryId, selectedImages } = req.body;
+            if (!galleryId || !selectedImages) return res.status(400).json({ error: 'Dados incompletos.' });
+
+            // ATUALIZA AS SELEÇÕES NO SERVIDOR, MAS NÃO MUDA O STATUS PARA 'selection_complete'
+            const result = await galleriesCollection.updateOne(
+                {
+                    _id: new ObjectId(galleryId),
+                    clientId: new ObjectId(clientId),
+                    // Garante que só podemos atualizar se a seleção ainda não foi finalizada.
+                    status: { $ne: 'selection_complete' }
+                },
+                { $set: { selections: selectedImages } }
+            );
+
+            if (result.matchedCount === 0) {
+                return res.status(404).json({ error: 'Galeria não encontrada, não pertence a este cliente ou a seleção já foi finalizada.' });
+            }
+
+            // Resposta de sucesso para o Autosave (pode ser silenciosa)
+            return res.status(200).json({ message: 'Seleção salva com sucesso (autosave)!' });
+        }
+
+
+        // --- AÇÃO: SUBMETER SELEÇÃO DE FOTOS (FINALIZAR) ---
         if (action === 'submitSelection' && req.method === 'POST') {
             const { galleryId, selectedImages } = req.body;
             if (!galleryId || !selectedImages) return res.status(400).json({ error: 'Dados incompletos.' });
