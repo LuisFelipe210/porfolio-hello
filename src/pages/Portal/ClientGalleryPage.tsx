@@ -95,8 +95,10 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
         if (typeof window !== "undefined") {
             const saved = localStorage.getItem(storageKey);
+            // Tenta carregar do localStorage (para persistência local)
             if (saved) { try { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) return new Set(parsed); } catch { /* ignore */ } }
         }
+        // Se não houver no localStorage, usa a seleção vinda do servidor (sincronizada)
         return new Set(gallery.selections || []);
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,13 +106,49 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
 
+    // NOVO: Função para salvar a seleção no servidor (Autosave)
+    const handleAutoSave = useCallback(async (currentSelections: string[]) => {
+        try {
+            const token = localStorage.getItem('clientAuthToken');
+            // ATENÇÃO: Verifique se o seu back-end suporta este endpoint e ação ('updateSelection')
+            const response = await fetch('/api/portal?action=updateSelection', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ galleryId: gallery._id, selectedImages: currentSelections }),
+            });
+            if (!response.ok) throw new Error('Falha ao salvar a seleção.');
+            // Opcional: toast({ title: 'Salvo', description: 'Seleção salva no servidor.', duration: 1500 });
+        } catch (error) {
+            console.error("Erro no autosave:", error);
+            // toast({ variant: 'destructive', title: 'Erro de Sincronização', description: 'Não foi possível salvar a sua seleção no servidor.' });
+        }
+    }, [gallery._id]);
+
+
+    // useEffect para salvar a seleção no localStorage e disparar o Autosave
     useEffect(() => {
         const selectionsArray = Array.from(selectedImages);
         if (!isSelectionComplete) {
+            // 1. Salva no LocalStorage (para o mesmo dispositivo)
             localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
+            // 2. Notifica o componente pai
             onSelectionChange(gallery._id, selectionsArray);
+
+            // 3. Autosave com um delay (debounce) para salvar no servidor
+            const timeoutId = setTimeout(() => {
+                handleAutoSave(selectionsArray);
+            }, 3000); // Salva 3 segundos após o último clique/alteração
+
+            // Limpa o timeout se a seleção mudar novamente antes dos 3s
+            return () => clearTimeout(timeoutId);
+
+        } else {
+            // Se a seleção estiver completa, garante que o localstorage é limpo
+            localStorage.removeItem(storageKey);
         }
-    }, [selectedImages, storageKey, isSelectionComplete, gallery._id, onSelectionChange]);
+
+    }, [selectedImages, storageKey, isSelectionComplete, gallery._id, onSelectionChange, handleAutoSave]);
+
 
     const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
 
@@ -120,7 +158,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         setSelectedImages(prev => {
             const newSet = new Set(prev);
             if (newSet.has(imageUrl)) newSet.delete(imageUrl); else newSet.add(imageUrl);
-            // O useEffect já trata de salvar no localStorage e notificar o pai
             return newSet;
         });
     };
@@ -129,6 +166,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem('clientAuthToken');
+            // Este endpoint finaliza a seleção no back-end
             const response = await fetch('/api/portal?action=submitSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }), });
             if (!response.ok) throw new Error('Falha ao enviar a seleção.');
             toast({ title: 'Seleção Enviada!', description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
@@ -257,19 +295,24 @@ const ClientGalleryPage = () => {
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
 
+            // Lógica para priorizar a seleção local OU a seleção do servidor
             const galleriesWithLocalSelections = data.map((gallery: Gallery) => {
                 const storageKey = `gallery-selection-${gallery._id}`;
                 const savedSelections = localStorage.getItem(storageKey);
+
+                // Se a galeria NÃO estiver completa, e houver dados no localStorage, prioriza o local.
                 if (savedSelections && gallery.status !== 'selection_complete') {
                     try {
                         const parsed = JSON.parse(savedSelections);
                         if (Array.isArray(parsed)) {
+                            // Prioriza o estado local, que é o mais recente, até que o autosave sincronize.
                             return { ...gallery, selections: parsed };
                         }
                     } catch {
-                        // Se houver erro ao fazer parse, usa os dados do servidor
+                        // Se houver erro ao fazer parse, usa os dados do servidor que foram buscados.
                     }
                 }
+                // Se não houver local ou a seleção estiver completa, usa os dados do servidor.
                 return gallery;
             });
 
