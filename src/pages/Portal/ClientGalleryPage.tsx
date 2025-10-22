@@ -216,7 +216,24 @@ const ClientGalleryPage = () => {
             const response = await fetch('/api/portal?action=getGalleries', { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
-            setGalleries(data);
+
+            const galleriesWithLocalSelections = data.map((gallery: Gallery) => {
+                const storageKey = `gallery-selection-${gallery._id}`;
+                const savedSelections = localStorage.getItem(storageKey);
+                if (savedSelections && gallery.status !== 'selection_complete') {
+                    try {
+                        const parsed = JSON.parse(savedSelections);
+                        if (Array.isArray(parsed)) {
+                            return { ...gallery, selections: parsed };
+                        }
+                    } catch {
+                        // Se houver erro ao fazer parse, usa os dados do servidor
+                    }
+                }
+                return gallery;
+            });
+
+            setGalleries(galleriesWithLocalSelections);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as suas galerias.' });
         } finally {
