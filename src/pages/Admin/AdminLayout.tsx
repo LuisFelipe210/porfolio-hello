@@ -105,14 +105,14 @@ const AdminLayout = () => {
     if (isMobile) {
         return (
             <div className="min-h-screen w-full bg-black">
-                <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-800 bg-gray-900 px-4">
+                <header className="sticky top-0 z-10 flex h-16 items-center justify-between bg-white/10 backdrop-blur-lg px-4 text-gray-200">
                     <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
                         <SheetTrigger asChild>
                             <Button size="icon" className="bg-gray-900 text-gray-200 border-none hover:bg-gray-800">
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="flex flex-col p-0 bg-gray-900 text-gray-200">
+                        <SheetContent side="left" className="flex flex-col p-0 bg-white/10 backdrop-blur-lg text-gray-200">
                             <div className="flex items-center gap-2 p-4 border-b border-gray-800">
                                 <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                                 <span className="text-lg font-semibold">Painel Admin</span>
@@ -131,7 +131,7 @@ const AdminLayout = () => {
                     <span className="text-lg font-semibold text-gray-200">Painel Admin</span>
                     <div />
                 </header>
-                <main className="relative z-10 p-4 bg-black min-h-[calc(100vh-4rem)] text-gray-200">
+                <main className="relative z-10 p-4 bg-white/10 backdrop-blur-lg min-h-[calc(100vh-4rem)] text-gray-200">
                     <Outlet />
                 </main>
             </div>
@@ -149,7 +149,7 @@ const AdminLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             </div>
 
-            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-gray-900 border-b border-gray-800 shadow-md backdrop-blur-sm">
+            <header className="relative z-[100] sticky top-0 flex h-24 items-center justify-between px-6 md:px-12 bg-white/10 backdrop-blur-lg border-b border-gray-800 shadow-md text-gray-200">
                 <div className="flex items-center gap-2">
                     <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     <span className="text-lg font-semibold text-gray-200">Painel Admin</span>
@@ -161,10 +161,10 @@ const AdminLayout = () => {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-gray-900 border-r border-gray-800 p-4 flex flex-col relative z-10">
+                <aside className="w-64 bg-white/10 backdrop-blur-lg border-r border-gray-800 p-4 flex flex-col relative z-10 text-gray-200">
                     <NavLinks />
                 </aside>
-                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto bg-black text-gray-200">
+                <main className="relative z-10 flex-1 p-6 md:p-8 pt-24 overflow-auto bg-white/10 backdrop-blur-lg text-gray-200">
                     <Outlet />
                 </main>
             </div>
