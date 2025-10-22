@@ -89,7 +89,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 }) => {
     const storageKey = `gallery-selection-${gallery._id}`;
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
-        // MUDANÇA: Priorizar dados do servidor (gallery.selections)
         return new Set(gallery.selections || []);
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,11 +97,15 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const isSelectionComplete = gallery.status === 'selection_complete';
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const isSyncingRef = useRef(false); // NOVO: Flag para evitar conflitos
+    const selectedImagesRef = useRef(selectedImages); // NOVO: Ref para ter sempre o valor atual
+    const lastServerUpdateRef = useRef<number>(0); // NOVO: Timestamp da última atualização do servidor
+
+    // NOVO: Mantém a ref atualizada
+    useEffect(() => {
+        selectedImagesRef.current = selectedImages;
+    }, [selectedImages]);
 
     const saveSelectionsToServer = async (currentSelections: string[]) => {
-        if (isSyncingRef.current) return; // Não salva se estiver sincronizando
-
         try {
             const token = localStorage.getItem('clientAuthToken');
             const response = await fetch('/api/portal?action=updateSelection', {
@@ -117,14 +120,12 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         }
     };
 
-    // NOVO: Sincronizar com o servidor periodicamente
+    // NOVO: Sincronizar com o servidor periodicamente (SEM dependências problemáticas)
     useEffect(() => {
         if (isSelectionComplete) return;
 
         const syncInterval = setInterval(async () => {
             try {
-                isSyncingRef.current = true; // Marca que está sincronizando
-
                 const token = localStorage.getItem('clientAuthToken');
                 const response = await fetch('/api/portal?action=getGalleries', {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -135,34 +136,33 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                 const currentGallery = galleries.find((g: Gallery) => g._id === gallery._id);
 
                 if (currentGallery && currentGallery.selections && Array.isArray(currentGallery.selections)) {
-                    // Atualizar apenas se houver diferenças
-                    const serverSelections = new Set<string>(currentGallery.selections);
-                    const localSelectionsArray = Array.from(selectedImages);
+                    const serverSelections = currentGallery.selections;
+                    const currentLocalSelections = Array.from(selectedImagesRef.current);
 
-                    // Comparação mais precisa
+                    // Só atualiza se:
+                    // 1. Houver diferença real
+                    // 2. Passou tempo suficiente desde a última atualização local (evita sobrescrever mudanças recentes)
+                    const timeSinceLastUpdate = Date.now() - lastServerUpdateRef.current;
                     const isDifferent =
-                        serverSelections.size !== selectedImages.size ||
-                        currentGallery.selections.some(img => !selectedImages.has(img)) ||
-                        localSelectionsArray.some(img => !serverSelections.has(img));
+                        serverSelections.length !== currentLocalSelections.length ||
+                        serverSelections.some(img => !selectedImagesRef.current.has(img)) ||
+                        currentLocalSelections.some(img => !serverSelections.includes(img));
 
-                    if (isDifferent) {
-                        console.log('[SYNC] Atualizando seleções do servidor:', currentGallery.selections.length);
-                        setSelectedImages(serverSelections);
-                        localStorage.setItem(storageKey, JSON.stringify(currentGallery.selections));
-                        onSelectionChange(gallery._id, currentGallery.selections);
+                    if (isDifferent && timeSinceLastUpdate > 5000) { // Só sincroniza se passou 5s desde última mudança local
+                        console.log('[SYNC] Atualizando seleções do servidor:', serverSelections.length);
+                        const newSet = new Set<string>(serverSelections);
+                        setSelectedImages(newSet);
+                        localStorage.setItem(storageKey, JSON.stringify(serverSelections));
+                        onSelectionChange(gallery._id, serverSelections);
                     }
                 }
             } catch (error) {
                 console.error('[SYNC] Erro ao sincronizar:', error);
-            } finally {
-                setTimeout(() => {
-                    isSyncingRef.current = false; // Libera após um pequeno delay
-                }, 1000);
             }
-        }, 10000); // Sincroniza a cada 10 segundos
+        }, 10000);
 
         return () => clearInterval(syncInterval);
-    }, [gallery._id, isSelectionComplete, selectedImages, onSelectionChange, storageKey]);
+    }, [gallery._id, isSelectionComplete, storageKey, onSelectionChange]);
 
     useEffect(() => {
         const selectionsArray = Array.from(selectedImages);
@@ -171,15 +171,17 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
             clearTimeout(timeoutRef.current);
         }
 
-        if (!isSelectionComplete && !isSyncingRef.current) { // MUDANÇA: Não salva durante sync
-            // Salvar localmente para backup
+        if (!isSelectionComplete) {
+            // Marca o timestamp da última mudança local
+            lastServerUpdateRef.current = Date.now();
+
             localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
             onSelectionChange(gallery._id, selectionsArray);
 
             timeoutRef.current = setTimeout(() => {
                 saveSelectionsToServer(selectionsArray);
             }, 3000);
-        } else if (isSelectionComplete) {
+        } else {
             localStorage.removeItem(storageKey);
         }
 
