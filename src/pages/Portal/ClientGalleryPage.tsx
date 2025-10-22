@@ -9,7 +9,6 @@ import { Heart, CheckCircle, Send, X, ChevronLeft, ChevronRight } from 'lucide-r
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Interface para os dados da galeria
 interface Gallery {
     _id: string;
     name: string;
@@ -18,12 +17,10 @@ interface Gallery {
     status: string;
 }
 
-// Interface para o contexto vindo do Layout
 interface LayoutContext {
     setHeaderBackAction: (action: (() => void) | null) => void;
 }
 
-// --- Componente para a Janela de Visualização ---
 const ImageModal = ({
                         images,
                         currentIndex,
@@ -85,7 +82,6 @@ const ImageModal = ({
     );
 };
 
-// --- Componente para a Vista de Seleção de UMA Galeria ---
 const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }: {
     gallery: Gallery;
     onSelectionSubmit: () => void;
@@ -93,10 +89,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 }) => {
     const storageKey = `gallery-selection-${gallery._id}`;
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
-        if (typeof window !== "undefined") {
-            const saved = localStorage.getItem(storageKey);
-            if (saved) { try { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) return new Set(parsed); } catch { /* ignore */ } }
-        }
+        // MUDANÇA: Priorizar dados do servidor (gallery.selections)
         return new Set(gallery.selections || []);
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,14 +97,11 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
 
-    // NOVO: Ref para controlar o timeout do debounce (corrigindo o problema de repetição)
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Função para salvar a seleção no servidor (agora como função normal dentro do escopo)
     const saveSelectionsToServer = async (currentSelections: string[]) => {
         try {
             const token = localStorage.getItem('clientAuthToken');
-            // ATENÇÃO: endpoint 'updateSelection' deve estar configurado no seu back-end!
             const response = await fetch('/api/portal?action=updateSelection', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -121,36 +111,63 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
             console.log(`[SUCESSO] Autosave: ${currentSelections.length} fotos salvas.`);
         } catch (error) {
             console.error("Erro no autosave:", error);
-            // Opcional: toast({ variant: 'destructive', title: 'Erro de Sincronização', description: 'Não foi possível salvar a sua seleção no servidor.' });
         }
     };
 
+    // NOVO: Sincronizar com o servidor periodicamente
+    useEffect(() => {
+        if (isSelectionComplete) return;
 
-    // useEffect para salvar a seleção no localStorage e disparar o Autosave (DEBOUNCE REVISADO)
+        const syncInterval = setInterval(async () => {
+            try {
+                const token = localStorage.getItem('clientAuthToken');
+                const response = await fetch('/api/portal?action=getGalleries', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const galleries = await response.json();
+                const currentGallery = galleries.find((g: Gallery) => g._id === gallery._id);
+
+                if (currentGallery && currentGallery.selections) {
+                    // Atualizar apenas se houver diferenças
+                    const serverSelections = new Set(currentGallery.selections);
+                    const localSelections = selectedImages;
+
+                    if (serverSelections.size !== localSelections.size ||
+                        [...serverSelections].some(img => !localSelections.has(img))) {
+                        console.log('[SYNC] Atualizando seleções do servidor');
+                        setSelectedImages(serverSelections);
+                        onSelectionChange(gallery._id, currentGallery.selections);
+                    }
+                }
+            } catch (error) {
+                console.error('[SYNC] Erro ao sincronizar:', error);
+            }
+        }, 10000); // Sincroniza a cada 10 segundos
+
+        return () => clearInterval(syncInterval);
+    }, [gallery._id, isSelectionComplete, selectedImages, onSelectionChange]);
+
     useEffect(() => {
         const selectionsArray = Array.from(selectedImages);
 
-        // 1. Limpa o timeout anterior (debounce)
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
 
         if (!isSelectionComplete) {
-            // 2. Salva no LocalStorage (sempre, para persistência imediata)
+            // Salvar localmente para backup
             localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
-            // 3. Notifica o componente pai
             onSelectionChange(gallery._id, selectionsArray);
 
-            // 4. Define um novo timeout para salvar no servidor (Autosave)
             timeoutRef.current = setTimeout(() => {
                 saveSelectionsToServer(selectionsArray);
-            }, 3000); // Salva 3 segundos após o último clique/alteração
+            }, 3000);
         } else {
-            // Se a seleção estiver completa, garante que o localstorage é limpo
             localStorage.removeItem(storageKey);
         }
 
-        // 5. Cleanup: Garante que o último timeout é limpo se o componente desmontar
         return () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
@@ -158,7 +175,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         };
 
     }, [selectedImages, isSelectionComplete, gallery._id, storageKey, onSelectionChange]);
-
 
     const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
 
@@ -176,7 +192,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem('clientAuthToken');
-            // Este endpoint finaliza a seleção no back-end
             const response = await fetch('/api/portal?action=submitSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }), });
             if (!response.ok) throw new Error('Falha ao enviar a seleção.');
             toast({ title: 'Seleção Enviada!', description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
@@ -195,7 +210,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         <div>
             {modalImageIndex !== null && <ImageModal images={gallery.images} currentIndex={modalImageIndex} onClose={() => setModalImageIndex(null)} onNavigate={handleNavigateModal} selectedImages={selectedImages} toggleSelection={toggleSelection} isSelectionComplete={isSelectionComplete} />}
 
-            {/* CORREÇÃO: Removido o Card e deixado apenas o texto flutuando */}
             <div className="mb-8 text-white">
                 <h2 className="text-3xl font-bold">{gallery.name}</h2>
                 <p className="text-lg text-white/80">{isSelectionComplete ? "Seleção finalizada e enviada." : "Clique numa imagem para a ver em detalhe e selecionar as suas favoritas."}</p>
@@ -208,7 +222,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                          onClick={() => setModalImageIndex(index)}
                          onMouseEnter={() => preloadImage(optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_720"))}
                     >
-                        {/* Efeito de imagem: Scale e grayscale no hover */}
                         <img
                             src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")}
                             alt="Foto do ensaio"
@@ -230,7 +243,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                 ))}
             </div>
 
-            {/* Barra de resumo fixa no rodapé com fundo mais sólido */}
             {!isSelectionComplete && (
                 <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center py-4 bg-black/80 shadow-[0_-5px_15px_rgba(0,0,0,0.5)]">
                     <Card className="p-2 shadow-lg bg-black/0 border-none">
@@ -243,7 +255,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                                     <Button
                                         size="lg"
                                         disabled={selectedImages.size === 0}
-                                        // Estilo de botão de destaque
                                         className="bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors"
                                     >
                                         <Send className="mr-2 h-4 w-4" /> Finalizar Seleção
@@ -276,7 +287,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     );
 };
 
-// --- Componente Principal ---
 const ClientGalleryPage = () => {
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -305,23 +315,8 @@ const ClientGalleryPage = () => {
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
 
-            const galleriesWithLocalSelections = data.map((gallery: Gallery) => {
-                const storageKey = `gallery-selection-${gallery._id}`;
-                const savedSelections = localStorage.getItem(storageKey);
-                if (savedSelections && gallery.status !== 'selection_complete') {
-                    try {
-                        const parsed = JSON.parse(savedSelections);
-                        if (Array.isArray(parsed)) {
-                            return { ...gallery, selections: parsed };
-                        }
-                    } catch {
-                        // Se houver erro ao fazer parse, usa os dados do servidor
-                    }
-                }
-                return gallery;
-            });
-
-            setGalleries(galleriesWithLocalSelections);
+            // MUDANÇA: Priorizar sempre dados do servidor
+            setGalleries(data);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as suas galerias.' });
         } finally {
@@ -331,6 +326,13 @@ const ClientGalleryPage = () => {
 
     useEffect(() => {
         fetchGalleries();
+
+        // NOVO: Atualizar a lista de galerias periodicamente
+        const refreshInterval = setInterval(() => {
+            fetchGalleries();
+        }, 15000); // Atualiza a cada 15 segundos
+
+        return () => clearInterval(refreshInterval);
     }, [fetchGalleries]);
 
     const handleSelectionSubmit = () => {
@@ -338,7 +340,6 @@ const ClientGalleryPage = () => {
         fetchGalleries();
     }
 
-    // Função para atualizar o estado da contagem localmente
     const handleSelectionChange = useCallback((galleryId: string, newSelections: string[]) => {
         setGalleries(prevGalleries =>
             prevGalleries.map(g =>
@@ -364,7 +365,6 @@ const ClientGalleryPage = () => {
                         <div
                             key={gallery._id}
                             onClick={() => setActiveGallery(gallery)}
-                            // NOVO: Estilo mais limpo e focado na borda laranja no hover
                             className="relative flex flex-col bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl cursor-pointer transition-all duration-300 hover:border-orange-500/80 hover:shadow-orange-500/30"
                         >
                             <div className="w-full h-48 overflow-hidden">
@@ -372,7 +372,6 @@ const ClientGalleryPage = () => {
                                     <img
                                         src={optimizeCloudinaryUrl(gallery.images[0], 'f_auto,q_auto,w_600')}
                                         alt={gallery.name}
-                                        // NOVO: Efeito de desaturação e scale no hover
                                         className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:grayscale-50"
                                     />
                                 ) : (
