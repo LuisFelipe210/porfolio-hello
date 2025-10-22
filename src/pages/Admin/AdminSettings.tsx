@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -101,15 +101,15 @@ const AdminSettings = () => {
 
     if (isLoading || !settings) {
         return (
-            <Card className="rounded-3xl bg-black/30 backdrop-blur-sm border border-white shadow-md">
+            <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
                 <CardHeader>
-                    <Skeleton className="h-8 w-64 rounded-xl bg-black/40" />
-                    <Skeleton className="h-4 w-full mt-2 rounded-xl bg-black/40" />
+                    <Skeleton className="h-8 w-64 rounded-xl bg-black/60" />
+                    <Skeleton className="h-4 w-full mt-2 rounded-xl bg-black/60" />
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <Skeleton className="h-10 w-full rounded-xl bg-black/40" />
-                    <Skeleton className="h-10 w-full rounded-xl bg-black/40" />
-                    <Skeleton className="h-10 w-full rounded-xl bg-black/40" />
+                    <Skeleton className="h-10 w-full rounded-xl bg-black/60" />
+                    <Skeleton className="h-10 w-full rounded-xl bg-black/60" />
+                    <Skeleton className="h-10 w-full rounded-xl bg-black/60" />
                 </CardContent>
             </Card>
         );
@@ -135,21 +135,21 @@ const AdminSettings = () => {
                 type={type}
                 value={value}
                 onChange={onChange}
-                className="rounded-md border border-white bg-black/30 placeholder:text-white text-white focus:border-white focus:ring-1 focus:ring-white"
+                className="rounded-md border-none bg-black/80 placeholder:text-white text-white focus:border-none focus:ring-1 focus:ring-white"
             />
         </div>
     );
 
     return (
         <div className="space-y-8">
-            <Card className="rounded-3xl bg-black/30 backdrop-blur-sm border border-white shadow-md">
+            <h1 className="text-3xl font-bold text-white mb-4">Configurações Gerais</h1>
+            <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
                 <CardHeader>
-                    <CardTitle className="text-3xl font-bold text-white">Configurações Gerais</CardTitle>
                     <CardDescription className="text-white">Edite informações globais que aparecem em várias partes do site.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <form onSubmit={handleSavePage}>
-                        <CardTitle className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Página Inicial</CardTitle>
+                        <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Página Inicial</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <InputField
                                 id="heroTitle"
@@ -173,10 +173,10 @@ const AdminSettings = () => {
                 </CardContent>
             </Card>
 
-            <Card className="rounded-3xl bg-black/30 backdrop-blur-sm border border-white shadow-md">
+            <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
                 <CardContent className="space-y-6">
                     <form onSubmit={handleSaveContacts}>
-                        <CardTitle className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Contatos e Redes</CardTitle>
+                        <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Contatos e Redes</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <InputField
                                 id="whatsapp"
