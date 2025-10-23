@@ -401,13 +401,15 @@ const AdminClients = () => {
                 </div>
             </div>
 
+            {/* Rodapé: Botão de exclusão múltipla - Adicionado ícone e classe */}
             <div className="flex justify-end mt-6">
                 <Button
                     type="button"
                     disabled={selectedClients.size === 0 || isDeleting}
                     onClick={() => setIsDeleteDialogOpen(true)}
-                    className="bg-red-500 hover:bg-red-600 rounded-xl transition-all text-white"
+                    className="border border-red-500 hover:bg-red-700/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent"
                 >
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Excluir Selecionados ({selectedClients.size})
                 </Button>
             </div>
@@ -419,8 +421,8 @@ const AdminClients = () => {
                     </DialogHeader>
                     <p className="text-white/80">
                         Tem certeza que deseja excluir {selectedClients.size > 1
-                            ? `${selectedClients.size} clientes selecionados`
-                            : `o cliente ${currentClient?.name}`}? Todas as suas galerias também serão removidas.
+                        ? `${selectedClients.size} clientes selecionados`
+                        : `o cliente ${Array.from(selectedClients).length === 1 ? clients.find(c => c._id === Array.from(selectedClients)[0])?.name : ''}`}? Todas as suas galerias também serão removidas.
                     </p>
                     <DialogFooter className="flex justify-end gap-2">
                         <DialogClose asChild>

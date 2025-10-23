@@ -201,8 +201,11 @@ const AdminClientGalleriesWithFunctions = () => {
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
     const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
 
+    // ********* Múltipla Exclusão: Novos estados *********
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [galleryToDelete, setGalleryToDelete] = useState<Gallery | null>(null);
+    const [selectedGalleries, setSelectedGalleries] = useState<Set<string>>(new Set());
+    const [isDeleting, setIsDeleting] = useState(false);
+    // *************************************************
 
     const fetchGalleries = async () => {
         if (!clientId) return;
@@ -250,20 +253,35 @@ const AdminClientGalleriesWithFunctions = () => {
         }
     };
 
-    const handleDeleteGallery = async (galleryId: string) => {
+    // ********* Múltipla Exclusão: Função de exclusão unificada *********
+    const handleDeleteGalleries = async () => {
+        const ids = Array.from(selectedGalleries);
+        if (ids.length === 0) return;
+
+        setIsDeleting(true);
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/portal?action=deleteGallery&galleryId=${galleryId}`, {
+
+            // Enviamos os IDs no body, como já fazemos em deleteClients
+            const response = await fetch(`/api/admin/portal?action=deleteGalleries`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ galleryIds: ids }),
             });
+
             if (!response.ok) throw new Error('Falha ao excluir.');
-            toast({ title: 'Sucesso', description: 'Galeria excluída.' });
+            toast({ title: 'Sucesso', description: `${ids.length} galerias excluídas.` });
+
+            setSelectedGalleries(new Set()); // Limpa a seleção
             fetchGalleries();
+            setIsDeleteDialogOpen(false);
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir a galeria.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir a(s) galeria(s).' });
+        } finally {
+            setIsDeleting(false);
         }
     };
+    // *******************************************************************
 
     const openUploadDialog = (gallery: Gallery) => {
         setSelectedGallery(gallery);
@@ -350,9 +368,22 @@ const AdminClientGalleriesWithFunctions = () => {
                         galleries.map((gallery) => (
                             <Card
                                 key={gallery._id}
-                                className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none"
+                                className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none relative"
                             >
-                                <CardHeader>
+                                {/* ********* Múltipla Exclusão: Checkbox ********* */}
+                                <input
+                                    type="checkbox"
+                                    className="absolute top-4 left-4 w-5 h-5 accent-orange-500 z-10"
+                                    checked={selectedGalleries.has(gallery._id)}
+                                    onChange={(e) => {
+                                        const newSet = new Set(selectedGalleries);
+                                        if (e.target.checked) newSet.add(gallery._id);
+                                        else newSet.delete(gallery._id);
+                                        setSelectedGalleries(newSet);
+                                    }}
+                                />
+                                {/* ********************************************** */}
+                                <CardHeader className="pl-12">
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <CardTitle className="text-white font-bold">{gallery.name}</CardTitle>
@@ -388,7 +419,11 @@ const AdminClientGalleriesWithFunctions = () => {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => { setGalleryToDelete(gallery); setIsDeleteDialogOpen(true); }}
+                                                onClick={() => {
+                                                    // Define apenas este ID para a exclusão única, abrindo o diálogo
+                                                    setSelectedGalleries(new Set([gallery._id]));
+                                                    setIsDeleteDialogOpen(true);
+                                                }}
                                                 className="border border-red-500 hover:bg-red-700/20 transition-all rounded-xl"
                                             >
                                                 <Trash2 className="h-4 w-4 text-red-500" />
@@ -403,6 +438,20 @@ const AdminClientGalleriesWithFunctions = () => {
                     )}
                 </div>
             </div>
+
+            {/* ********* RODAPÉ: BOTÃO DE EXCLUSÃO MÚLTIPLA (Igual à página de clientes) ********* */}
+            <div className="flex justify-end mt-6 shrink-0">
+                <Button
+                    type="button"
+                    disabled={selectedGalleries.size === 0 || isDeleting}
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="border border-red-500 hover:bg-red-700/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent"
+                >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir Selecionadas ({selectedGalleries.size})
+                </Button>
+            </div>
+            {/* ********************************************************************************** */}
 
             {selectedGallery && (
                 <UploadPhotosDialog
@@ -423,34 +472,38 @@ const AdminClientGalleriesWithFunctions = () => {
                 />
             )}
 
-            {galleryToDelete && (
-                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl border-none">
-                        <DialogHeader>
-                            <DialogTitle className="text-white font-bold">Confirmar exclusão</DialogTitle>
-                        </DialogHeader>
-                        <p className="text-white/80">
-                            Tem certeza que deseja excluir a galeria "{galleryToDelete.name}"? Todas as fotos serão perdidas.
-                        </p>
-                        <DialogFooter className="flex justify-end gap-2">
-                            <DialogClose asChild>
-                                <Button variant="secondary" className="rounded-xl hover:bg-gray-800/20 transition-all">Cancelar</Button>
-                            </DialogClose>
-                            <Button
-                                className="border border-red-500 hover:bg-red-700/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent"
-                                onClick={() => {
-                                    if (galleryToDelete) {
-                                        handleDeleteGallery(galleryToDelete._id);
-                                        setIsDeleteDialogOpen(false);
-                                    }
-                                }}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4 text-red-500" />Excluir
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
+            {/* ********* Múltipla Exclusão: Diálogo de confirmação atualizado ********* */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={(isOpen) => {
+                if (!isOpen) {
+                    // Ao fechar, se não for pela confirmação, limpa a seleção
+                    setSelectedGalleries(new Set());
+                }
+                setIsDeleteDialogOpen(isOpen);
+            }}>
+                <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl border-none">
+                    <DialogHeader>
+                        <DialogTitle className="text-white font-bold">Confirmar exclusão</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-white/80">
+                        Tem certeza que deseja excluir {selectedGalleries.size} {selectedGalleries.size > 1 ? 'galerias selecionadas' : 'galeria'}?
+                        Todas as fotos e dados de seleção serão permanentemente perdidos.
+                    </p>
+                    <DialogFooter className="flex justify-end gap-2">
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary" className="rounded-xl hover:bg-gray-800/20 transition-all">Cancelar</Button>
+                        </DialogClose>
+                        <Button
+                            className="border border-red-500 hover:bg-red-700/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent"
+                            onClick={handleDeleteGalleries}
+                            disabled={isDeleting}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4 text-red-500" />
+                            {isDeleting ? 'Excluindo...' : `Excluir ${selectedGalleries.size > 1 ? 'Galerias' : 'Galeria'}`}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {/* ************************************************************************* */}
         </div>
     );
 }

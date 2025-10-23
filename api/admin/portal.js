@@ -123,6 +123,25 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: `${result.deletedCount} clientes excluídos.` });
         }
 
+        // --- EXCLUSÃO MÚLTIPLA DE GALERIAS (NOVA LÓGICA) ---
+        if (action === 'deleteGalleries' && req.method === 'DELETE') {
+            const { galleryIds } = req.body;
+
+            // 1. Validação: Verifica se é um array e se todos os IDs são válidos
+            if (!Array.isArray(galleryIds) || galleryIds.some(id => !ObjectId.isValid(id))) {
+                return res.status(400).json({ error: 'IDs de galerias inválidos.' });
+            }
+
+            // 2. Converte os IDs de string para ObjectId
+            const objectIds = galleryIds.map(id => new ObjectId(id));
+
+            // 3. Executa a exclusão múltipla no MongoDB
+            const result = await galleriesCollection.deleteMany({ _id: { $in: objectIds } });
+
+            // 4. Retorna sucesso
+            return res.status(200).json({ message: `${result.deletedCount} galerias excluídas.` });
+        }
+
         return res.status(400).json({ error: 'Ação inválida ou não especificada.' });
 
     } catch (error) {
