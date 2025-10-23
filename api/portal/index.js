@@ -201,6 +201,8 @@ export default async function handler(req, res) {
             const { galleryId, selectedImages } = req.body;
             if (!galleryId || !selectedImages) return res.status(400).json({ error: 'Dados incompletos.' });
 
+            const updatedAt = new Date(); // Adiciona timestamp da última atualização
+
             // ATUALIZA AS SELEÇÕES NO SERVIDOR, MAS NÃO MUDA O STATUS PARA 'selection_complete'
             const result = await galleriesCollection.updateOne(
                 {
@@ -209,15 +211,21 @@ export default async function handler(req, res) {
                     // Garante que só podemos atualizar se a seleção ainda não foi finalizada.
                     status: { $ne: 'selection_complete' }
                 },
-                { $set: { selections: selectedImages } }
+                { $set: { selections: selectedImages, updatedAt } } // adiciona updatedAt
             );
 
             if (result.matchedCount === 0) {
                 return res.status(404).json({ error: 'Galeria não encontrada, não pertence a este cliente ou a seleção já foi finalizada.' });
             }
 
-            // Resposta de sucesso para o Autosave (pode ser silenciosa)
-            return res.status(200).json({ message: 'Seleção salva com sucesso (autosave)!' });
+            // Busca a galeria atualizada e retorna junto
+            const updatedGallery = await galleriesCollection.findOne({ _id: new ObjectId(galleryId) });
+
+            // Resposta de sucesso para o Autosave
+            return res.status(200).json({
+                message: 'Seleção salva com sucesso (autosave)!',
+                gallery: updatedGallery
+            });
         }
 
 

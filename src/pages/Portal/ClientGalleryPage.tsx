@@ -15,6 +15,7 @@ interface Gallery {
     images: string[];
     selections: string[];
     status: string;
+    updatedAt?: string;
 }
 
 interface LayoutContext {
@@ -114,6 +115,12 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                 body: JSON.stringify({ galleryId: gallery._id, selectedImages: currentSelections }),
             });
             if (!response.ok) throw new Error('Falha ao salvar a seleção.');
+            const data = await response.json();
+            // Atualiza o timestamp local com updatedAt retornado pelo servidor
+            if (data.gallery?.updatedAt) {
+                localStorage.setItem(`${storageKey}-updatedAt`, data.gallery.updatedAt);
+            }
+            lastServerUpdateRef.current = Date.now();
             console.log(`[SUCESSO] Autosave: ${currentSelections.length} fotos salvas.`);
         } catch (error) {
             console.error("Erro no autosave:", error);
@@ -136,25 +143,20 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                 const currentGallery = galleries.find((g: Gallery) => g._id === gallery._id);
 
                 if (currentGallery && currentGallery.selections && Array.isArray(currentGallery.selections)) {
-                    const serverSelections = currentGallery.selections;
-                    const currentLocalSelections = Array.from(selectedImagesRef.current);
+                    // --- NOVO BLOCO DE SINCRONIZAÇÃO ---
+                    const serverUpdatedAt = new Date(currentGallery.updatedAt || 0).getTime();
+                    const localUpdatedAt = new Date(localStorage.getItem(`${storageKey}-updatedAt`) || 0).getTime();
+                    const isServerNewer = serverUpdatedAt > localUpdatedAt;
 
-                    // Só sincroniza se:
-                    // 1. Houver diferença real
-                    // 2. Passou tempo suficiente (15s) desde a última mudança local
-                    const timeSinceLastLocalChange = Date.now() - lastServerUpdateRef.current;
-                    const isDifferent =
-                        serverSelections.length !== currentLocalSelections.length ||
-                        serverSelections.some(img => !selectedImagesRef.current.has(img)) ||
-                        currentLocalSelections.some(img => !serverSelections.includes(img));
-
-                    if (isDifferent && timeSinceLastLocalChange > 15000) {
-                        console.log('[SYNC] Atualizando seleções do servidor:', serverSelections.length);
-                        const newSet = new Set<string>(serverSelections);
+                    if (isServerNewer) {
+                        console.log('[SYNC] Atualizando seleções do servidor:', currentGallery.selections.length);
+                        const newSet = new Set<string>(currentGallery.selections);
                         setSelectedImages(newSet);
-                        localStorage.setItem(storageKey, JSON.stringify(serverSelections));
-                        onSelectionChange(gallery._id, serverSelections);
+                        localStorage.setItem(storageKey, JSON.stringify(currentGallery.selections));
+                        onSelectionChange(gallery._id, currentGallery.selections);
+                        localStorage.setItem(`${storageKey}-updatedAt`, currentGallery.updatedAt || new Date().toISOString());
                     }
+                    // --- FIM DO NOVO BLOCO ---
                 }
             } catch (error) {
                 console.error('[SYNC] Erro ao sincronizar:', error);
