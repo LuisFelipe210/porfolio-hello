@@ -14,12 +14,9 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const scrollToSection = (sectionId: string) => {
-        // Se estiver noutra página, navega para a página inicial com a hash
-        if (window.location.pathname !== '/') {
-            // Este código CAUSA A RECARGA se for ativado!
-            // window.location.href = `/#${sectionId}`;
-            // MANTEMOS A FUNÇÃO, mas o link "Início" será corrigido abaixo para usar <Link to="/">
-        } else {
+        // Lógica simplificada: Apenas tenta rolar se já estiver na Home.
+        // A navegação de outras páginas é gerida pelos componentes <Link>
+        if (window.location.pathname === '/') {
             const element = document.getElementById(sectionId);
             if (element) {
                 element.scrollIntoView({ behavior: "smooth" });
@@ -32,9 +29,10 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
         return (
             <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] lg:w-auto transition-all duration-500 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl">
                 <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-center">
-                    <button onClick={() => scrollToSection("home")} className="focus:outline-none">
+                    {/* Alterado para Link to="/" para ser consistente */}
+                    <Link to="/" onClick={() => scrollToSection("home")} className="focus:outline-none">
                         <img src={Logo} alt="Logo da Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
-                    </button>
+                    </Link>
                 </nav>
             </header>
         );
@@ -68,7 +66,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
         >
             <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-between gap-3 md:gap-8">
                 <div className="flex items-center shrink-0">
-                    {/* CORREÇÃO: Logo redireciona para a home sem recarga */}
+                    {/* Logo usa <Link to="/"> */}
                     <Link to="/" onClick={() => scrollToSection("home")} className="focus:outline-none">
                         <img src={Logo} alt="Logo da Hellô Borges" className="h-9 md:h-10 w-auto cursor-pointer" />
                     </Link>
@@ -76,24 +74,21 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
 
                 {/* Navegação Desktop */}
                 <div className="hidden md:flex items-center space-x-6">
-                    {visibleNavLinks.map(({ id, label, isPage }) => { // Usando visibleNavLinks
-                        // O link "Início" agora usa <Link to="/">
-                        if (id === 'home') {
+                    {visibleNavLinks.map(({ id, label, isPage }) => {
+                        // O link "Blog" (e outras páginas) usa navegação de página
+                        if (isPage) {
                             return (
-                                <Link key={id} to="/" onClick={() => scrollToSection(id)} className={linkClasses}>
+                                <Link key={id} to={`/${id}`} className={linkClasses}>
                                     {label}
                                 </Link>
                             );
                         }
 
-                        return isPage ? (
-                            <Link key={id} to={`/${id}`} className={linkClasses}>
+                        // CORREÇÃO: Links para seções usam <Link to="/#id">
+                        return (
+                            <Link key={id} to={`/#${id}`} onClick={() => scrollToSection(id)} className={linkClasses}>
                                 {label}
                             </Link>
-                        ) : (
-                            <button key={id} onClick={() => scrollToSection(id)} className={linkClasses}>
-                                {label}
-                            </button>
                         );
                     })}
                 </div>
@@ -131,22 +126,21 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                 {isMenuOpen && (
                     <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-zinc-900/95 border-t border-border/20 rounded-b-2xl shadow-lg md:hidden backdrop-blur-xl">
                         <div className="flex flex-col space-y-4 p-6">
-                            {visibleNavLinks.map(({ id, label, isPage }) => { // Usando visibleNavLinks
-                                const linkTarget = id === 'home' ? '/' : `/${id}`;
+                            {visibleNavLinks.map(({ id, label, isPage }) => {
+                                const linkTarget = isPage ? `/${id}` : `/#${id}`; // Usa #id para seções
 
-                                return isPage || id === 'home' ? (
+                                return (
                                     <Link
                                         key={id}
                                         to={linkTarget}
-                                        onClick={() => setIsMenuOpen(false)}
+                                        onClick={() => {
+                                            scrollToSection(id); // Ainda chamamos para rolar se já estiver na Home
+                                            setIsMenuOpen(false);
+                                        }}
                                         className="drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors"
                                     >
                                         {label}
                                     </Link>
-                                ) : (
-                                    <button key={id} onClick={() => scrollToSection(id)} className="drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors">
-                                        {label}
-                                    </button>
                                 );
                             })}
                             {/* Link de Login no Menu Mobile */}
