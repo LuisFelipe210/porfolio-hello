@@ -77,18 +77,24 @@ const App = () => {
                                     <Route path="reset-password" element={<ClientResetPasswordPage />} />
                                 </Route>
 
-                                {/* --- Rotas do Painel de Administração --- */}
-                                <Route path="/admin/login" element={<AdminLogin />} />
-                                <Route path="/admin" element={<AdminLayout />}>
-                                    <Route path="portfolio" element={<AdminPortfolio />} />
-                                    <Route path="services" element={<AdminServices />} />
-                                    <Route path="about" element={<AdminAbout />} />
-                                    <Route path="settings" element={<AdminSettings />} />
-                                    <Route path="testimonials" element={<AdminTestimonials />} />
-                                    <Route path="messages" element={<AdminMessages />} />
-                                    <Route path="blog" element={<AdminBlog />} />
-                                    <Route path="clients" element={<AdminClients />} />
-                                    <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
+                                {/* --- Rotas do Painel de Administração (ESTRUTURA CORRIGIDA) --- */}
+                                <Route path="/admin">
+                                    {/* Rota de login, sem o layout */}
+                                    <Route path="login" element={<AdminLogin />} />
+
+                                    {/* Rota que define o AdminLayout para o restante */}
+                                    <Route element={<AdminLayout />}>
+                                        <Route index element={<AdminPortfolio />} /> {/* Default: /admin */}
+                                        <Route path="portfolio" element={<AdminPortfolio />} />
+                                        <Route path="services" element={<AdminServices />} />
+                                        <Route path="about" element={<AdminAbout />} />
+                                        <Route path="settings" element={<AdminSettings />} />
+                                        <Route path="testimonials" element={<AdminTestimonials />} />
+                                        <Route path="messages" element={<AdminMessages />} />
+                                        <Route path="blog" element={<AdminBlog />} />
+                                        <Route path="clients" element={<AdminClients />} />
+                                        <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
+                                    </Route>
                                 </Route>
 
                                 {/* --- Rota "Não Encontrado" --- */}
