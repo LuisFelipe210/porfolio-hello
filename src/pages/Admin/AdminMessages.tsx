@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useMessages } from '@/context/MessagesContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -27,6 +28,8 @@ const AdminMessages = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
 
+    const { refreshMessages } = useMessages();
+
     const fetchData = async () => {
         setIsLoading(true);
         try {
@@ -52,6 +55,7 @@ const AdminMessages = () => {
             const token = localStorage.getItem('authToken');
             await fetch(`/api/messages?id=${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
             setMessages(prev => prev.map(msg => msg._id === id ? { ...msg, read: true } : msg));
+            await refreshMessages();
         } catch (error) { console.error("Erro ao marcar como lida:", error); }
     };
 
@@ -62,6 +66,7 @@ const AdminMessages = () => {
             await fetch(`/api/messages?id=${deleteId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             toast({ title: 'Sucesso', description: 'Mensagem excluída.' });
             fetchData();
+            await refreshMessages();
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir.' });
         } finally {
