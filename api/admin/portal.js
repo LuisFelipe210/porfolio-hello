@@ -109,6 +109,20 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Galeria excluída.' });
         }
 
+        // --- EXCLUSÃO MÚLTIPLA DE CLIENTES ---
+        if (action === 'deleteClients' && req.method === 'DELETE') {
+            const { clientIds } = req.body;
+            if (!Array.isArray(clientIds) || clientIds.some(id => !ObjectId.isValid(id))) {
+                return res.status(400).json({ error: 'IDs de clientes inválidos.' });
+            }
+
+            const objectIds = clientIds.map(id => new ObjectId(id));
+            await galleriesCollection.deleteMany({ clientId: { $in: objectIds } });
+            const result = await clientsCollection.deleteMany({ _id: { $in: objectIds } });
+
+            return res.status(200).json({ message: `${result.deletedCount} clientes excluídos.` });
+        }
+
         return res.status(400).json({ error: 'Ação inválida ou não especificada.' });
 
     } catch (error) {

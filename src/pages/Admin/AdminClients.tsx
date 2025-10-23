@@ -23,6 +23,7 @@ const AdminClients = () => {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [currentClient, setCurrentClient] = useState<Client | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
     const { toast } = useToast();
 
     // Estados do formulário
@@ -143,22 +144,32 @@ const AdminClients = () => {
         }
     };
 
-    const handleDeleteClient = async () => {
-        if (!currentClient) return;
+    // Exclusão múltipla de clientes
+    const handleDeleteClients = async () => {
+        if (selectedClients.size === 0) return;
         setIsDeleting(true);
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/admin/portal?action=deleteClient&clientId=${currentClient._id}`, {
+            // Filtra apenas IDs válidos de 24 caracteres
+            const ids = Array.from(selectedClients).filter(id => id && id.length === 24);
+            if (ids.length === 0) {
+                toast({ variant: 'destructive', title: 'Erro', description: 'Nenhum cliente válido selecionado.' });
+                return;
+            }
+
+            const response = await fetch(`/api/admin/portal?action=deleteClients`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clientIds: ids }),
             });
-            if (!response.ok) throw new Error('Falha ao excluir o cliente.');
-            toast({ title: 'Sucesso', description: `Cliente ${currentClient.name} excluído.` });
+
+            if (!response.ok) throw new Error('Falha ao excluir os clientes.');
+            toast({ title: 'Sucesso', description: `${ids.length} clientes excluídos.` });
+            setSelectedClients(new Set());
             fetchClients();
             setIsDeleteDialogOpen(false);
-            setCurrentClient(null);
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o cliente.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir os clientes.' });
         } finally {
             setIsDeleting(false);
         }
@@ -330,9 +341,21 @@ const AdminClients = () => {
                         </>
                     ) : filteredClients.length > 0 ? (
                         filteredClients.map((client) => (
-                            <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
-                                <div className="flex flex-col p-6 gap-4 bg-black/70 backdrop-blur-md rounded-3xl shadow-md transition-all duration-300 hover:bg-black/80">
-                                    <div className="flex-1 flex flex-row items-center justify-between p-0">
+                            <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up relative">
+                                <div className="flex flex-col p-6 gap-4 bg-black/70 backdrop-blur-md rounded-3xl shadow-md transition-all duration-300 hover:bg-black/80 relative">
+                                    {/* Checkbox dentro do card, canto superior esquerdo */}
+                                    <input
+                                        type="checkbox"
+                                        className="absolute top-4 left-4 w-5 h-5"
+                                        checked={selectedClients.has(client._id)}
+                                        onChange={(e) => {
+                                            const newSet = new Set(selectedClients);
+                                            if (e.target.checked) newSet.add(client._id);
+                                            else newSet.delete(client._id);
+                                            setSelectedClients(newSet);
+                                        }}
+                                    />
+                                    <div className="flex-1 flex flex-row items-center justify-between p-0 ml-6">
                                         <div className="flex flex-col">
                                             <h2 className="text-xl font-semibold text-white">{client.name}</h2>
                                             <span className="text-white/80">{client.email}</span>
@@ -367,18 +390,6 @@ const AdminClients = () => {
                                             >
                                                 <Copy className="h-4 w-4" />
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                size="icon"
-                                                title="Excluir Cliente"
-                                                onClick={() => {
-                                                    setCurrentClient(client);
-                                                    setIsDeleteDialogOpen(true);
-                                                }}
-                                                className="bg-transparent border-0 rounded-xl hover:bg-red-600/20 transition-all"
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
                                         </div>
                                     </div>
                                 </div>
@@ -390,14 +401,26 @@ const AdminClients = () => {
                 </div>
             </div>
 
+            <div className="flex justify-end mt-6">
+                <Button
+                    type="button"
+                    disabled={selectedClients.size === 0 || isDeleting}
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="bg-red-500 hover:bg-red-600 rounded-xl transition-all text-white"
+                >
+                    Excluir Selecionados ({selectedClients.size})
+                </Button>
+            </div>
+
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-semibold text-white">Confirmar exclusão</DialogTitle>
                     </DialogHeader>
                     <p className="text-white/80">
-                        Tem certeza que deseja excluir o cliente{' '}
-                        <strong className="text-white">{currentClient?.name}</strong>? Todas as suas galerias também serão removidas.
+                        Tem certeza que deseja excluir {selectedClients.size > 1
+                            ? `${selectedClients.size} clientes selecionados`
+                            : `o cliente ${currentClient?.name}`}? Todas as suas galerias também serão removidas.
                     </p>
                     <DialogFooter className="flex justify-end gap-2">
                         <DialogClose asChild>
@@ -406,7 +429,7 @@ const AdminClients = () => {
                         <Button
                             type="button"
                             disabled={isDeleting}
-                            onClick={handleDeleteClient}
+                            onClick={handleDeleteClients}
                             className="bg-transparent border-0 rounded-xl hover:bg-red-600/20 text-red-500 transition-all flex items-center"
                         >
                             <Trash2 className="h-4 w-4 mr-2 text-red-500" />
