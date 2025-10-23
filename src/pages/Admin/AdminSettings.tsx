@@ -116,12 +116,12 @@ const AdminSettings = () => {
     }
 
     const InputField = ({
-        id,
-        label,
-        type = 'text',
-        value,
-        onChange,
-    }: {
+                            id,
+                            label,
+                            type = 'text',
+                            value,
+                            onChange,
+                        }: {
         id: string;
         label: string;
         type?: string;
@@ -141,77 +141,84 @@ const AdminSettings = () => {
     );
 
     return (
-        <div className="space-y-8">
-            <h1 className="text-3xl font-bold text-white mb-4">Configurações Gerais</h1>
-            <p className="text-white mb-4">Edite informações globais que aparecem em várias partes do site.</p>
-            <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
-                <CardHeader>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <form onSubmit={handleSavePage}>
-                        <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Página Inicial</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <InputField
-                                id="heroTitle"
-                                label="Título Principal"
-                                value={settings.heroTitle}
-                                onChange={(e) => setSettings({ ...settings, heroTitle: e.target.value })}
-                            />
-                            <InputField
-                                id="heroSubtitle"
-                                label="Subtítulo"
-                                value={settings.heroSubtitle}
-                                onChange={(e) => setSettings({ ...settings, heroSubtitle: e.target.value })}
-                            />
-                        </div>
-                        <div className="mt-6 flex justify-end">
-                            <Button type="submit" disabled={isSubmittingPage} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition">
-                                {isSubmittingPage ? 'Salvando...' : 'Salvar Página Inicial'}
-                            </Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
+        // Container principal flex-col para forçar a rolagem interna
+        <div className="flex flex-col h-full">
 
-            <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
-                <CardContent className="space-y-6">
-                    <form onSubmit={handleSaveContacts}>
-                        <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Contatos e Redes</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <InputField
-                                id="whatsapp"
-                                label="WhatsApp (apenas números)"
-                                value={settings.whatsapp}
-                                onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
-                            />
-                            <InputField
-                                id="email"
-                                label="E-mail de Contato"
-                                type="email"
-                                value={settings.email}
-                                onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                            />
-                            <InputField
-                                id="instagram"
-                                label="Link do Instagram"
-                                value={settings.instagram}
-                                onChange={(e) => setSettings({ ...settings, instagram: e.target.value })}
-                            />
-                            <InputField
-                                id="location"
-                                label="Localização (Rodapé)"
-                                value={settings.location}
-                                onChange={(e) => setSettings({ ...settings, location: e.target.value })}
-                            />
-                        </div>
-                        <div className="mt-6 flex justify-end">
-                            <Button type="submit" disabled={isSubmittingContacts} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition">
-                                {isSubmittingContacts ? 'Salvando...' : 'Salvar Contatos e Redes'}
-                            </Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
+            {/* Título e Descrição Fixos (shrink-0) */}
+            <div className="shrink-0 mb-4">
+                <h1 className="text-3xl font-bold text-white mb-4">Configurações Gerais</h1>
+                <p className="text-white mb-4">Edite informações globais que aparecem em várias partes do site.</p>
+            </div>
+
+            {/* Conteúdo com Rolagem (flex-1 overflow-y-auto) */}
+            <div className="flex-1 overflow-y-auto space-y-8 scrollbar-visible pr-2">
+                <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
+                    <CardContent className="space-y-6 pt-6">
+                        <form onSubmit={handleSavePage}>
+                            <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Página Inicial</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputField
+                                    id="heroTitle"
+                                    label="Título Principal"
+                                    value={settings.heroTitle}
+                                    onChange={(e) => setSettings({ ...settings, heroTitle: e.target.value })}
+                                />
+                                <InputField
+                                    id="heroSubtitle"
+                                    label="Subtítulo"
+                                    value={settings.heroSubtitle}
+                                    onChange={(e) => setSettings({ ...settings, heroSubtitle: e.target.value })}
+                                />
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <Button type="submit" disabled={isSubmittingPage} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition">
+                                    {isSubmittingPage ? 'Salvando...' : 'Salvar Página Inicial'}
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
+                    <CardContent className="space-y-6 pt-6">
+                        <form onSubmit={handleSaveContacts}>
+                            <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Contatos e Redes</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputField
+                                    id="whatsapp"
+                                    label="WhatsApp (apenas números)"
+                                    value={settings.whatsapp}
+                                    onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
+                                />
+                                <InputField
+                                    id="email"
+                                    label="E-mail de Contato"
+                                    type="email"
+                                    value={settings.email}
+                                    onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+                                />
+                                <InputField
+                                    id="instagram"
+                                    label="Link do Instagram"
+                                    value={settings.instagram}
+                                    onChange={(e) => setSettings({ ...settings, instagram: e.target.value })}
+                                />
+                                <InputField
+                                    id="location"
+                                    label="Localização (Rodapé)"
+                                    value={settings.location}
+                                    onChange={(e) => setSettings({ ...settings, location: e.target.value })}
+                                />
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <Button type="submit" disabled={isSubmittingContacts} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition">
+                                    {isSubmittingContacts ? 'Salvando...' : 'Salvar Contatos e Redes'}
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 };

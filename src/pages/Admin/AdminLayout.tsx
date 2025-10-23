@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -11,6 +11,19 @@ const AdminLayout = () => {
     const location = useLocation();
     const isMobile = useIsMobile();
     const [isSheetOpen, setSheetOpen] = useState(false);
+
+    // NOVO ESTADO: Rastreador de mensagens não lidas (deve ser alimentado por uma API real)
+    const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+
+    // [AÇÃO NECESSÁRIA NO SEU BACKEND]:
+    // Adicione um useEffect aqui para chamar sua API (ex: /api/messages/unread-count)
+    // para definir o estado hasUnreadMessages. Exemplo (hardcoded para teste):
+    useEffect(() => {
+        // Exemplo: Simula que há 2 novas mensagens
+        // Substitua esta linha pela chamada real ao seu backend!
+        setHasUnreadMessages(true);
+    }, []);
+
 
     // Verifica a autenticação
     useEffect(() => {
@@ -100,12 +113,20 @@ const AdminLayout = () => {
                 </Button>
             </Link>
             <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
+                {/* Botão de Mensagens com Indicador */}
                 <Button
                     variant={isLinkActive('/admin/messages') ? "secondary" : "ghost"}
-                    className="w-full justify-start"
+                    className="w-full justify-start relative" // Adicionado relative
                 >
                     <Inbox className="mr-2 h-4 w-4" />
                     Mensagens
+                    {/* Ponto de Notificação Laranja */}
+                    {hasUnreadMessages && (
+                        <span
+                            className="absolute top-1 right-2 h-2 w-2 bg-orange-500 rounded-full animate-pulse" // Ponto Laranja
+                            aria-label="Novas mensagens"
+                        ></span>
+                    )}
                 </Button>
             </Link>
             <Link to="/admin/blog" onClick={() => setSheetOpen(false)}>

@@ -168,8 +168,11 @@ const AdminAbout = () => {
     }
 
     return (
-        <form onSubmit={handleSave}>
-            <div className="flex justify-between items-center mb-6">
+        // Container principal flex-col para forçar a rolagem interna
+        <form onSubmit={handleSave} className="flex flex-col h-full">
+
+            {/* Título e Botão Salvar Fixo (shrink-0) */}
+            <div className="flex justify-between items-center mb-6 shrink-0">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Gerir "Sobre Mim"</h1>
                     <p className="text-white/80">Edite os textos e as imagens da sua página de apresentação.</p>
@@ -183,52 +186,55 @@ const AdminAbout = () => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Coluna de Textos */}
-                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
-                    <CardHeader>
-                        <h2 className="text-white text-xl font-bold">Textos</h2>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="p1" className="text-white mb-1 font-semibold">Primeiro Parágrafo</Label>
-                            <Textarea
-                                id="p1"
-                                rows={6}
-                                value={content.paragraph1}
-                                onChange={(e) => setContent({ ...content, paragraph1: e.target.value })}
-                                className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="p2" className="text-white mb-1 font-semibold">Segundo Parágrafo</Label>
-                            <Textarea
-                                id="p2"
-                                rows={6}
-                                value={content.paragraph2}
-                                onChange={(e) => setContent({ ...content, paragraph2: e.target.value })}
-                                className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+            {/* Conteúdo com Rolagem (flex-1 overflow-y-auto) */}
+            <div className="flex-1 overflow-y-auto scrollbar-visible pr-2">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Coluna de Textos */}
+                    <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
+                        <CardHeader>
+                            <h2 className="text-white text-xl font-bold">Textos</h2>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="p1" className="text-white mb-1 font-semibold">Primeiro Parágrafo</Label>
+                                <Textarea
+                                    id="p1"
+                                    rows={6}
+                                    value={content.paragraph1}
+                                    onChange={(e) => setContent({ ...content, paragraph1: e.target.value })}
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="p2" className="text-white mb-1 font-semibold">Segundo Parágrafo</Label>
+                                <Textarea
+                                    id="p2"
+                                    rows={6}
+                                    value={content.paragraph2}
+                                    onChange={(e) => setContent({ ...content, paragraph2: e.target.value })}
+                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                {/* Coluna de Imagens */}
-                <div className="space-y-8">
-                    <ImageManager
-                        title="Imagens da Coluna 1"
-                        images={content.imagesColumn1}
-                        onFileChange={(e) => handleFileChange(e, 'imagesColumn1')}
-                        onRemove={(i) => handleRemoveImage(i, 'imagesColumn1')}
-                        isUploading={isUploading === 'column1'}
-                    />
-                    <ImageManager
-                        title="Imagens da Coluna 2"
-                        images={content.imagesColumn2}
-                        onFileChange={(e) => handleFileChange(e, 'imagesColumn2')}
-                        onRemove={(i) => handleRemoveImage(i, 'imagesColumn2')}
-                        isUploading={isUploading === 'column2'}
-                    />
+                    {/* Coluna de Imagens */}
+                    <div className="space-y-8">
+                        <ImageManager
+                            title="Imagens da Coluna 1"
+                            images={content.imagesColumn1}
+                            onFileChange={(e) => handleFileChange(e, 'imagesColumn1')}
+                            onRemove={(i) => handleRemoveImage(i, 'imagesColumn1')}
+                            isUploading={isUploading === 'column1'}
+                        />
+                        <ImageManager
+                            title="Imagens da Coluna 2"
+                            images={content.imagesColumn2}
+                            onFileChange={(e) => handleFileChange(e, 'imagesColumn2')}
+                            onRemove={(i) => handleRemoveImage(i, 'imagesColumn2')}
+                            isUploading={isUploading === 'column2'}
+                        />
+                    </div>
                 </div>
             </div>
         </form>
