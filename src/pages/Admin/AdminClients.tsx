@@ -346,7 +346,7 @@ const AdminClients = () => {
                                     {/* Checkbox dentro do card, canto superior esquerdo */}
                                     <input
                                         type="checkbox"
-                                        className="absolute top-4 left-4 w-5 h-5"
+                                        className="absolute top-4 left-4 w-5 h-5 accent-orange-500"
                                         checked={selectedClients.has(client._id)}
                                         onChange={(e) => {
                                             const newSet = new Set(selectedClients);
