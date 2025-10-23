@@ -89,45 +89,60 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     onSelectionChange: (galleryId: string, selections: string[]) => void;
 }) => {
     const storageKey = `gallery-selection-${gallery._id}`;
-    const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
-        return new Set(gallery.selections || []);
-    });
+    const [selectedImages, setSelectedImages] = useState<Set<string>>(() => new Set(gallery.selections || []));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalImageIndex, setModalImageIndex] = useState<number | null>(null);
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
-
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const selectedImagesRef = useRef(selectedImages); // NOVO: Ref para ter sempre o valor atual
-    const lastServerUpdateRef = useRef<number>(0); // NOVO: Timestamp da última atualização do servidor
 
-    // NOVO: Mantém a ref atualizada
+    // EFEITO #1: AUTOSAVE (SALVAMENTO AUTOMÁTICO)
+    // Este efeito é acionado sempre que `selectedImages` muda.
     useEffect(() => {
-        selectedImagesRef.current = selectedImages;
-    }, [selectedImages]);
+        if (isSelectionComplete) return;
 
-    const saveSelectionsToServer = async (currentSelections: string[]) => {
-        try {
-            const token = localStorage.getItem('clientAuthToken');
-            const response = await fetch('/api/portal?action=updateSelection', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ galleryId: gallery._id, selectedImages: currentSelections }),
-            });
-            if (!response.ok) throw new Error('Falha ao salvar a seleção.');
-            const data = await response.json();
-            // Atualiza o timestamp local com updatedAt retornado pelo servidor
-            if (data.gallery?.updatedAt) {
-                localStorage.setItem(`${storageKey}-updatedAt`, data.gallery.updatedAt);
-            }
-            lastServerUpdateRef.current = Date.now();
-            console.log(`[SUCESSO] Autosave: ${currentSelections.length} fotos salvas.`);
-        } catch (error) {
-            console.error("Erro no autosave:", error);
+        const selectionsArray = Array.from(selectedImages);
+
+        // Atualiza o componente pai e o localStorage imediatamente para feedback visual rápido
+        onSelectionChange(gallery._id, selectionsArray);
+        localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
+
+        // Limpa qualquer timeout anterior para garantir que só salvamos após o usuário parar de clicar
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
         }
-    };
 
-    // NOVO: Sincronizar com o servidor periodicamente (SEM dependências problemáticas)
+        // Agenda o salvamento no servidor para daqui a 2 segundos (debounce)
+        timeoutRef.current = setTimeout(async () => {
+            try {
+                const token = localStorage.getItem('clientAuthToken');
+                const response = await fetch('/api/portal?action=updateSelection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ galleryId: gallery._id, selectedImages: selectionsArray }),
+                });
+
+                if (response.ok) {
+                    console.log(`[AUTOSAVE] Sucesso: ${selectionsArray.length} fotos salvas no servidor.`);
+                } else {
+                    throw new Error('Falha no autosave');
+                }
+            } catch (error) {
+                console.error("[AUTOSAVE] Erro ao salvar seleções:", error);
+            }
+        }, 2000); // Atraso de 2 segundos
+
+        // Função de limpeza para cancelar o timeout se o componente for desmontado
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, [selectedImages, gallery._id, isSelectionComplete, onSelectionChange, storageKey]);
+
+
+    // EFEITO #2: SINCRONIZAÇÃO (BUSCA DADOS DE OUTROS DISPOSITIVOS)
+    // Este efeito roda periodicamente para buscar atualizações do servidor.
     useEffect(() => {
         if (isSelectionComplete) return;
 
@@ -142,73 +157,54 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                 const galleries: Gallery[] = await response.json();
                 const currentGallery = galleries.find((g: Gallery) => g._id === gallery._id);
 
-                if (currentGallery && currentGallery.selections && Array.isArray(currentGallery.selections)) {
-                    // --- NOVO BLOCO DE SINCRONIZAÇÃO ---
-                    const serverUpdatedAt = new Date(currentGallery.updatedAt || 0).getTime();
-                    const localUpdatedAt = new Date(localStorage.getItem(`${storageKey}-updatedAt`) || 0).getTime();
-                    const isServerNewer = serverUpdatedAt > localUpdatedAt;
+                if (currentGallery?.selections) {
+                    // --- A LÓGICA FUNDAMENTAL QUE CORRIGE O BUG ---
+                    // "MERGE, DON'T OVERWRITE" (MESCLAR, NÃO SOBRESCREVER)
+                    const serverSelections = new Set(currentGallery.selections);
 
-                    if (isServerNewer) {
-                        console.log('[SYNC] Atualizando seleções do servidor:', currentGallery.selections.length);
-                        const newSet = new Set<string>(currentGallery.selections);
-                        setSelectedImages(newSet);
-                        localStorage.setItem(storageKey, JSON.stringify(currentGallery.selections));
-                        onSelectionChange(gallery._id, currentGallery.selections);
-                        localStorage.setItem(`${storageKey}-updatedAt`, currentGallery.updatedAt || new Date().toISOString());
-                    }
-                    // --- FIM DO NOVO BLOCO ---
+                    setSelectedImages(prevLocalSelections => {
+                        // 1. Cria um novo conjunto que é a UNIÃO do estado local e do estado do servidor.
+                        const mergedSet = new Set([...prevLocalSelections, ...serverSelections]);
+
+                        // 2. Compara os tamanhos para ver se algo mudou.
+                        // Isto previne re-renderizações desnecessárias e loops de autosave.
+                        if (mergedSet.size !== prevLocalSelections.size) {
+                            console.log('[SYNC] Estado mesclado com o servidor. Novas seleções encontradas.');
+                            return mergedSet; // Atualiza o estado com o resultado da união
+                        }
+
+                        // 3. Se nada mudou, retorna o estado antigo para não fazer nada.
+                        return prevLocalSelections;
+                    });
                 }
             } catch (error) {
-                console.error('[SYNC] Erro ao sincronizar:', error);
+                console.error('[SYNC] Erro ao sincronizar com o servidor:', error);
             }
-        }, 10000);
+        }, 8000); // Sincroniza a cada 8 segundos
 
         return () => clearInterval(syncInterval);
-    }, [gallery._id, isSelectionComplete, storageKey, onSelectionChange]);
+    }, [gallery._id, isSelectionComplete]);
 
-    useEffect(() => {
-        const selectionsArray = Array.from(selectedImages);
-
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-
-        if (!isSelectionComplete) {
-            // Marca o timestamp da última mudança local
-            lastServerUpdateRef.current = Date.now();
-
-            localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
-            onSelectionChange(gallery._id, selectionsArray);
-
-            timeoutRef.current = setTimeout(() => {
-                saveSelectionsToServer(selectionsArray);
-            }, 3000);
-        } else {
-            localStorage.removeItem(storageKey);
-        }
-
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-
-    }, [selectedImages, isSelectionComplete, gallery._id, storageKey, onSelectionChange]);
-
-    const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
 
     const toggleSelection = (imageUrl: string, event?: React.MouseEvent) => {
         if (isSelectionComplete) return;
         event?.stopPropagation();
+
         setSelectedImages(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(imageUrl)) newSet.delete(imageUrl); else newSet.add(imageUrl);
+            if (newSet.has(imageUrl)) {
+                newSet.delete(imageUrl);
+            } else {
+                newSet.add(imageUrl);
+            }
             return newSet;
         });
     };
 
     const handleSubmitSelection = async () => {
         setIsSubmitting(true);
+        // Cancela qualquer autosave pendente antes do envio final
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
         try {
             const token = localStorage.getItem('clientAuthToken');
             const response = await fetch('/api/portal?action=submitSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }), });
@@ -224,6 +220,8 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         if (direction === 'prev' && modalImageIndex > 0) { setModalImageIndex(modalImageIndex - 1); }
         if (direction === 'next' && modalImageIndex < gallery.images.length - 1) { setModalImageIndex(modalImageIndex + 1); }
     };
+
+    const preloadImage = (url: string) => { const img = new Image(); img.src = url; };
 
     return (
         <div>
@@ -334,7 +332,6 @@ const ClientGalleryPage = () => {
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
 
-            // MUDANÇA: Priorizar sempre dados do servidor
             setGalleries(data);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as suas galerias.' });
@@ -345,33 +342,7 @@ const ClientGalleryPage = () => {
 
     useEffect(() => {
         fetchGalleries();
-
-        // NOVO: Atualizar a lista de galerias periodicamente (SEM piscar!)
-        const refreshInterval = setInterval(async () => {
-            try {
-                const token = localStorage.getItem('clientAuthToken');
-                const response = await fetch('/api/portal?action=getGalleries', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!response.ok) return;
-                const data = await response.json();
-
-                // Só atualiza se houver mudanças reais
-                setGalleries(prevGalleries => {
-                    const hasChanges = data.some((newGallery: Gallery) => {
-                        const oldGallery = prevGalleries.find(g => g._id === newGallery._id);
-                        if (!oldGallery) return true;
-                        return oldGallery.selections.length !== newGallery.selections.length ||
-                            oldGallery.status !== newGallery.status;
-                    });
-
-                    return hasChanges ? data : prevGalleries;
-                });
-            } catch (error) {
-                console.error('[SYNC] Erro ao sincronizar galerias:', error);
-            }
-        }, 15000);
-
-        return () => clearInterval(refreshInterval);
-    }, []);
+    }, [fetchGalleries]);
 
     const handleSelectionSubmit = () => {
         setActiveGallery(null);
@@ -438,5 +409,5 @@ const ClientGalleryPage = () => {
         </div>
     );
 };
-//
+
 export default ClientGalleryPage;

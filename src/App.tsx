@@ -38,6 +38,7 @@ import ForgotPasswordPage from "./pages/Portal/ForgotPasswordPage";
 import ResetPasswordWithTokenPage from "./pages/Portal/ResetPasswordWithTokenPage";
 
 
+
 const queryClient = new QueryClient();
 
 const App = () => {
