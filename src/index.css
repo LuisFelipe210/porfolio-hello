@@ -139,4 +139,13 @@
   .photo-hover {
     @apply transition-all duration-500 hover:shadow-[var(--photo-shadow)] hover:-translate-y-2;
   }
+
+    .scrollbar-none {
+        -ms-overflow-style: none; /* IE e Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none; /* Chrome, Safari e Opera */
+    }
 }

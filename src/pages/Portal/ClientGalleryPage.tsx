@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -307,15 +307,25 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 const ClientGalleryPage = () => {
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeGallery, setActiveGallery] = useState<Gallery | null>(null);
+    // REMOVIDO: const [activeGallery, setActiveGallery] = useState<Gallery | null>(null);
     const { toast } = useToast();
     const { setHeaderBackAction } = useOutletContext<LayoutContext>();
 
+    // NOVO: Obter o ID da URL e o hook de navegação
+    const navigate = useNavigate();
+    const { galleryId: urlGalleryId } = useParams<{ galleryId: string }>();
+
+    // NOVO: Determinar a galeria ativa com base no ID da URL e no estado carregado
+    const activeGallery = galleries.find(g => g._id === urlGalleryId) || null;
+
+    // Lógica para o botão de "Voltar" personalizado
     const handleBack = useCallback(() => {
-        setActiveGallery(null);
-    }, []);
+        // Ação de voltar: navega para a rota base da galeria (a lista)
+        navigate('/portal/gallery');
+    }, [navigate]);
 
     useEffect(() => {
+        // Configura o botão "Voltar" no layout se estivermos numa galeria ativa
         if (activeGallery) {
             setHeaderBackAction(() => handleBack);
         } else {
@@ -323,6 +333,7 @@ const ClientGalleryPage = () => {
         }
         return () => { setHeaderBackAction(null); };
     }, [activeGallery, setHeaderBackAction, handleBack]);
+
 
     const fetchGalleries = useCallback(async () => {
         setIsLoading(true);
@@ -345,7 +356,8 @@ const ClientGalleryPage = () => {
     }, [fetchGalleries]);
 
     const handleSelectionSubmit = () => {
-        setActiveGallery(null);
+        // Após o envio da seleção, volta para a lista de galerias
+        handleBack();
         fetchGalleries();
     }
 
@@ -361,10 +373,20 @@ const ClientGalleryPage = () => {
         return <div className="grid grid-cols-1 md:grid-cols-2 gap-4"><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>;
     }
 
+    // 1. Renderiza a visualização detalhada se houver uma galeria ativa
     if (activeGallery) {
         return <GallerySelectionView gallery={activeGallery} onSelectionSubmit={handleSelectionSubmit} onSelectionChange={handleSelectionChange} />
     }
 
+    // 2. Trata o caso de ID na URL mas a galeria não foi encontrada (404-like)
+    if (urlGalleryId && !activeGallery) {
+        return <div className="text-white text-center pt-12">
+            <h1 className="text-2xl font-bold mb-4">Galeria Não Encontrada</h1>
+            <Button onClick={() => navigate('/portal/gallery')}>Voltar para a lista</Button>
+        </div>;
+    }
+
+    // 3. Renderiza a lista de galerias
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 text-white">As Suas Galerias</h1>
@@ -373,7 +395,8 @@ const ClientGalleryPage = () => {
                     {galleries.map((gallery) => (
                         <div
                             key={gallery._id}
-                            onClick={() => setActiveGallery(gallery)}
+                            // MUDANÇA PRINCIPAL: Navegação baseada na URL
+                            onClick={() => navigate(`/portal/gallery/${gallery._id}`)}
                             className="relative flex flex-col bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl cursor-pointer transition-all duration-300 hover:border-orange-500/80 hover:shadow-orange-500/30"
                         >
                             <div className="w-full h-48 overflow-hidden">

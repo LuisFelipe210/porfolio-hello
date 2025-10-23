@@ -168,7 +168,7 @@ const PortfolioSection = () => {
                 <div className="relative md:hidden">
                     <div
                         ref={categoriesScrollRef}
-                        className="flex gap-6 mb-6 overflow-x-auto overflow-y-hidden no-scrollbar px-4 snap-x snap-mandatory justify-start relative z-10"
+                        className="flex gap-6 mb-6 overflow-x-auto overflow-y-hidden scrollbar-none px-4 snap-x snap-mandatory justify-start relative z-10"
                     >
                         {categories.map((category, index) => (
                             <button
@@ -252,7 +252,7 @@ const PortfolioSection = () => {
                 md:grid-cols-2
                 lg:grid-cols-3"
                         >
-                            {filteredItems.slice(0, 15).map((item, index) => (
+                            {filteredItems.slice(0, 9).map((item, index) => (
                                 <div
                                     key={item.id}
                                     className="relative group cursor-pointer aspect-[4/3] rounded-xl overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg"
@@ -286,9 +286,9 @@ const PortfolioSection = () => {
                                         className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
                                         style={{ transitionProperty: "transform, filter" }}
                                     />
-                                    {index === 14 && filteredItems.length > 15 && (
+                                    {index === 8 && filteredItems.length > 9 && (
                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold rounded-xl">
-                                            +{filteredItems.length - 15}
+                                            +{filteredItems.length - 9}
                                         </div>
                                     )}
                                     <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">

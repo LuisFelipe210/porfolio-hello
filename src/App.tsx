@@ -73,7 +73,7 @@ const App = () => {
                                 <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
                                 <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
                                 <Route path="/portal" element={<ClientLayout />}>
-                                    <Route path="gallery" element={<ClientGalleryPage />} />
+                                    <Route path="gallery/:galleryId?" element={<ClientGalleryPage />} />
                                     <Route path="reset-password" element={<ClientResetPasswordPage />} />
                                 </Route>
 
