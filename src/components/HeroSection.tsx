@@ -46,25 +46,49 @@ const HeroSection = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
             </div>
-            <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
+
+            {/* CONTAINER PRINCIPAL: Centralizado e alinhamento do texto à esquerda para centralizar o bloco */}
+            <div className="relative z-10 text-left text-white px-6 max-w-5xl mx-auto w-full">
                 {isReady && (
-                    <>
-                        <h1 className="flex items-center justify-center gap-3 text-4xl sm:text-6xl md:text-7xl font-bold font-serif mb-6 animate-fade-in-up">
-                            <img src={Logo} alt="Hellô Borges Logo" className="h-12 sm:h-16 md:h-20 w-auto" />
-                            {settings.heroTitle}
-                        </h1>
+                    <div className="flex flex-col items-center justify-center w-full">
+
+                        {/* GRUPO LOGO + TÍTULOS: Centralizado */}
+                        <div className="flex items-end justify-start gap-3 mb-2 animate-fade-in-up">
+
+                            {/* LOGO */}
+                            <img
+                                src={Logo}
+                                alt="Hellô Borges Logo"
+                                className="h-12 sm:h-16 md:h-28 w-auto shrink-0"
+                            />
+
+                            {/* BLOCO DE TEXTO */}
+                            <div className="flex flex-col">
+                                {/* TITULO: Hellô Borges */}
+                                <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold font-serif leading-none text-white">
+                                    {settings.heroTitle}
+                                </h1>
+                                {/* FOTOGRAFIA: Peso aumentado */}
+                                <p className="text-sm sm:text-base md:text-xl font-bold tracking-[0.4em] uppercase leading-tight -mt-0.5 md:-mt-2 text-white">
+                                    FOTOGRAFIA
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* SUBTÍTULO DA HERO: TAMANHO MÍNIMO NO MOBILE (text-sm) e peso leve */}
                         <p
-                            className="text-xl md:text-2xl font-light mb-8 max-w-2xl mx-auto animate-fade-in-up"
+                            className="text-sm md:text-lg font-light mb-8 mt-6 max-w-2xl mx-auto text-center animate-fade-in-up text-white"
                             style={{ animationDelay: "0.2s" }}
                         >
                             {settings.heroSubtitle}
                         </p>
-                    </>
+                    </div>
                 )}
+                {/* CONTAINER DO BOTÃO (Vazio) */}
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-                    <Button size="lg" onClick={scrollToPortfolio} className="bg-accent text-primary ...">Ver Portfolio</Button>
                 </div>
             </div>
+            {/* BOTÃO SCROLL DOWN */}
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-float">
                 <button onClick={scrollToPortfolio} className="text-white/70 hover:text-white transition-colors"><ArrowDown size={24} /></button>
             </div>

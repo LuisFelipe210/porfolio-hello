@@ -84,18 +84,22 @@ const FloatingContact = () => {
                 href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento%20para%20seus%20serviços%20de%20fotografia."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-green-600 transition-transform hover:scale-110"
+                // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-black)
+                className="w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center text-black shadow-lg hover:bg-green-600 transition-transform hover:scale-110"
                 aria-label="WhatsApp"
             >
-                <FaWhatsapp size={28} />
+                {/* Reduzindo o tamanho fixo do ícone para melhor encaixe no mobile */}
+                <FaWhatsapp size={24} />
             </a>
             <Dialog>
                 <DialogTrigger asChild>
                     <button
-                        className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-orange-600 transition-transform hover:scale-110"
+                        // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-black)
+                        className="w-12 h-12 md:w-14 md:h-14 bg-orange-500 rounded-full flex items-center justify-center text-black shadow-lg hover:bg-orange-600 transition-transform hover:scale-110"
                         aria-label="Email"
                     >
-                        <Mail size={28} />
+                        {/* Reduzindo o tamanho fixo do ícone para melhor encaixe no mobile */}
+                        <Mail size={24} />
                     </button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
