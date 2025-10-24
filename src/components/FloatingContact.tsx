@@ -84,8 +84,8 @@ const FloatingContact = () => {
                 href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento%20para%20seus%20serviços%20de%20fotografia."
                 target="_blank"
                 rel="noopener noreferrer"
-                // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-black)
-                className="w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center text-black shadow-lg hover:bg-green-600 transition-transform hover:scale-110"
+                // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-white dark:text-black)
+                className="w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-green-600 transition-transform hover:scale-110"
                 aria-label="WhatsApp"
             >
                 {/* Reduzindo o tamanho fixo do ícone para melhor encaixe no mobile */}
@@ -94,8 +94,8 @@ const FloatingContact = () => {
             <Dialog>
                 <DialogTrigger asChild>
                     <button
-                        // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-black)
-                        className="w-12 h-12 md:w-14 md:h-14 bg-orange-500 rounded-full flex items-center justify-center text-black shadow-lg hover:bg-orange-600 transition-transform hover:scale-110"
+                        // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-white dark:text-black)
+                        className="w-12 h-12 md:w-14 md:h-14 bg-orange-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-orange-600 transition-transform hover:scale-110"
                         aria-label="Email"
                     >
                         {/* Reduzindo o tamanho fixo do ícone para melhor encaixe no mobile */}
@@ -122,7 +122,7 @@ const FloatingContact = () => {
                                 <option value="retrato">Ensaio/Retrato</option>
                                 <option value="casamento">Casamento</option>
                                 <option value="evento">Evento</option>
-                                <option value="gastronomia">Fotografia Gastronômica</option>
+                                <option value="maternidade">Maternidade</option>
                                 <option value="outro">Outro</option>
                             </select>
                         </div>

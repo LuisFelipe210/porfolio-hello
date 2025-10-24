@@ -16,13 +16,15 @@ import {
 } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useMessages } from '@/context/MessagesContext'; // 👈 novo import
+import { useMessages } from '@/context/MessagesContext';
+import { optimizeCloudinaryUrl } from '@/lib/utils'; // Importação para otimização
 
 const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const isMobile = useIsMobile();
     const [isSheetOpen, setSheetOpen] = useState(false);
+    // Definimos a barra lateral como aberta por padrão no desktop
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     // 👇 vem do contexto global (em vez do useState local)
@@ -158,6 +160,7 @@ const AdminLayout = () => {
 
     // ---------------- MOBILE ----------------
     if (isMobile) {
+        // ... (Bloco Mobile omitido, pois não foi alterado)
         return (
             <div className="min-h-screen w-full">
                 <header className="relative z-[100] flex h-24 items-center justify-between px-6 md:px-12
@@ -210,12 +213,15 @@ const AdminLayout = () => {
     }
 
     // ---------------- DESKTOP ----------------
+    const sidebarWidth = '16rem'; // w-64
+
     return (
         <div className="flex flex-col h-screen overflow-hidden">
             {/* background */}
             <div className="fixed inset-0 z-0">
                 <img
-                    src="https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg"
+                    // Otimização de imagem mantida
+                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")}
                     alt="Background"
                     className="w-full h-full object-cover"
                 />
@@ -244,10 +250,29 @@ const AdminLayout = () => {
 
             {/* layout principal */}
             <div className="flex flex-1 overflow-hidden">
-                <aside className={`w-64 bg-card border-r p-4 flex flex-col relative z-10 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'block' : 'hidden'}`}>
+                {/* CORREÇÃO APLICADA: Sidebar com transição suave */}
+                <aside
+                    className="h-full bg-card border-r p-4 flex flex-col relative z-10 overflow-y-auto transition-all duration-300"
+                    style={{
+                        // Transição suave para esconder/mostrar a barra lateral
+                        width: isSidebarOpen ? sidebarWidth : '0',
+                        minWidth: isSidebarOpen ? sidebarWidth : '0',
+                        // Oculta visualmente os botões e texto quando fechada
+                        paddingLeft: isSidebarOpen ? '1rem' : '0',
+                        paddingRight: isSidebarOpen ? '1rem' : '0',
+                        transform: isSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+                        opacity: isSidebarOpen ? '1' : '0',
+                    }}
+                >
                     <NavLinks />
                 </aside>
-                <main className="relative z-10 flex-1 p-6 md:p-8 overflow-hidden">
+                {/* CORREÇÃO APLICADA: Conteúdo principal se ajusta ao tamanho da barra lateral */}
+                <main
+                    className="relative z-10 flex-1 p-6 md:p-8 overflow-y-auto transition-all duration-300"
+                    style={{
+                        marginLeft: isSidebarOpen ? '0' : '0', // O sidebar usa transform, então a margem não é estritamente necessária aqui
+                    }}
+                >
                     <Outlet />
                 </main>
             </div>

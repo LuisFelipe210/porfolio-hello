@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, ArrowLeft, Upload, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UploadPhotosDialog } from './components/UploadPhotosDialog';
-import { ViewSelectionsDialog } from './components/ViewSelectionsDialog'; // <-- 1. Importar o novo componente
+import { ViewSelectionsDialog } from './components/ViewSelectionsDialog';
 
 interface Gallery {
     _id: string;

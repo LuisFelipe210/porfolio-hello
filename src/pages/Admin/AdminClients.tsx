@@ -8,12 +8,14 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy, Edit } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Interface atualizada para incluir a frase
 interface Client {
     _id: string;
     name: string;
     email: string;
     recoveryEmail?: string;
     password?: string;
+    phrase?: string;
 }
 
 const AdminClients = () => {
@@ -31,6 +33,7 @@ const AdminClients = () => {
     const [email, setEmail] = useState('');
     const [recoveryEmail, setRecoveryEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [phrase, setPhrase] = useState(''); // Estado para a frase
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +65,7 @@ const AdminClients = () => {
         setEmail('');
         setRecoveryEmail('');
         setPassword('');
+        setPhrase(''); // Reseta a frase
         setCurrentClient(null);
     };
 
@@ -71,6 +75,7 @@ const AdminClients = () => {
             setName(client.name);
             setEmail(client.email);
             setRecoveryEmail(client.recoveryEmail || '');
+            setPhrase(client.phrase || ''); // Carrega a frase existente para edição
         } else {
             resetForm();
         }
@@ -119,7 +124,8 @@ const AdminClients = () => {
                 : '/api/admin/portal?action=createClient';
             const method = isEditing ? 'PUT' : 'POST';
 
-            const body: any = { name, email, recoveryEmail: recoveryEmail || null };
+            // Inclui a frase no corpo da requisição
+            const body: any = { name, email, recoveryEmail: recoveryEmail || null, phrase: phrase || null };
             if (!isEditing) {
                 body.password = password;
             }
@@ -144,13 +150,11 @@ const AdminClients = () => {
         }
     };
 
-    // Exclusão múltipla de clientes
     const handleDeleteClients = async () => {
         if (selectedClients.size === 0) return;
         setIsDeleting(true);
         try {
             const token = localStorage.getItem('authToken');
-            // Filtra apenas IDs válidos de 24 caracteres
             const ids = Array.from(selectedClients).filter(id => id && id.length === 24);
             if (ids.length === 0) {
                 toast({ variant: 'destructive', title: 'Erro', description: 'Nenhum cliente válido selecionado.' });
@@ -175,15 +179,12 @@ const AdminClients = () => {
         }
     };
 
-
     const filteredClients = clients
         .filter((client) => client.name.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => sortOrder === 'recent' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
 
     return (
-        // Container principal: Ocupa a altura total disponível e define o layout como coluna.
         <div className="flex flex-col h-full">
-            {/* Título e Botão: Fixo no topo (shrink-0) */}
             <div className="flex justify-between items-center mb-6 shrink-0">
                 <h1 className="text-3xl font-bold text-white">Gerir Clientes</h1>
                 <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
@@ -291,6 +292,32 @@ const AdminClients = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Bloco para o campo de frase (agora sempre editável) */}
+                            <div>
+                                <Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar senha temporária</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        id="phrase"
+                                        value={phrase}
+                                        onChange={(e) => setPhrase(e.target.value)}
+                                        className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white rounded-xl"
+                                    />
+                                    {/* Mostra o botão de cópia apenas no modo de edição */}
+                                    {currentClient && (
+                                        <Button
+                                            type="button"
+                                            size="icon"
+                                            onClick={() => copyToClipboard(phrase)}
+                                            title="Copiar frase"
+                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
                             <DialogFooter>
                                 <DialogClose asChild>
                                     <Button
@@ -312,7 +339,6 @@ const AdminClients = () => {
                 </Dialog>
             </div>
 
-            {/* Busca e Filtro: Fixo no topo (shrink-0) */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
                 <Input
                     placeholder="Buscar cliente..."
@@ -330,7 +356,6 @@ const AdminClients = () => {
                 </select>
             </div>
 
-            {/* Container da Lista de Cards: Ocupa o espaço restante e tem rolagem */}
             <div className="flex-1 overflow-y-auto pr-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {isLoading ? (
@@ -343,7 +368,6 @@ const AdminClients = () => {
                         filteredClients.map((client) => (
                             <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up relative">
                                 <div className="flex flex-col p-6 gap-4 bg-black/70 backdrop-blur-md rounded-3xl shadow-md transition-all duration-300 hover:bg-black/80 relative">
-                                    {/* Checkbox dentro do card, canto superior esquerdo */}
                                     <input
                                         type="checkbox"
                                         className="absolute top-4 left-4 w-5 h-5 accent-orange-500"
@@ -377,7 +401,7 @@ const AdminClients = () => {
                                                 className="w-full bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
                                             >
                                                 <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                                                    <GalleryHorizontal className="mr-2 h-4 w-4"/>
+                                                    <GalleryHorizontal className="mr-2 h-4 w-4" />
                                                     Gerir Galerias
                                                 </Link>
                                             </Button>
@@ -396,12 +420,11 @@ const AdminClients = () => {
                             </div>
                         ))
                     ) : (
-                        <p className="text-center text-white/60 pt-12">Nenhum cliente encontrado.</p>
+                        <p className="text-center text-white/60 pt-12 col-span-full">Nenhum cliente encontrado.</p>
                     )}
                 </div>
             </div>
 
-            {/* Rodapé: Botão de exclusão múltipla - Adicionado ícone e classe */}
             <div className="flex justify-end mt-6">
                 <Button
                     type="button"

@@ -67,7 +67,7 @@ const TestimonialsSection = () => {
     return (
         <section id="testimonials" className="py-16 md:py-24 bg-secondary/20">
             <div className="container mx-auto max-w-4xl text-center">
-                <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in">O que Dizem os Clientes</h2>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in">O QUE DIZEM OS CLIENTES</h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in">
                     Histórias e palavras de quem confiou no meu olhar para eternizar seus momentos.
                 </p>
@@ -81,10 +81,12 @@ const TestimonialsSection = () => {
                         {testimonials.map((item) => (
                             <CarouselItem key={item._id}>
                                 <div className="p-1">
-                                    <Card>
+                                    <Card className="bg-white dark:bg-zinc-900 border border-transparent hover:border-orange-500/50 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 flex flex-col justify-between animate-fade-in snap-center overflow-hidden">
                                         <CardContent className="flex flex-col items-center justify-center p-8 text-center min-h-[250px]">
-                                            <p className="mb-4 italic text-muted-foreground">"{item.text}"</p>
-                                            <h3 className="font-semibold">{item.author}</h3>
+                                            <p className="mb-4 italic text-muted-foreground transition-colors duration-300 group-hover:text-orange-400">
+                                                "{item.text}"
+                                            </p>
+                                            <h3 className="font-semibold text-lg text-white">{item.author}</h3>
                                             <span className="text-sm text-muted-foreground">{item.role}</span>
                                         </CardContent>
                                     </Card>

@@ -1,6 +1,28 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto'; // NOVO
+
+// NOVO: Funções auxiliares para criptografia
+const algorithm = 'aes-256-cbc';
+const key = Buffer.from(process.env.ENCRYPTION_KEY, 'utf-8');
+const iv = Buffer.from(process.env.ENCRYPTION_IV, 'utf-8');
+
+function encrypt(text) {
+    if (!text) return null;
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+
+function decrypt(encryptedText) {
+    if (!encryptedText) return null;
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+}
 
 let cachedDb = null;
 async function connectToDatabase(uri) {
@@ -26,32 +48,47 @@ export default async function handler(req, res) {
         // --- LÓGICA PARA CLIENTES ---
         if (action === 'getClients' && req.method === 'GET') {
             const clients = await clientsCollection.find({}).sort({ name: 1 }).toArray();
-            clients.forEach(client => delete client.password);
-            return res.status(200).json(clients);
+
+            // MODIFICADO: Decriptografa a frase antes de enviar
+            const decryptedClients = clients.map(client => {
+                delete client.password;
+                if (client.phrase) {
+                    client.phrase = decrypt(client.phrase);
+                }
+                return client;
+            });
+
+            return res.status(200).json(decryptedClients);
         }
 
         if (action === 'createClient' && req.method === 'POST') {
-            const { name, email, password, recoveryEmail } = req.body;
+            const { name, email, password, recoveryEmail, phrase } = req.body;
             if (!name || !email || !password) return res.status(400).json({ error: 'Dados incompletos.' });
 
             const hashedPassword = await bcrypt.hash(password, 10);
+            const encryptedPhrase = encrypt(phrase); // MODIFICADO: Criptografa a frase
 
             const result = await clientsCollection.insertOne({
                 name,
                 email,
                 password: hashedPassword,
                 recoveryEmail: recoveryEmail || null,
+                phrase: encryptedPhrase, // MODIFICADO: Salva a frase criptografada
                 mustResetPassword: true
             });
 
-            const inserted = { name, email, _id: result.insertedId };
-            return res.status(201).json(inserted);
+            return res.status(201).json({
+                name,
+                email,
+                _id: result.insertedId,
+                tempPassword: password
+            });
         }
 
         if (action === 'updateClient' && req.method === 'PUT') {
             if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });
 
-            const { name, email, recoveryEmail } = req.body;
+            const { name, email, recoveryEmail, phrase } = req.body;
             if (!name || !email) return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
 
             const existingClient = await clientsCollection.findOne({ email: email, _id: { $ne: new ObjectId(clientId) } });
@@ -59,9 +96,11 @@ export default async function handler(req, res) {
                 return res.status(409).json({ error: 'Este email de login já está a ser utilizado por outro cliente.' });
             }
 
+            const encryptedPhrase = encrypt(phrase); // MODIFICADO: Criptografa a frase
+
             const result = await clientsCollection.updateOne(
                 { _id: new ObjectId(clientId) },
-                { $set: { name, email, recoveryEmail: recoveryEmail || null } }
+                { $set: { name, email, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase } } // MODIFICADO
             );
 
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
@@ -69,6 +108,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Cliente atualizado com sucesso.' });
         }
 
+        // ... O resto das suas rotas (deleteClient, galleries, etc.) continua igual ...
 
         if (action === 'deleteClient' && req.method === 'DELETE') {
             if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });
@@ -127,20 +167,15 @@ export default async function handler(req, res) {
         if (action === 'deleteGalleries' && req.method === 'DELETE') {
             const { galleryIds } = req.body;
 
-            // 1. Validação: Verifica se é um array e se todos os IDs são válidos
             if (!Array.isArray(galleryIds) || galleryIds.some(id => !ObjectId.isValid(id))) {
                 return res.status(400).json({ error: 'IDs de galerias inválidos.' });
             }
 
-            // 2. Converte os IDs de string para ObjectId
             const objectIds = galleryIds.map(id => new ObjectId(id));
-
-            // 3. Executa a exclusão múltipla no MongoDB
             const result = await galleriesCollection.deleteMany({ _id: { $in: objectIds } });
-
-            // 4. Retorna sucesso
             return res.status(200).json({ message: `${result.deletedCount} galerias excluídas.` });
         }
+
 
         return res.status(400).json({ error: 'Ação inválida ou não especificada.' });
 

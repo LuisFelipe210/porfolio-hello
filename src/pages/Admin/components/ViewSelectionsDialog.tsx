@@ -148,8 +148,10 @@ export const ViewSelectionsDialog = ({ galleryName, selectedImages, open, onOpen
                                     onClick={() => handleOpenModal(index)} // Abre o modal ao clicar
                                 >
                                     <img
+                                        // OTIMIZAÇÃO: w_400 já está aplicado (correto)
                                         src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400")}
                                         alt="Foto selecionada"
+                                        // CORREÇÃO: Adicionando h-full para garantir que a imagem preencha o container quadrado (aspect-square)
                                         className="w-full h-full object-cover rounded-md"
                                     />
                                 </div>

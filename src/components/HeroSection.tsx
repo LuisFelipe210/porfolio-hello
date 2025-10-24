@@ -59,7 +59,7 @@ const HeroSection = () => {
                             <img
                                 src={Logo}
                                 alt="Hellô Borges Logo"
-                                className="h-12 sm:h-16 md:h-28 w-auto shrink-0"
+                                className="h-16 sm:h-24 md:h-32 w-auto shrink-0"
                             />
 
                             {/* BLOCO DE TEXTO */}
@@ -69,7 +69,7 @@ const HeroSection = () => {
                                     {settings.heroTitle}
                                 </h1>
                                 {/* FOTOGRAFIA: Peso aumentado */}
-                                <p className="text-sm sm:text-base md:text-xl font-bold tracking-[0.4em] uppercase leading-tight -mt-0.5 md:-mt-2 text-white">
+                                <p className="text-lg sm:text-2xl md:text-4xl font-bold tracking-[0.4em] uppercase leading-tight -mt-1 md:-mt-3 text-white">
                                     FOTOGRAFIA
                                 </p>
                             </div>

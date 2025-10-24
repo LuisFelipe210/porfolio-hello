@@ -7,10 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Upload, Loader2 } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 // ======================================================================
-// ⚠️ ATENÇÃO: SUBSTITUA ESTES VALORES PELOS SEUS DA CLOUDINARY
-// O Upload Preset deve ser configurado como NÃO ASSINADO no painel da Cloudinary.
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 // ======================================================================
@@ -44,6 +43,73 @@ const areContentsEqual = (content1: AboutContent | null, content2: AboutContent 
 
     return serialize(content1) === serialize(content2);
 };
+
+// Componente auxiliar para gerir as imagens
+const ImageManager = ({
+                          title,
+                          images,
+                          onFileChange,
+                          onRemove,
+                          isUploading
+                      }: {
+    title: string;
+    images: Image[];
+    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onRemove: (index: number) => void;
+    isUploading: boolean;
+}) => (
+    <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
+        <CardHeader>
+            <h2 className="text-white text-xl font-bold">{title}</h2>
+            <CardDescription className="text-white/80">Adicione ou remova imagens para esta coluna.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+                {images.map((img, index) => {
+                    // OTIMIZAÇÃO APLICADA: Forçar o Cloudinary a redimensionar e cortar a imagem para o tamanho do thumbnail (w_200, h_96)
+                    const optimizedSrc = optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_200,h_96,c_fill");
+
+                    return (
+                        <div key={index} className="relative group">
+                            <img
+                                src={optimizedSrc}
+                                alt={img.alt}
+                                className="w-full h-24 object-cover rounded-md"
+                            />
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                                onClick={() => onRemove(index)}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    );
+                })}
+                {/* Exibe o indicador de carregamento enquanto o upload está ativo */}
+                {isUploading && (
+                    <div className="relative flex items-center justify-center w-full h-24 bg-black/80 border border-gray-500 rounded-md">
+                        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                    </div>
+                )}
+            </div>
+            <Label htmlFor={`upload-${title.replace(/\s+/g, '')}`} className="w-full text-white mb-1 font-semibold cursor-pointer">
+                <div className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-white/10">
+                    <Upload className="h-5 w-5 mr-2 text-white" /> Adicionar Imagem
+                </div>
+                <Input
+                    id={`upload-${title.replace(/\s+/g, '')}`}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={onFileChange}
+                />
+            </Label>
+        </CardContent>
+    </Card>
+);
+
 
 const AdminAbout = () => {
     const [content, setContent] = useState<AboutContent | null>(null);
@@ -240,66 +306,5 @@ const AdminAbout = () => {
         </form>
     );
 };
-
-// Componente auxiliar para gerir as imagens
-const ImageManager = ({
-                          title,
-                          images,
-                          onFileChange,
-                          onRemove,
-                          isUploading
-                      }: {
-    title: string;
-    images: Image[];
-    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onRemove: (index: number) => void;
-    isUploading: boolean;
-}) => (
-    <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-none">
-        <CardHeader>
-            <h2 className="text-white text-xl font-bold">{title}</h2>
-            <CardDescription className="text-white/80">Adicione ou remova imagens para esta coluna.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-                {images.map((img, index) => (
-                    <div key={index} className="relative group">
-                        <img
-                            src={img.src}
-                            alt={img.alt}
-                            className="w-full h-24 object-cover rounded-md"
-                        />
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
-                            onClick={() => onRemove(index)}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                ))}
-                {/* Exibe o indicador de carregamento enquanto o upload está ativo */}
-                {isUploading && (
-                    <div className="relative flex items-center justify-center w-full h-24 bg-black/80 border border-gray-500 rounded-md">
-                        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
-                    </div>
-                )}
-            </div>
-            <Label htmlFor={`upload-${title.replace(/\s+/g, '')}`} className="w-full text-white mb-1 font-semibold cursor-pointer">
-                <div className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-white/10">
-                    <Upload className="h-5 w-5 mr-2 text-white" /> Adicionar Imagem
-                </div>
-                <Input
-                    id={`upload-${title.replace(/\s+/g, '')}`}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={onFileChange}
-                />
-            </Label>
-        </CardContent>
-    </Card>
-);
 
 export default AdminAbout;

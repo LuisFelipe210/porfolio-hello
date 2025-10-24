@@ -148,4 +148,33 @@
     .scrollbar-none::-webkit-scrollbar {
         display: none; /* Chrome, Safari e Opera */
     }
+
+    /* Simulação de Adição ao src/index.css */
+
+    .my-masonry-grid {
+        display: -webkit-box; /* Not needed if you are using a modern browser */
+        display: -ms-flexbox; /* Not needed if you are using a modern browser */
+        display: flex;
+        margin-left: -10px; /* gutter size */
+        width: auto;
+    }
+
+    .my-masonry-grid_column {
+        padding-left: 10px; /* gutter size */
+        background-clip: padding-box;
+    }
+
+    /* Style for individual grid items */
+    .my-masonry-grid_column > div {
+        margin-bottom: 10px; /* space between items */
+        overflow: hidden;
+        border-radius: 0.75rem; /* rounded-xl */
+    }
+
+    /* Opcional: Para mobile, voltamos a uma coluna */
+    @media (max-width: 639px) {
+        .my-masonry-grid_column {
+            padding-left: 0;
+        }
+    }
 }

@@ -26,7 +26,6 @@ const ClientLayout = () => {
     return (
         // CORREÇÃO: h-screen e overflow-hidden para layout fixo
         <div className="flex flex-col h-screen overflow-hidden">
-            {/* Background Image e Overlay: Continua fixo */}
             <div className="fixed inset-0 z-0">
                 <img
                     src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")}
