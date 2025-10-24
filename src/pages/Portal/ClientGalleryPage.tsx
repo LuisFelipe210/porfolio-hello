@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, CheckCircle, Send, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, CheckCircle, Send, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import Logo from '@/assets/logo.svg'; // Import da logo
 
 interface Gallery {
     _id: string;
@@ -97,22 +98,15 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // EFEITO #1: AUTOSAVE (SALVAMENTO AUTOMÁTICO)
-    // Este efeito é acionado sempre que `selectedImages` muda.
     useEffect(() => {
         if (isSelectionComplete) return;
 
         const selectionsArray = Array.from(selectedImages);
-
-        // Atualiza o componente pai e o localStorage imediatamente para feedback visual rápido
         onSelectionChange(gallery._id, selectionsArray);
         localStorage.setItem(storageKey, JSON.stringify(selectionsArray));
-
-        // Limpa qualquer timeout anterior para garantir que só salvamos após o usuário parar de clicar
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
-
-        // Agenda o salvamento no servidor para daqui a 2 segundos (debounce)
         timeoutRef.current = setTimeout(async () => {
             try {
                 const token = localStorage.getItem('clientAuthToken');
@@ -121,7 +115,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ galleryId: gallery._id, selectedImages: selectionsArray }),
                 });
-
                 if (response.ok) {
                     console.log(`[AUTOSAVE] Sucesso: ${selectionsArray.length} fotos salvas no servidor.`);
                 } else {
@@ -130,9 +123,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
             } catch (error) {
                 console.error("[AUTOSAVE] Erro ao salvar seleções:", error);
             }
-        }, 2000); // Atraso de 2 segundos
-
-        // Função de limpeza para cancelar o timeout se o componente for desmontado
+        }, 2000);
         return () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
@@ -142,7 +133,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 
 
     // EFEITO #2: SINCRONIZAÇÃO (BUSCA DADOS DE OUTROS DISPOSITIVOS)
-    // Este efeito roda periodicamente para buscar atualizações do servidor.
     useEffect(() => {
         if (isSelectionComplete) return;
 
@@ -158,29 +148,20 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                 const currentGallery = galleries.find((g: Gallery) => g._id === gallery._id);
 
                 if (currentGallery?.selections) {
-                    // --- A LÓGICA FUNDAMENTAL QUE CORRIGE O BUG ---
-                    // "MERGE, DON'T OVERWRITE" (MESCLAR, NÃO SOBRESCREVER)
                     const serverSelections = new Set(currentGallery.selections);
-
                     setSelectedImages(prevLocalSelections => {
-                        // 1. Cria um novo conjunto que é a UNIÃO do estado local e do estado do servidor.
                         const mergedSet = new Set([...prevLocalSelections, ...serverSelections]);
-
-                        // 2. Compara os tamanhos para ver se algo mudou.
-                        // Isto previne re-renderizações desnecessárias e loops de autosave.
                         if (mergedSet.size !== prevLocalSelections.size) {
                             console.log('[SYNC] Estado mesclado com o servidor. Novas seleções encontradas.');
-                            return mergedSet; // Atualiza o estado com o resultado da união
+                            return mergedSet;
                         }
-
-                        // 3. Se nada mudou, retorna o estado antigo para não fazer nada.
                         return prevLocalSelections;
                     });
                 }
             } catch (error) {
                 console.error('[SYNC] Erro ao sincronizar com o servidor:', error);
             }
-        }, 8000); // Sincroniza a cada 8 segundos
+        }, 8000);
 
         return () => clearInterval(syncInterval);
     }, [gallery._id, isSelectionComplete]);
@@ -203,7 +184,6 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 
     const handleSubmitSelection = async () => {
         setIsSubmitting(true);
-        // Cancela qualquer autosave pendente antes do envio final
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         try {
             const token = localStorage.getItem('clientAuthToken');
@@ -225,6 +205,23 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 
     return (
         <div>
+            {/* INÍCIO DA CORREÇÃO: OVERLAY ATUALIZADO */}
+            {isSubmitting && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="flex flex-col items-center gap-6 p-8 rounded-2xl shadow-2xl bg-zinc-900/80 border border-white/10 max-w-sm text-center animate-in fade-in zoom-in-95 duration-500">
+                        <img src={Logo} alt="Logo Hellô Borges Fotografia" className="h-10 w-auto" />
+                        <Loader2 className="h-12 w-12 text-orange-500 animate-spin" />
+                        <h2 className="text-2xl font-bold text-white">
+                            Enviando sua seleção...
+                        </h2>
+                        <p className="text-gray-300">
+                            Por favor, aguarde. Isto pode demorar alguns instantes.
+                        </p>
+                    </div>
+                </div>
+            )}
+            {/* FIM DA CORREÇÃO */}
+
             {modalImageIndex !== null && <ImageModal images={gallery.images} currentIndex={modalImageIndex} onClose={() => setModalImageIndex(null)} onNavigate={handleNavigateModal} selectedImages={selectedImages} toggleSelection={toggleSelection} isSelectionComplete={isSelectionComplete} />}
 
             <div className="mb-8 text-white">
@@ -307,25 +304,18 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 const ClientGalleryPage = () => {
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    // REMOVIDO: const [activeGallery, setActiveGallery] = useState<Gallery | null>(null);
     const { toast } = useToast();
     const { setHeaderBackAction } = useOutletContext<LayoutContext>();
 
-    // NOVO: Obter o ID da URL e o hook de navegação
     const navigate = useNavigate();
     const { galleryId: urlGalleryId } = useParams<{ galleryId: string }>();
-
-    // NOVO: Determinar a galeria ativa com base no ID da URL e no estado carregado
     const activeGallery = galleries.find(g => g._id === urlGalleryId) || null;
 
-    // Lógica para o botão de "Voltar" personalizado
     const handleBack = useCallback(() => {
-        // Ação de voltar: navega para a rota base da galeria (a lista)
         navigate('/portal/gallery');
     }, [navigate]);
 
     useEffect(() => {
-        // Configura o botão "Voltar" no layout se estivermos numa galeria ativa
         if (activeGallery) {
             setHeaderBackAction(() => handleBack);
         } else {
@@ -342,7 +332,6 @@ const ClientGalleryPage = () => {
             const response = await fetch('/api/portal?action=getGalleries', { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao buscar galerias.');
             const data = await response.json();
-
             setGalleries(data);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as suas galerias.' });
@@ -356,7 +345,6 @@ const ClientGalleryPage = () => {
     }, [fetchGalleries]);
 
     const handleSelectionSubmit = () => {
-        // Após o envio da seleção, volta para a lista de galerias
         handleBack();
         fetchGalleries();
     }
@@ -373,12 +361,10 @@ const ClientGalleryPage = () => {
         return <div className="grid grid-cols-1 md:grid-cols-2 gap-4"><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>;
     }
 
-    // 1. Renderiza a visualização detalhada se houver uma galeria ativa
     if (activeGallery) {
         return <GallerySelectionView gallery={activeGallery} onSelectionSubmit={handleSelectionSubmit} onSelectionChange={handleSelectionChange} />
     }
 
-    // 2. Trata o caso de ID na URL mas a galeria não foi encontrada (404-like)
     if (urlGalleryId && !activeGallery) {
         return <div className="text-white text-center pt-12">
             <h1 className="text-2xl font-bold mb-4">Galeria Não Encontrada</h1>
@@ -386,7 +372,6 @@ const ClientGalleryPage = () => {
         </div>;
     }
 
-    // 3. Renderiza a lista de galerias
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6 text-white">As Suas Galerias</h1>
@@ -395,7 +380,6 @@ const ClientGalleryPage = () => {
                     {galleries.map((gallery) => (
                         <div
                             key={gallery._id}
-                            // MUDANÇA PRINCIPAL: Navegação baseada na URL
                             onClick={() => navigate(`/portal/gallery/${gallery._id}`)}
                             className="relative flex flex-col bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl cursor-pointer transition-all duration-300 hover:border-orange-500/80 hover:shadow-orange-500/30"
                         >

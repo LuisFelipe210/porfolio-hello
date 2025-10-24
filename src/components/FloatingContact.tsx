@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { Mail, Send } from "lucide-react";
+import { Mail } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-import { Button } from "./ui/button.tsx";
-import { Input } from "./ui/input.tsx";
-import { Textarea } from "./ui/textarea.tsx";
-import { useToast } from "../hooks/use-toast.ts";
+import { useToast } from "../hooks/use-toast";
 import {
     Dialog,
     DialogContent,
@@ -12,10 +9,8 @@ import {
     DialogTitle,
     DialogDescription,
     DialogTrigger,
-    DialogFooter,
-    DialogClose,
-} from "./ui/dialog.tsx";
-
+} from "./ui/dialog";
+import { ContactForm } from "./ContactForm"; // Importe o novo componente
 
 const FloatingContact = () => {
     const [formData, setFormData] = useState({
@@ -27,6 +22,7 @@ const FloatingContact = () => {
     });
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,9 +31,7 @@ const FloatingContact = () => {
         try {
             const response = await fetch('/api/send-email', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json', },
                 body: JSON.stringify(formData),
             });
 
@@ -50,13 +44,8 @@ const FloatingContact = () => {
                 description: "Obrigada pelo seu interesse. Retornarei o contato em breve.",
             });
 
-            setFormData({
-                name: "",
-                email: "",
-                phone: "",
-                service: "",
-                message: ""
-            });
+            setFormData({ name: "", email: "", phone: "", service: "", message: "" });
+            setIsDialogOpen(false); // Fecha o diálogo após o envio
 
         } catch (error) {
             console.error(error);
@@ -70,75 +59,55 @@ const FloatingContact = () => {
         }
     };
 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+    // Função separada para o componente Select
+    const handleServiceChange = (value: string) => {
+        setFormData({ ...formData, service: value });
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-3">
+            {/* Botão do WhatsApp */}
             <a
-                href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento%20para%20seus%20serviços%20de%20fotografia."
+                href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento."
                 target="_blank"
                 rel="noopener noreferrer"
-                // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-white dark:text-black)
+                // CORREÇÃO: Adicionado de volta o dark:text-black e o tamanho responsivo
                 className="w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-green-600 transition-transform hover:scale-110"
                 aria-label="WhatsApp"
             >
-                {/* Reduzindo o tamanho fixo do ícone para melhor encaixe no mobile */}
                 <FaWhatsapp size={24} />
             </a>
-            <Dialog>
+
+            {/* Botão de Email que abre o diálogo */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                     <button
-                        // CORREÇÃO: Tamanho no mobile (w-12 h-12) e cor do ícone (text-white dark:text-black)
+                        // CORREÇÃO: Adicionado de volta o dark:text-black e o tamanho responsivo
                         className="w-12 h-12 md:w-14 md:h-14 bg-orange-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-orange-600 transition-transform hover:scale-110"
                         aria-label="Email"
                     >
-                        {/* Reduzindo o tamanho fixo do ícone para melhor encaixe no mobile */}
                         <Mail size={24} />
                     </button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[480px]">
                     <DialogHeader>
-                        <DialogTitle>Vamos Conversar</DialogTitle>
+                        <DialogTitle className="text-2xl">Vamos Conversar</DialogTitle>
                         <DialogDescription>
-                            Entre em contato para discutirmos como posso capturar
-                            os seus momentos especiais de forma única e inesquecível.
+                            Preencha o formulário e vamos criar algo incrível juntos.
                         </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input name="name" placeholder="Seu nome" value={formData.name} onChange={handleChange} required disabled={isSubmitting} />
-                            <Input type="email" name="email" placeholder="Seu email" value={formData.email} onChange={handleChange} required disabled={isSubmitting} />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input type="tel" name="phone" placeholder="Telefone (opcional)" value={formData.phone} onChange={handleChange} disabled={isSubmitting} />
-                            <select name="service" value={formData.service} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-black" disabled={isSubmitting}>
-                                <option value="">Tipo de sessão</option>
-                                <option value="retrato">Ensaio/Retrato</option>
-                                <option value="casamento">Casamento</option>
-                                <option value="evento">Evento</option>
-                                <option value="maternidade">Maternidade</option>
-                                <option value="outro">Outro</option>
-                            </select>
-                        </div>
-                        <Textarea name="message" placeholder="Conte-me sobre sua ideia e expectativas para a sessão..." value={formData.message} onChange={handleChange} required rows={4} disabled={isSubmitting} />
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">
-                                    Cancelar
-                                </Button>
-                            </DialogClose>
-                            <Button type="submit" disabled={isSubmitting}>
-                                <Send className="w-4 h-4 mr-2" />
-                                {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
+                    {/* Renderiza o componente de formulário separado */}
+                    <ContactForm
+                        formData={formData}
+                        isSubmitting={isSubmitting}
+                        handleChange={handleChange}
+                        handleServiceChange={handleServiceChange}
+                        handleSubmit={handleSubmit}
+                    />
                 </DialogContent>
             </Dialog>
         </div>

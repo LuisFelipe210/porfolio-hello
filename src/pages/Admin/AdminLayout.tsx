@@ -17,26 +17,22 @@ import {
 import Logo from "@/assets/logo.svg";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMessages } from '@/context/MessagesContext';
-import { optimizeCloudinaryUrl } from '@/lib/utils'; // Importação para otimização
+import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const isMobile = useIsMobile();
     const [isSheetOpen, setSheetOpen] = useState(false);
-    // Definimos a barra lateral como aberta por padrão no desktop
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-    // 👇 vem do contexto global (em vez do useState local)
     const { hasUnreadMessages } = useMessages();
 
-    // Verifica autenticação
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (!token) navigate('/admin/login');
     }, [navigate]);
 
-    // Força o tema escuro permanentemente
     useEffect(() => {
         const html = document.documentElement;
         const observer = new MutationObserver(() => {
@@ -53,7 +49,6 @@ const AdminLayout = () => {
         return () => observer.disconnect();
     }, []);
 
-    // Redireciona para /clients
     useEffect(() => {
         if (location.pathname === '/admin') {
             navigate('/admin/clients');
@@ -76,6 +71,22 @@ const AdminLayout = () => {
                 >
                     <Users className="mr-2 h-4 w-4" />
                     Clientes
+                </Button>
+            </Link>
+
+            <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
+                <Button
+                    variant="ghost"
+                    className={`w-full justify-start ${isLinkActive('/admin/messages') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
+                >
+                    <Inbox className="mr-2 h-4 w-4" />
+                    Mensagens
+                    {hasUnreadMessages && (
+                        <span
+                            className="h-2 w-2 bg-orange-500 rounded-full animate-pulse ml-1"
+                            aria-label="Novas mensagens"
+                        />
+                    )}
                 </Button>
             </Link>
 
@@ -119,23 +130,6 @@ const AdminLayout = () => {
                 </Button>
             </Link>
 
-            <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
-                {/* 🔸 Botão de Mensagens com indicador dinâmico */}
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start relative ${isLinkActive('/admin/messages') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <Inbox className="mr-2 h-4 w-4" />
-                    Mensagens
-                    {hasUnreadMessages && (
-                        <span
-                            className="absolute top-1 right-2 h-2 w-2 bg-orange-500 rounded-full animate-pulse"
-                            aria-label="Novas mensagens"
-                        />
-                    )}
-                </Button>
-            </Link>
-
             <Link to="/admin/blog" onClick={() => setSheetOpen(false)}>
                 <Button
                     variant="ghost"
@@ -158,9 +152,7 @@ const AdminLayout = () => {
         </nav>
     );
 
-    // ---------------- MOBILE ----------------
     if (isMobile) {
-        // ... (Bloco Mobile omitido, pois não foi alterado)
         return (
             <div className="min-h-screen w-full">
                 <header className="relative z-[100] flex h-24 items-center justify-between px-6 md:px-12
@@ -168,18 +160,22 @@ const AdminLayout = () => {
                     dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80
                     border-b border-zinc-200/20 shadow-md backdrop-blur-sm">
 
-                    {/* Logo central */}
                     <div className="flex-1 flex justify-center">
                         <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />
                     </div>
 
-                    {/* Botão do menu lateral */}
                     <div className="absolute right-4">
                         <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" className="hover:bg-white/10 transition-colors duration-200">
+                                {/* INÍCIO DA ALTERAÇÃO */}
+                                <Button variant="outline" size="icon" className="relative hover:bg-white/10 transition-colors duration-200">
                                     <Menu className="h-6 w-6" />
+                                    {/* Bolinha que pisca se houver mensagens não lidas */}
+                                    {hasUnreadMessages && (
+                                        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                                    )}
                                 </Button>
+                                {/* FIM DA ALTERAÇÃO */}
                             </SheetTrigger>
                             <SheetContent side="left" className="flex flex-col p-0">
                                 <div className="flex items-center gap-2 p-4 border-b">
@@ -204,7 +200,6 @@ const AdminLayout = () => {
                     </div>
                 </header>
 
-                {/* conteúdo principal */}
                 <main className="relative z-10 p-4 pt-20">
                     <Outlet />
                 </main>
@@ -212,15 +207,12 @@ const AdminLayout = () => {
         );
     }
 
-    // ---------------- DESKTOP ----------------
-    const sidebarWidth = '16rem'; // w-64
+    const sidebarWidth = '16rem';
 
     return (
         <div className="flex flex-col h-screen overflow-hidden">
-            {/* background */}
             <div className="fixed inset-0 z-0">
                 <img
-                    // Otimização de imagem mantida
                     src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")}
                     alt="Background"
                     className="w-full h-full object-cover"
@@ -228,7 +220,6 @@ const AdminLayout = () => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             </div>
 
-            {/* header fixo */}
             <header className="relative z-[100] flex h-24 items-center justify-between px-6 md:px-12
                 bg-gradient-to-b from-zinc-50 via-white to-zinc-100
                 dark:from-zinc-900 dark:via-zinc-950 dark:to-black/80
@@ -248,16 +239,12 @@ const AdminLayout = () => {
                 </div>
             </header>
 
-            {/* layout principal */}
             <div className="flex flex-1 overflow-hidden">
-                {/* CORREÇÃO APLICADA: Sidebar com transição suave */}
                 <aside
                     className="h-full bg-card border-r p-4 flex flex-col relative z-10 overflow-y-auto transition-all duration-300"
                     style={{
-                        // Transição suave para esconder/mostrar a barra lateral
                         width: isSidebarOpen ? sidebarWidth : '0',
                         minWidth: isSidebarOpen ? sidebarWidth : '0',
-                        // Oculta visualmente os botões e texto quando fechada
                         paddingLeft: isSidebarOpen ? '1rem' : '0',
                         paddingRight: isSidebarOpen ? '1rem' : '0',
                         transform: isSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -266,12 +253,8 @@ const AdminLayout = () => {
                 >
                     <NavLinks />
                 </aside>
-                {/* CORREÇÃO APLICADA: Conteúdo principal se ajusta ao tamanho da barra lateral */}
                 <main
                     className="relative z-10 flex-1 p-6 md:p-8 overflow-y-auto transition-all duration-300"
-                    style={{
-                        marginLeft: isSidebarOpen ? '0' : '0', // O sidebar usa transform, então a margem não é estritamente necessária aqui
-                    }}
                 >
                     <Outlet />
                 </main>
