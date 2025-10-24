@@ -42,7 +42,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
     const navLinks = [
         { id: "home", label: "Início", isPage: false },
         { id: "about", label: "Sobre", isPage: false },
-        { id: "portfolio", label: "Portfolio", isPage: false },
+        { id: "portfolio", label: "Portfólio", isPage: false },
         { id: "services", label: "Serviços", isPage: false },
         { id: "blog", label: "Blog", isPage: true },
     ];
