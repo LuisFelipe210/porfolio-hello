@@ -1,4 +1,4 @@
-import { Camera, Heart, Users, UserPlus, Check, MousePointerClick } from "lucide-react";
+import { Camera, Heart, Users, UserPlus, Check } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
@@ -17,8 +17,8 @@ const iconMap: { [key:string]: React.ElementType } = {
     Camera: Camera, Heart: Heart, UserPlus: UserPlus, Users: Users,
 };
 
-// --- Componente do Card Individual (COM CLIQUE E ÍCONE) ---
-const ServiceCard = ({ service, isActive, onClick }: { service: Service, isActive: boolean, onClick: () => void }) => {
+// --- Componente do Card Individual (REVERTIDO PARA HOVER) ---
+const ServiceCard = ({ service }: { service: Service }) => {
     const Icon = iconMap[service.icon] || Camera;
 
     const optimizedImageUrl = optimizeCloudinaryUrl(
@@ -27,31 +27,26 @@ const ServiceCard = ({ service, isActive, onClick }: { service: Service, isActiv
     );
 
     return (
+        // A classe 'group' habilita o efeito hover nos filhos
         <div
-            onClick={onClick} // Adiciona o evento de clique ao card
             className={`
-                relative flex-shrink-0 w-full h-[75vh] max-h-[550px]
+                group relative flex-shrink-0 w-full h-[75vh] max-h-[550px]
                 rounded-2xl overflow-hidden shadow-2xl transform-gpu snap-center
                 cursor-pointer transition-all duration-300
-                ${isActive ? 'scale-[1.03] shadow-orange-500/30' : ''}
             `}
         >
             <img
                 src={optimizedImageUrl}
                 alt={service.title}
+                // Blur e Scale aplicados diretamente no group-hover
                 className={`absolute inset-0 w-full h-full object-cover
                            transition-all duration-700 ease-in-out
-                           ${isActive ? 'scale-110 blur-lg' : 'scale-100'}`} // Controla o zoom/blur
+                           group-hover:scale-110 group-hover:blur-lg`}
             />
-            {/* O Overlay agora escurece mais ao ser clicado */}
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-all duration-500 ${isActive ? 'bg-black/80' : ''}`} />
+            {/* O Overlay escurece no group-hover */}
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-all duration-500 group-hover:bg-black/80`} />
 
-            {/* Ícone de Dedo/Clique (Pisca) - Visível apenas quando inativo */}
-            {!isActive && (
-                <div className="absolute top-4 right-4 animate-pulse-slow z-20">
-                    <MousePointerClick className="w-8 h-8 text-white/90 drop-shadow-lg" />
-                </div>
-            )}
+            {/* Ícone do Dedo foi REMOVIDO */}
 
             <div className="relative h-full flex flex-col justify-end p-6 md:p-8 text-white">
                 <div className="flex items-center gap-3">
@@ -61,10 +56,11 @@ const ServiceCard = ({ service, isActive, onClick }: { service: Service, isActiv
                     <h3 className="text-2xl font-bold">{service.title}</h3>
                 </div>
 
-                {/* O conteúdo aparece com base no estado `isActive` */}
+                {/* O conteúdo aparece com base no group-hover */}
                 <div className={`transition-all duration-500 ease-in-out
-                                ${isActive ? 'opacity-100 max-h-96 mt-6 translate-y-0' : 'opacity-0 max-h-0 translate-y-4 pointer-events-none'}`
-                }>
+                                group-hover:opacity-100 group-hover:max-h-96 group-hover:mt-6 group-hover:translate-y-0
+                                opacity-0 max-h-0 translate-y-4 pointer-events-none`}
+                >
                     <p className="text-white/80 leading-relaxed text-sm mb-4">{service.description}</p>
                     <ul className="space-y-1.5 mb-6">
                         {service.features.map((f: string) => (
@@ -79,7 +75,6 @@ const ServiceCard = ({ service, isActive, onClick }: { service: Service, isActiv
                         target="_blank" rel="noopener noreferrer"
                         className="bg-orange-500 text-white dark:text-black font-semibold px-5 py-2 rounded-lg
                                    hover:bg-orange-600 transition-colors inline-block self-start text-sm shadow-lg"
-                        onClick={(e) => e.stopPropagation()} // Impede que o clique no link feche o card
                     >
                         Consultar Valores
                     </a>
@@ -93,7 +88,6 @@ const ServiceCard = ({ service, isActive, onClick }: { service: Service, isActiv
 const ServicesSection = () => {
     const [services, setServices] = useState<Service[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeCardId, setActiveCardId] = useState<string | null>(null); // Estado para controlar o card ativo
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef<HTMLDivElement | null>(null);
 
@@ -114,10 +108,7 @@ const ServicesSection = () => {
         fetchServices();
     }, []);
 
-    // Função para alternar o estado do card
-    const handleCardClick = (id: string) => {
-        setActiveCardId(prevId => prevId === id ? null : id);
-    };
+    // Removida a lógica de activeCardId/handleCardClick
 
     const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
 
@@ -179,12 +170,11 @@ const ServicesSection = () => {
                             services.map((service) => (
                                 <div
                                     key={service._id}
+                                    // Responsividade: 85vw no mobile, 50% no tablet, auto no desktop (grid)
                                     className="flex-shrink-0 basis-[85vw] sm:basis-[calc(50%-8px)] md:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto snap-start"
                                 >
                                     <ServiceCard
                                         service={service}
-                                        isActive={activeCardId === service._id}
-                                        onClick={() => handleCardClick(service._id)}
                                     />
                                 </div>
                             ))
