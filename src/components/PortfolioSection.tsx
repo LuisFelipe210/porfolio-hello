@@ -4,12 +4,139 @@ import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import { Button } from "./ui/button";
 
+// Definição de tipos para os itens do portfólio (simples)
+interface PortfolioItem {
+    id: string; // O ID DEVE SER ÚNICO
+    title: string;
+    description: string;
+    image: string;
+    category: string;
+}
+
+// Componente MobileSwipeCard (Título Fixo, Descrição Rolável)
+const MobileSwipeCard = ({ item, isOpen, onToggle, onOpenModal }: { item: PortfolioItem, isOpen: boolean, onToggle: (id: string | null) => void, onOpenModal: (id: string) => void }) => {
+    const startX = useRef<number>(0);
+    const isSwiping = useRef<boolean>(false);
+
+    // Função para compartilhar o item
+    const handleShare = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const shareData = { title: item.title, text: item.description, url: item.image };
+        if (navigator.share) navigator.share(shareData).catch(console.error);
+        else navigator.clipboard.writeText(shareData.url).then(() => alert("Link copiada!"));
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const target = e.target as Element;
+
+        if (target.closest('.share-button')) {
+            isSwiping.current = false;
+            return;
+        }
+        startX.current = e.touches[0].clientX;
+        isSwiping.current = false;
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        const endX = e.changedTouches[0].clientX;
+        const diff = startX.current - endX;
+        const absDiff = Math.abs(diff);
+
+        const swipeThreshold = 50;
+
+        if (absDiff < 10 && !isSwiping.current) {
+            // AÇÃO DE TOQUE RÁPIDO (TOQUE SIMPLES)
+            if (!isOpen) {
+                // Abre o modal de visualização (light-box)
+                onOpenModal(item.id);
+            } else {
+                // Fecha o overlay de descrição
+                onToggle(null);
+            }
+            return;
+        }
+
+        // SWIPE LOGIC (DESLIZE)
+        if (diff > swipeThreshold && !isOpen) {
+            // Deslize para a esquerda -> Abre APENAS este card (usando item.id)
+            onToggle(item.id);
+        } else if (diff < -swipeThreshold && isOpen) {
+            // Deslize para a direita -> Fecha o card
+            onToggle(null);
+        }
+    };
+
+    // Classes para o OVERLAY COMPLETO (revela a rolagem total ao deslizar)
+    const fullOverlayClasses = `absolute inset-0 transition-all duration-300 flex flex-col p-4 z-10 
+        ${isOpen ? 'opacity-100 bg-black/80' : 'opacity-0 bg-transparent pointer-events-none'}`;
+
+    return (
+        <div
+            className="relative w-full rounded-lg overflow-hidden shadow-xl cursor-pointer"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+        >
+            <button
+                onClick={handleShare}
+                className="share-button absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
+                aria-label="Compartilhar foto"
+            >
+                <FiShare2 className="w-5 h-5" />
+            </button>
+
+            {/* Imagem */}
+            <img
+                src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")}
+                alt={item.title}
+                loading="lazy"
+                className="w-full h-auto object-cover"
+            />
+
+            {/* 2. OVERLAY COMPLETO (Visível APENAS quando SWAP/ABERTO) */}
+            <div className={fullOverlayClasses}>
+                {/* 2a. TÍTULO FIXO NO TOPO */}
+                <h3 className="text-xl sm:text-2xl font-semibold mb-2 uppercase text-accent drop-shadow-lg transition-transform duration-300 flex-shrink-0 text-center truncate"
+                    style={{ transform: isOpen ? 'translateY(0)' : 'translateY(20px)' }}
+                >
+                    {item.title}
+                </h3>
+
+                {/* 2b. DESCRIÇÃO ROLÁVEL (flex-1 ocupa o espaço restante, overflow-y-auto permite rolagem) */}
+                <div className="flex-1 w-full text-center overflow-y-auto px-2 mb-2">
+                    <p className="text-sm sm:text-base text-zinc-300 drop-shadow transition-transform duration-300 delay-100"
+                       style={{ transform: isOpen ? 'translateY(0)' : 'translateY(20px)' }}
+                    >
+                        {item.description}
+                    </p>
+                </div>
+
+                <button
+                    onClick={(e) => { e.stopPropagation(); onToggle(null); }}
+                    className="text-sm self-center text-accent hover:text-accent/80 transition-colors uppercase font-medium flex-shrink-0"
+                >
+                    Voltar
+                </button>
+            </div>
+
+            {/* Indicador de deslize (visível APENAS quando a descrição está fechada) */}
+            {!isOpen && (
+                <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-black/50 to-transparent flex items-center justify-end pr-1 transition-opacity duration-300 pointer-events-none">
+                    <span className="text-white text-2xl opacity-70 animate-pulse">❮</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
 const PortfolioSection = () => {
-    const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
+    const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState("all");
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [showAllMobile, setShowAllMobile] = useState(false);
+    // ESTADO: activeDetailsId armazena o ID (string) da foto aberta, ou null.
+    const [activeDetailsId, setActiveDetailsId] = useState<string | null>(null);
     const mobileActionRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -35,6 +162,15 @@ const PortfolioSection = () => {
     const filteredItems = activeCategory === "all"
         ? portfolioItems
         : portfolioItems.filter(item => item.category === activeCategory);
+
+    // Função para abrir o modal de visualização a partir do clique em um item
+    const openModal = (itemId: string) => {
+        const index = filteredItems.findIndex(item => item.id === itemId);
+        if (index !== -1) {
+            setSelectedIndex(index);
+        }
+    }
+
 
     const categories = [
         { id: "all", name: "TODOS" },
@@ -78,6 +214,7 @@ const PortfolioSection = () => {
         scrollEl.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
     };
 
+    // A lógica de touch para o modal de visualização (light-box) foi mantida aqui
     const touchStartX = useRef<number | null>(null);
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -87,13 +224,11 @@ const PortfolioSection = () => {
     const handleTouchEnd = (e: React.TouchEvent) => {
         if (touchStartX.current === null) return;
         const diff = e.changedTouches[0].clientX - touchStartX.current;
-        if (diff > 50 && selectedIndex > 0) {
-            setSelectedIndex(selectedIndex - 1);
-        } else if (diff < -50 && selectedIndex < filteredItems.length - 1) {
-            setSelectedIndex(selectedIndex + 1);
-        }
+        if (diff > 50 && selectedIndex !== null && selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
+        if (diff < -50 && selectedIndex !== null && selectedIndex < filteredItems.length - 1) setSelectedIndex(selectedIndex + 1);
         touchStartX.current = null;
     };
+
 
     const linkClasses = `relative pb-1 text-base tracking-wide font-light transition-all duration-300 whitespace-nowrap snap-center uppercase
         text-accent after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.5px] after:bg-accent hover:text-accent/80 hover:after:w-0`;
@@ -162,36 +297,16 @@ const PortfolioSection = () => {
                     </div>
                 ) : (
                     <>
+                        {/* Renderização MOBILE (com SWAP) */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden mb-4 px-6">
                             {mobileItems.map((item, index) => (
-                                <div
+                                <MobileSwipeCard
                                     key={item.id}
-                                    className="relative w-full rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                                    onClick={() => setSelectedIndex(index)}
-                                >
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const shareData = { title: item.title, text: item.description, url: item.image };
-                                            if (navigator.share) navigator.share(shareData).catch(console.error);
-                                            else navigator.clipboard.writeText(shareData.url).then(() => alert("Link copiado!"));
-                                        }}
-                                        className="absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
-                                        aria-label="Compartilhar foto"
-                                    >
-                                        <FiShare2 className="w-5 h-5" />
-                                    </button>
-                                    <img
-                                        src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")}
-                                        alt={item.title}
-                                        loading="lazy"
-                                        className="w-full h-full object-cover rounded-lg"
-                                    />
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                                        <h3 className="text-lg font-medium text-white uppercase">{item.title}</h3>
-                                        <p className="text-sm text-white drop-shadow">{item.description}</p>
-                                    </div>
-                                </div>
+                                    item={item}
+                                    isOpen={activeDetailsId === item.id}
+                                    onToggle={setActiveDetailsId}
+                                    onOpenModal={openModal}
+                                />
                             ))}
                         </div>
 
@@ -208,6 +323,7 @@ const PortfolioSection = () => {
                             )}
                         </div>
 
+                        {/* Renderização DESKTOP (Masonry Layout com HOVER) */}
                         <div
                             key={activeCategory}
                             className="hidden md:block columns-2 lg:columns-4 gap-4 px-6 md:px-12 mb-12"
@@ -237,12 +353,26 @@ const PortfolioSection = () => {
                                         className="w-full h-auto object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
                                         style={{ transitionProperty: "transform, filter" }}
                                     />
-                                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                                        <div className="p-5 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0">
-                                            <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase">{item.title}</h3>
-                                            <p className="text-sm text-white drop-shadow">{item.description}</p>
+
+                                    {/* ESTILO DESKTOP: Overlay ativado por HOVER */}
+                                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
+                                        {/* Contêiner de conteúdo: Transição para o efeito de subida */}
+                                        <div className="p-0 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0 h-full flex flex-col">
+
+                                            {/* TÍTULO FIXO */}
+                                            <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0">
+                                                {item.title}
+                                            </h3>
+
+                                            {/* DESCRIÇÃO ROLÁVEL (flex-1 para ocupar o espaço restante) */}
+                                            <div className="flex-1 overflow-y-auto pr-1">
+                                                <p className="text-sm text-white drop-shadow">
+                                                    {item.description}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
+                                    {/* FIM ESTILO DESKTOP */}
                                 </div>
                             ))}
                         </div>
