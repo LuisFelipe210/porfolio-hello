@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FiShare2 } from "react-icons/fi";
+import { FiShare2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 
@@ -8,6 +8,9 @@ const PortfolioSection = () => {
     const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
     // Estado para controlar o carregamento dos dados
     const [isLoading, setIsLoading] = useState(true);
+
+    // Estado para controlar exibição de descrição em mobile (swipe)
+    const [showDescriptionIndex, setShowDescriptionIndex] = useState<number | null>(null);
 
     const [activeCategory, setActiveCategory] = useState("all");
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -132,14 +135,15 @@ const PortfolioSection = () => {
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
-        if (touchStartX.current === null) return;
-        const diff = e.changedTouches[0].clientX - touchStartX.current;
-        if (diff > 50 && selectedIndex > 0) {
-            setSelectedIndex(selectedIndex - 1);
-        } else if (diff < -50 && selectedIndex < filteredItems.length - 1) {
-            setSelectedIndex(selectedIndex + 1);
+        if (touchStartX.current !== null) {
+            const diffX = e.changedTouches[0].clientX - touchStartX.current;
+            if (diffX > 50 && selectedIndex > 0) {
+                setSelectedIndex(selectedIndex - 1);
+            } else if (diffX < -50 && selectedIndex < filteredItems.length - 1) {
+                setSelectedIndex(selectedIndex + 1);
+            }
+            touchStartX.current = null;
         }
-        touchStartX.current = null;
     };
 
     return (
@@ -203,10 +207,27 @@ const PortfolioSection = () => {
                             {pagedItems.map((item, index) => (
                                 <div
                                     key={item.id}
-                                    className="relative w-full aspect-[4/3] rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                                    onClick={() => setSelectedIndex(currentPage * ITEMS_PER_PAGE + index)}
-                                    onTouchStart={handleTouchStart}
-                                    onTouchEnd={handleTouchEnd}
+                                    className="relative group overflow-hidden w-full aspect-[4/3] rounded-lg shadow-sm cursor-pointer"
+                                    // Clique abre apenas o modal
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedIndex(index);
+                                    }}
+                                    // Suporte a swipe horizontal (descrição) e swipe para trocar foto
+                                    onTouchStart={e => {
+                                        touchStartX.current = e.touches[0].clientX;
+                                    }}
+                                    onTouchEnd={e => {
+                                        if (touchStartX.current !== null) {
+                                            const diffX = e.changedTouches[0].clientX - touchStartX.current;
+                                            if (diffX > 50) {
+                                                setShowDescriptionIndex(index); // deslizou para direita → mostra descrição
+                                            } else if (diffX < -50) {
+                                                setShowDescriptionIndex(null); // deslizou para esquerda → esconde descrição
+                                            }
+                                            touchStartX.current = null;
+                                        }
+                                    }}
                                 >
                                     {/* Botão de compartilhar mobile */}
                                     <button
@@ -239,10 +260,22 @@ const PortfolioSection = () => {
                                             +{filteredItems.length - ITEMS_PER_PAGE}
                                         </div>
                                     )}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                                        <h3 className="text-lg font-medium text-white">{item.title}</h3>
-                                        <p className="text-sm text-white drop-shadow">{item.description}</p>
+                                    {/* Indicador visual de deslize para descrição */}
+                                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-80 animate-pulse z-20">
+                                      ↔ deslize para ver
                                     </div>
+                                    {/* Descrição deslizável */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/70 backdrop-blur-sm rounded-t-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                      <h3 className="text-lg font-medium text-white">{item.title}</h3>
+                                      <p className="text-sm text-white/90">{item.description}</p>
+                                    </div>
+                                    {/* Descrição em tela cheia ao fazer swipe (vertical) */}
+                                    {showDescriptionIndex === index && (
+                                      <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-center p-4">
+                                        <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
+                                        <p className="text-sm text-white leading-relaxed">{item.description}</p>
+                                      </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -333,7 +366,7 @@ const PortfolioSection = () => {
                                     }`}
                                     aria-label="Imagem anterior"
                                 >
-                                    ❮
+                                    <FiChevronLeft />
                                 </button>
                                 <div
                                     className="flex-1 flex items-center justify-center px-4"
@@ -357,7 +390,7 @@ const PortfolioSection = () => {
                                     }`}
                                     aria-label="Próxima imagem"
                                 >
-                                    ❯
+                                    <FiChevronRight />
                                 </button>
                             </div>
 
