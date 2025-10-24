@@ -264,18 +264,14 @@ const PortfolioSection = () => {
                                     <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-80 animate-pulse z-20">
                                       ↔ deslize para ver
                                     </div>
-                                    {/* Descrição deslizável */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/70 backdrop-blur-sm rounded-t-xl translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                      <h3 className="text-lg font-medium text-white">{item.title}</h3>
+                                    {/* Descrição deslizável horizontal */}
+                                    <div
+                                      className={`absolute inset-0 p-4 bg-black/70 backdrop-blur-sm rounded-l-xl transition-transform duration-300 flex flex-col justify-center text-center
+                                        ${showDescriptionIndex === index ? 'translate-x-0' : '-translate-x-full'}`}
+                                    >
+                                      <h3 className="text-lg font-medium text-white mb-2">{item.title}</h3>
                                       <p className="text-sm text-white/90">{item.description}</p>
                                     </div>
-                                    {/* Descrição em tela cheia ao fazer swipe (vertical) */}
-                                    {showDescriptionIndex === index && (
-                                      <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-center p-4">
-                                        <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
-                                        <p className="text-sm text-white leading-relaxed">{item.description}</p>
-                                      </div>
-                                    )}
                                 </div>
                             ))}
                         </div>
