@@ -1,95 +1,108 @@
-import { Camera, Heart, Users, UserPlus, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Camera, Heart, Users, UserPlus, Check, MousePointerClick } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Skeleton } from "./ui/skeleton";
-import { useInView } from "react-intersection-observer";
+import { optimizeCloudinaryUrl } from "@/lib/utils";
 
-// Mapeamento para transformar o nome do ícone (string) no componente real
-const iconMap: { [key: string]: React.ElementType } = {
-    Camera: Camera,
-    Heart: Heart,
-    UserPlus: UserPlus,
-    Users: Users,
+// --- Interface e Mapeamento de Ícones ---
+interface Service {
+    _id: string;
+    title: string;
+    description: string;
+    icon: keyof typeof iconMap;
+    features: string[];
+    imageUrl: string;
+}
+
+const iconMap: { [key:string]: React.ElementType } = {
+    Camera: Camera, Heart: Heart, UserPlus: UserPlus, Users: Users,
 };
 
-const CARD_GAP = 24;
-
-// --- Componente do Card com a Lógica de Animação ---
-const ServiceCard = ({ service, index }: { service: any; index: number }) => {
-    const { ref, inView } = useInView({
-        triggerOnce: true, // A animação acontece apenas uma vez
-        threshold: 0.1,    // Inicia a animação quando 10% do card está visível
-    });
-
+// --- Componente do Card Individual (COM CLIQUE E ÍCONE) ---
+const ServiceCard = ({ service, isActive, onClick }: { service: Service, isActive: boolean, onClick: () => void }) => {
     const Icon = iconMap[service.icon] || Camera;
 
-    // Mapeamento de classes de atraso do Tailwind para o efeito escalonado
-    const delayClasses: { [key: number]: string } = {
-        0: 'delay-0',
-        1: 'delay-100',
-        2: 'delay-200',
-        3: 'delay-300',
-        4: 'delay-500', // Atraso padrão para quaisquer cards além do 4º
-    };
+    const optimizedImageUrl = optimizeCloudinaryUrl(
+        service.imageUrl,
+        'f_auto,q_auto,w_800'
+    );
 
     return (
         <div
-            ref={ref}
-            key={service._id}
-            className={`flex-shrink-0 md:flex-shrink md:w-auto w-[80vw] p-10 md:p-8
-                bg-white dark:bg-zinc-900
-                border border-transparent hover:border-orange-500/50
-                rounded-xl shadow-lg hover:shadow-2xl hover:shadow-orange-500/20
-                flex flex-col justify-between snap-center overflow-hidden
-                transition-all ease-out transform
-                duration-1000 ${delayClasses[index] || 'delay-500'}
-                ${inView ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}` // Animação de escala
-            }
+            onClick={onClick} // Adiciona o evento de clique ao card
+            className={`
+                relative flex-shrink-0 w-full h-[75vh] max-h-[550px]
+                rounded-2xl overflow-hidden shadow-2xl transform-gpu snap-center
+                cursor-pointer transition-all duration-300
+                ${isActive ? 'scale-[1.03] shadow-orange-500/30' : ''}
+            `}
         >
-            <div>
-                <div className="flex items-center mb-5">
-                    <div className="flex-shrink-0 w-10 h-10 bg-orange-500/10 rounded-full flex items-center justify-center mr-3 shadow-md">
-                        <Icon className="w-5 h-5 text-orange-500" />
-                    </div>
-                    <h3 className="flex-1 text-lg md:text-xl font-bold leading-snug text-gray-900 dark:text-white whitespace-normal min-w-0">{service.title}</h3>
+            <img
+                src={optimizedImageUrl}
+                alt={service.title}
+                className={`absolute inset-0 w-full h-full object-cover
+                           transition-all duration-700 ease-in-out
+                           ${isActive ? 'scale-110 blur-lg' : 'scale-100'}`} // Controla o zoom/blur
+            />
+            {/* O Overlay agora escurece mais ao ser clicado */}
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-all duration-500 ${isActive ? 'bg-black/80' : ''}`} />
+
+            {/* Ícone de Dedo/Clique (Pisca) - Visível apenas quando inativo */}
+            {!isActive && (
+                <div className="absolute top-4 right-4 animate-pulse-slow z-20">
+                    <MousePointerClick className="w-8 h-8 text-white/90 drop-shadow-lg" />
                 </div>
-                <p className="text-muted-foreground mb-6 leading-relaxed text-sm">{service.description}</p>
-                <ul className="space-y-2 mb-6">
-                    {service.features.map((f: string) => (
-                        <li key={f} className="text-sm text-gray-700 dark:text-gray-300 flex items-start">
-                            <Check className="w-4 h-4 text-orange-500 mr-2 flex-shrink-0 mt-0.5" />
-                            {f}
-                        </li>
-                    ))}
-                </ul>
+            )}
+
+            <div className="relative h-full flex flex-col justify-end p-6 md:p-8 text-white">
+                <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
+                        <Icon className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold">{service.title}</h3>
+                </div>
+
+                {/* O conteúdo aparece com base no estado `isActive` */}
+                <div className={`transition-all duration-500 ease-in-out
+                                ${isActive ? 'opacity-100 max-h-96 mt-6 translate-y-0' : 'opacity-0 max-h-0 translate-y-4 pointer-events-none'}`
+                }>
+                    <p className="text-white/80 leading-relaxed text-sm mb-4">{service.description}</p>
+                    <ul className="space-y-1.5 mb-6">
+                        {service.features.map((f: string) => (
+                            <li key={f} className="text-sm text-white/90 flex items-start">
+                                <Check className="w-4 h-4 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+                                {f}
+                            </li>
+                        ))}
+                    </ul>
+                    <a
+                        href={`https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20saber%20os%20valores%20para%20o%20serviço%20${encodeURIComponent(service.title)}.`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="bg-orange-500 text-white dark:text-black font-semibold px-5 py-2 rounded-lg
+                                   hover:bg-orange-600 transition-colors inline-block self-start text-sm shadow-lg"
+                        onClick={(e) => e.stopPropagation()} // Impede que o clique no link feche o card
+                    >
+                        Consultar Valores
+                    </a>
+                </div>
             </div>
-            <a
-                href={`https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20saber%20os%20valores%20para%20o%20serviço%20${encodeURIComponent(service.title)}.`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-transparent text-orange-500 font-semibold px-4 py-1.5 rounded-xl border border-orange-500 hover:bg-orange-500 hover:text-white transition-colors inline-block self-start text-sm shadow-md"
-            >
-                Valores
-            </a>
         </div>
     );
 };
 
-
 // --- Componente Principal da Seção de Serviços ---
 const ServicesSection = () => {
-    const [services, setServices] = useState<any[]>([]);
+    const [services, setServices] = useState<Service[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [activeCardId, setActiveCardId] = useState<string | null>(null); // Estado para controlar o card ativo
     const [activeIndex, setActiveIndex] = useState(0);
-    const [showLeftArrow, setShowLeftArrow] = useState(true);
-    const [showRightArrow, setShowRightArrow] = useState(true);
     const carouselRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const fetchServices = async () => {
+            setIsLoading(true);
             try {
-                // Simulação de delay da API para ver o skeleton em ação
-                // await new Promise(resolve => setTimeout(resolve, 1500));
                 const response = await fetch('/api/services');
+                if (!response.ok) throw new Error("Falha ao buscar dados.");
                 const data = await response.json();
                 setServices(data);
             } catch (error) {
@@ -101,83 +114,90 @@ const ServicesSection = () => {
         fetchServices();
     }, []);
 
+    // Função para alternar o estado do card
+    const handleCardClick = (id: string) => {
+        setActiveCardId(prevId => prevId === id ? null : id);
+    };
+
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
+
     const updateCarouselState = useCallback(() => {
-        if (!carouselRef.current) return;
+        if (isDesktop || !carouselRef.current) return;
         const el = carouselRef.current;
-        const isScrolledToStart = el.scrollLeft < 10;
-        const isScrolledToEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
-        setShowLeftArrow(!isScrolledToStart);
-        setShowRightArrow(!isScrolledToEnd);
-        const cardWidth = el.firstElementChild?.clientWidth || 1;
-        const newActiveIndex = Math.round(el.scrollLeft / (cardWidth + CARD_GAP));
-        if (newActiveIndex !== activeIndex) {
-            setActiveIndex(newActiveIndex);
+        const cardContainer = el.firstElementChild;
+        if (!cardContainer) return;
+
+        const cardWidth = cardContainer.clientWidth;
+        const gap = 16;
+        const newActiveIndex = Math.round(el.scrollLeft / (cardWidth + gap));
+        setActiveIndex(newActiveIndex);
+    }, [isDesktop]);
+
+    useEffect(() => {
+        const el = carouselRef.current;
+        if (!el || isLoading) return;
+        updateCarouselState();
+        if (!isDesktop) {
+            el.addEventListener("scroll", updateCarouselState, { passive: true });
         }
-    }, [activeIndex]);
+        return () => {
+            if (!isDesktop) el.removeEventListener("scroll", updateCarouselState);
+        };
+    }, [isDesktop, isLoading, updateCarouselState]);
 
     const scrollToIndex = (index: number) => {
         if (!carouselRef.current) return;
         const el = carouselRef.current;
-        const cardWidth = el.firstElementChild?.clientWidth || 1;
-        el.scrollTo({ left: index * (cardWidth + CARD_GAP), behavior: "smooth" });
+        const cardWidth = el.firstElementChild?.clientWidth || el.clientWidth;
+        const gap = 16;
+        el.scrollTo({ left: index * (cardWidth + gap), behavior: "smooth" });
     };
-
-    const scrollLeft = () => {
-        if (!carouselRef.current) return;
-        const el = carouselRef.current;
-        const cardWidth = el.firstElementChild?.clientWidth || 320;
-        el.scrollBy({ left: -(cardWidth + CARD_GAP), behavior: "smooth" });
-    };
-
-    const scrollRight = () => {
-        if (!carouselRef.current) return;
-        const el = carouselRef.current;
-        const cardWidth = el.firstElementChild?.clientWidth || 320;
-        el.scrollBy({ left: (cardWidth + CARD_GAP), behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        const el = carouselRef.current;
-        if (!el || isLoading) return; // Não adiciona listeners se o carrossel não existe ou está carregando
-        updateCarouselState();
-        el.addEventListener("scroll", updateCarouselState, { passive: true });
-        window.addEventListener("resize", updateCarouselState);
-        return () => {
-            el.removeEventListener("scroll", updateCarouselState);
-            window.removeEventListener("resize", updateCarouselState);
-        };
-    }, [isLoading, updateCarouselState]);
 
     return (
         <section id="services" className="py-16 md:py-24 bg-background">
-            <div className="container mx-auto max-w-6xl">
-                <div className="text-center mb-16">
+            <div className="container mx-auto max-w-screen-2xl">
+                <div className="text-center mb-16 px-4">
                     <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in">SERVIÇOS</h2>
                     <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
-                        Oferecendo diferentes tipos de sessões fotográficas, cada uma pensada para capturar o que há de mais especial em cada momento.
+                        Oferecendo diferentes tipos de sessões fotográficas, para capturar o que há de mais especial.
                     </p>
                 </div>
-                <div className="relative">
-                    {showLeftArrow && <button onClick={scrollLeft} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-black/70 backdrop-blur-sm rounded-full p-3 shadow-xl hover:bg-black/90 text-white dark:text-white z-10 transition-all hidden md:flex items-center justify-center border border-white/20" aria-label="Scroll left"><ChevronLeft className="w-6 h-6" /></button>}
-                    {showRightArrow && <button onClick={scrollRight} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-black/70 backdrop-blur-sm rounded-full p-3 shadow-xl hover:bg-black/90 text-white dark:text-white z-10 transition-all hidden md:flex items-center justify-center border border-white/20" aria-label="Scroll right"><ChevronRight className="w-6 h-6" /></button>}
 
-                    <div ref={carouselRef} className="flex md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible overflow-x-auto px-4 no-scrollbar snap-x snap-mandatory gap-6">
+                <div className="relative">
+                    <div
+                        ref={carouselRef}
+                        className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 gap-4
+                                   lg:grid lg:grid-cols-4 lg:gap-6 lg:p-0"
+                    >
                         {isLoading ? (
                             Array.from({ length: 4 }).map((_, idx) => (
-                                <Skeleton key={idx} className="flex-shrink-0 md:flex-shrink md:w-auto w-[80vw] h-[450px] rounded-xl" />
+                                <div key={idx} className="flex-shrink-0 basis-[85vw] md:basis-1/2 lg:basis-auto lg:w-auto">
+                                    <Skeleton className="h-[75vh] max-h-[550px] w-full rounded-2xl bg-zinc-800" />
+                                </div>
                             ))
                         ) : (
-                            services.map((service, index) => (
-                                <ServiceCard key={service._id} service={service} index={index} />
+                            services.map((service) => (
+                                <div
+                                    key={service._id}
+                                    className="flex-shrink-0 basis-[85vw] sm:basis-[calc(50%-8px)] md:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto snap-start"
+                                >
+                                    <ServiceCard
+                                        service={service}
+                                        isActive={activeCardId === service._id}
+                                        onClick={() => handleCardClick(service._id)}
+                                    />
+                                </div>
                             ))
                         )}
                     </div>
 
-                    {!isLoading && <div className="flex justify-center space-x-2 mt-6 md:hidden">
-                        {services.map((_, idx) => (
-                            <button key={idx} className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? "bg-orange-500 w-6" : "bg-orange-200 w-2.5"}`} onClick={() => scrollToIndex(idx)} aria-label={`Ir para o serviço ${services[idx]?.title || ''}`} />
-                        ))}
-                    </div>}
+                    {!isLoading && !isDesktop && services.length > 1 && (
+                        <div className="flex justify-center space-x-2 mt-8 lg:hidden">
+                            {services.map((_, idx) => (
+                                <button key={idx} className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? "bg-orange-500 w-6" : "bg-gray-400 w-2.5"}`} onClick={() => scrollToIndex(idx)} aria-label={`Ir para o serviço ${services[idx]?.title || ''}`} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </section>

@@ -2,143 +2,197 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Photography Portfolio Design System - Elegant & Professional */
-
 @layer base {
-  :root {
-    /* Core neutral palette */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 15%;
-    
-    /* Card system */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 15%;
-    
-    /* Interactive elements */
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 15%;
-    
-    /* Brand colors - Sophisticated black & gold */
-    --primary: 0 0% 8%;
-    --primary-foreground: 0 0% 98%;
-    
-    /* Vibrant orange accent */
-    --accent: 24 100% 60%;
-    --accent-foreground: 0 0% 98%;
-    
-    /* Subtle secondary */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 15%;
-    
-    /* Muted tones */
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
-    
-    /* System colors */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 24 100% 60%;
+    /* ==========================================================================
+       1. Design System Variables (Tokens)
+       ========================================================================== */
+    :root {
+        /* Core neutral palette for Light Mode */
+        --background: 0 0% 98%;      /* Fundo principal (quase branco) */
+        --foreground: 0 0% 15%;      /* Texto principal (cinza escuro) */
 
-    --radius: 0.375rem;
-    
-    /* Photography-specific design tokens */
-    --hero-gradient: linear-gradient(135deg, hsl(0 0% 8% / 0.9), hsl(0 0% 8% / 0.7));
-    --accent-gradient: linear-gradient(135deg, hsl(24 100% 60%), hsl(30 100% 65%));
-    --subtle-glow: 0 0 40px hsl(24 100% 60% / 0.15);
-    --elegant-shadow: 0 20px 40px hsl(0 0% 0% / 0.1);
-    --photo-shadow: 0 8px 30px hsl(0 0% 0% / 0.15);
-    
-    /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* Sidebar (if needed) */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 0 0% 8%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 24 100% 60%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 24 100% 60%;
-  }
+        /* System Components */
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 15%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 15%;
 
-  .dark {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 95%;
-    
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 95%;
-    
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 95%;
-    
-    --primary: 0 0% 95%;
-    --primary-foreground: 0 0% 8%;
-    
-    --accent: 24 100% 60%;
-    --accent-foreground: 0 0% 98%;
-    
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 95%;
-    
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-    
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 95%;
-    
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 24 100% 60%;
-    
-    --hero-gradient: linear-gradient(135deg, hsl(0 0% 10% / 0.95), hsl(0 0% 15% / 0.9));
-    --elegant-shadow: 0 20px 40px hsl(0 0% 0% / 0.3);
-    --photo-shadow: 0 8px 30px hsl(0 0% 0% / 0.25);
-  }
+        /* Brand & Accent Colors */
+        --primary: 0 0% 8%;          /* Cor primária (preto/chumbo) */
+        --primary-foreground: 0 0% 98%;
+        --accent: 24 100% 60%;       /* Laranja vibrante */
+        --accent-foreground: 0 0% 98%;
+
+        /* Tonal Palette */
+        --secondary: 0 0% 96%;
+        --secondary-foreground: 0 0% 15%;
+        --muted: 0 0% 94%;
+        --muted-foreground: 0 0% 45%;
+
+        /* System Colors */
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 98%;
+
+        /* Borders & Inputs */
+        --border: 0 0% 90%;
+        --input: 0 0% 90%;
+        --ring: 24 100% 60%;         /* Cor do anel de foco */
+
+        /* TIP: Você pode usar esta variável nos seus componentes com `rounded-radius` */
+        --radius: 0.375rem; /* corresponde a `rounded-md` */
+
+        /* Custom Design Tokens for Photography */
+        --hero-gradient: linear-gradient(135deg, hsl(0 0% 8% / 0.9), hsl(0 0% 8% / 0.7));
+        --accent-gradient: linear-gradient(135deg, hsl(var(--accent)), hsl(30 100% 65%));
+        --subtle-glow: 0 0 40px hsl(var(--accent) / 0.15);
+        --elegant-shadow: 0 20px 40px hsl(0 0% 0% / 0.1);
+        --photo-shadow: 0 8px 30px hsl(0 0% 0% / 0.15);
+    }
+
+    .dark {
+        /* Core neutral palette for Dark Mode */
+        --background: 0 0% 8%;
+        --foreground: 0 0% 95%;
+
+        /* System Components */
+        --card: 0 0% 10%;
+        --card-foreground: 0 0% 95%;
+        --popover: 0 0% 10%;
+        --popover-foreground: 0 0% 95%;
+
+        /* Brand & Accent Colors */
+        --primary: 0 0% 95%;
+        --primary-foreground: 0 0% 8%;
+        --accent: 24 100% 60%;
+        --accent-foreground: 0 0% 98%;
+
+        /* Tonal Palette */
+        --secondary: 0 0% 15%;
+        --secondary-foreground: 0 0% 95%;
+        --muted: 0 0% 15%;
+        --muted-foreground: 0 0% 60%;
+
+        /* Borders & Inputs */
+        --border: 0 0% 15%;
+        --input: 0 0% 15%;
+
+        /* Custom Design Tokens */
+        --hero-gradient: linear-gradient(135deg, hsl(0 0% 10% / 0.95), hsl(0 0% 15% / 0.9));
+        --elegant-shadow: 0 20px 40px hsl(0 0% 0% / 0.3);
+        --photo-shadow: 0 8px 30px hsl(0 0% 0% / 0.25);
+    }
+
+    /* ==========================================================================
+       2. Base Element Styles & Typography
+       ========================================================================== */
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        /* Dica de Design: Usar `font-light` no body todo pode dificultar a leitura de parágrafos longos.
+           É uma boa prática aplicar `font-normal` no body e `font-light` apenas nos cabeçalhos (h1, h2, etc.) */
+        font-weight: 300; /* Equivalente a font-light */
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply tracking-tight;
+    }
+
+    h1 { @apply text-4xl md:text-6xl font-light; }
+    h2 { @apply text-3xl md:text-4xl font-light; }
+    h3 { @apply text-2xl md:text-3xl font-light; }
+
+    /* ==========================================================================
+       3. Custom Components & Animations
+       ========================================================================== */
+
+    /* Animação para os cards de depoimento */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) rotate(var(--tw-rotate));
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) rotate(var(--tw-rotate));
+        }
+    }
+    /* Adicione estas regras ao final do seu arquivo CSS global */
+
+    .animate-pulse-slow {
+        /* Garante que o ícone esteja visível antes de começar a piscar */
+        opacity: 1;
+        animation: pulse-slow 3s infinite;
+    }
+
+    @keyframes pulse-slow {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    /* Efeito de dobra do "post-it", agora conectado com as variáveis de tema */
+    .post-it-fold {
+        position: relative;
+    }
+
+    .post-it-fold::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 30px;
+        height: 30px;
+
+        /* Gradiente usa a cor de texto (--foreground) com opacidade para criar a sombra,
+           adaptando-se automaticamente ao light/dark mode. */
+        background: linear-gradient(
+                to left top,
+                transparent 50%,
+                hsl(var(--foreground) / 0.1) 50%,
+                hsl(var(--foreground) / 0.2)
+        );
+
+        /* Sombra também usa a cor de texto do tema. */
+        box-shadow: -2px -2px 5px hsl(var(--foreground) / 0.15);
+        clip-path: polygon(100% 0, 0 100%, 100% 100%);
+        transition: all 0.3s ease;
+    }
+
+    .post-it-fold:hover::after {
+        width: 35px;
+        height: 35px;
+    }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+@layer components {
+    /* ==========================================================================
+       4. Custom Reusable Components (@apply)
+       ========================================================================== */
+    .hero-text {
+        @apply text-5xl md:text-7xl lg:text-8xl font-thin tracking-tighter;
+    }
 
-  body {
-    @apply bg-background text-foreground font-light;
-  }
-  
-  /* Typography scale */
-  h1 {
-    @apply text-4xl md:text-6xl font-light tracking-tight;
-  }
-  
-  h2 {
-    @apply text-3xl md:text-4xl font-light tracking-tight;
-  }
-  
-  h3 {
-    @apply text-2xl md:text-3xl font-light;
-  }
-  
-  /* Custom utility classes */
-  .hero-text {
-    @apply text-5xl md:text-7xl lg:text-8xl font-thin tracking-tighter;
-  }
-  
-  .section-padding {
-    @apply px-6 py-16 md:px-12 md:py-24;
-  }
-  
-  .elegant-border {
-    @apply border border-border/30 rounded-sm;
-  }
-  
-  .photo-hover {
-    @apply transition-all duration-500 hover:shadow-[var(--photo-shadow)] hover:-translate-y-2;
-  }
+    .section-padding {
+        @apply px-6 py-16 md:px-12 md:py-24;
+    }
+
+    .elegant-border {
+        @apply border border-border/30 rounded-sm;
+    }
+
+    .photo-hover {
+        @apply transition-all duration-500 hover:shadow-[var(--photo-shadow)] hover:-translate-y-2;
+    }
 
     .scrollbar-none {
         -ms-overflow-style: none; /* IE e Edge */
@@ -147,34 +201,5 @@
 
     .scrollbar-none::-webkit-scrollbar {
         display: none; /* Chrome, Safari e Opera */
-    }
-
-    /* Simulação de Adição ao src/index.css */
-
-    .my-masonry-grid {
-        display: -webkit-box; /* Not needed if you are using a modern browser */
-        display: -ms-flexbox; /* Not needed if you are using a modern browser */
-        display: flex;
-        margin-left: -10px; /* gutter size */
-        width: auto;
-    }
-
-    .my-masonry-grid_column {
-        padding-left: 10px; /* gutter size */
-        background-clip: padding-box;
-    }
-
-    /* Style for individual grid items */
-    .my-masonry-grid_column > div {
-        margin-bottom: 10px; /* space between items */
-        overflow: hidden;
-        border-radius: 0.75rem; /* rounded-xl */
-    }
-
-    /* Opcional: Para mobile, voltamos a uma coluna */
-    @media (max-width: 639px) {
-        .my-masonry-grid_column {
-            padding-left: 0;
-        }
     }
 }

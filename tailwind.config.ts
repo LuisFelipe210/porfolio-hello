@@ -17,6 +17,9 @@ export default {
         sans: ['Poppins', 'sans-serif'],
       },
       colors: {
+          'petal-green': '#A3E6B0', // Ajuste para o tom exato
+          'petal-yellow': '#FDE047',
+          'petal-blue': '#93C5FD',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
