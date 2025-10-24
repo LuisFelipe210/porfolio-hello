@@ -47,13 +47,13 @@ const HeroSection = () => {
                 <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
             </div>
 
-            {/* CONTAINER PRINCIPAL: Centralizado e alinhamento do texto à esquerda para centralizar o bloco */}
+            {/* CONTAINER PRINCIPAL: Centralizado */}
             <div className="relative z-10 text-left text-white px-6 max-w-5xl mx-auto w-full">
                 {isReady && (
                     <div className="flex flex-col items-center justify-center w-full">
 
-                        {/* GRUPO LOGO + TÍTULOS: Centralizado */}
-                        <div className="flex items-end justify-start gap-3 mb-2 animate-fade-in-up">
+                        {/* GRUPO LOGO + TÍTULOS: Alinhado à base (items-end). Removendo justify-start para que o wrapper o centre */}
+                        <div className="flex items-end gap-3 mb-2 animate-fade-in-up">
 
                             {/* LOGO */}
                             <img
@@ -75,7 +75,7 @@ const HeroSection = () => {
                             </div>
                         </div>
 
-                        {/* SUBTÍTULO DA HERO: TAMANHO MÍNIMO NO MOBILE (text-sm) e peso leve */}
+                        {/* SUBTÍTULO DA HERO: TAMANHO MÍNIMO NO MOBILE (text-sm) e peso leve. Centralizado automaticamente pelo wrapper. */}
                         <p
                             className="text-sm md:text-lg font-light mb-8 mt-6 max-w-2xl mx-auto text-center animate-fade-in-up text-white"
                             style={{ animationDelay: "0.2s" }}

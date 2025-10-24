@@ -26,6 +26,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
     };
 
     if (variant === "minimal") {
+        // Estilo Minimalista (mantido o desfoque original)
         return (
             <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] lg:w-auto transition-all duration-500 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl">
                 <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-center">
@@ -53,16 +54,20 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
 
 
     // Classes de texto forçadas: preto no claro, branco no escuro
-    const linkClasses = "drop-shadow-lg font-bold whitespace-nowrap text-black dark:text-white hover:text-orange-500 dark:hover:text-orange-500 transition-colors";
+    // CORRIGIDO: Removida a opacidade do texto (agora é text-black e dark:text-white)
+    const linkClasses = "drop-shadow-lg font-bold whitespace-nowrap text-black dark:text-white hover:text-orange-500 dark:hover:text-orange-500 transition-colors uppercase";
+
 
     // Classes para Ícones e Botões de Login/Tema: NEUTRAS no hover
-    const buttonIconClasses = "text-black dark:text-white hover:text-black/80 dark:hover:text-white/80";
+    // CORRIGIDO: Removida a opacidade dos ícones (agora é text-black e dark:text-white)
+    const buttonIconClasses = "text-black dark:text-white hover:text-black/60 dark:hover:text-white/60";
 
 
     return (
         <header
+            // Fundo e Desfoque (Liquid Glass suave)
             className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] lg:w-auto transition-all duration-500 
-        bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl`}
+        bg-white/20 dark:bg-zinc-900/20 backdrop-blur-md shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl`}
         >
             <nav className="px-3 md:px-5 py-2 md:py-3 flex items-center justify-between gap-3 md:gap-8">
                 <div className="flex items-center shrink-0">
@@ -100,7 +105,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                     <Button
                         variant="ghost"
                         asChild
-                        className={`p-2 rounded-xl text-black dark:text-white font-extrabold ${buttonIconClasses}`}
+                        className={`p-2 rounded-xl font-extrabold ${buttonIconClasses} uppercase`}
                     >
                         <Link to="/portal/login" className="flex items-center">
                             <User className="mr-2 h-5 w-5" />
@@ -124,7 +129,8 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
 
                 {/* Menu Mobile */}
                 {isMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-zinc-900/95 border-t border-border/20 rounded-b-2xl shadow-lg md:hidden backdrop-blur-xl">
+                    // Fundo e Desfoque do Menu Mobile
+                    <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-zinc-900/95 border-t border-border/20 rounded-b-2xl shadow-lg md:hidden backdrop-blur-md">
                         <div className="flex flex-col space-y-4 p-6">
                             {visibleNavLinks.map(({ id, label, isPage }) => {
                                 const linkTarget = isPage ? `/${id}` : `/#${id}`; // Usa #id para seções
@@ -137,7 +143,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                                             scrollToSection(id); // Ainda chamamos para rolar se já estiver na Home
                                             setIsMenuOpen(false);
                                         }}
-                                        className="drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors"
+                                        className="drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors uppercase"
                                     >
                                         {label}
                                     </Link>
@@ -145,7 +151,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                             })}
                             {/* Link de Login no Menu Mobile */}
                             <div className="border-t border-border/20 pt-4 mt-2">
-                                <Link to="/portal/login" onClick={() => setIsMenuOpen(false)} className="flex items-center drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors">
+                                <Link to="/portal/login" onClick={() => setIsMenuOpen(false)} className="flex items-center drop-shadow-lg text-left text-sm font-bold text-black dark:text-white hover:text-orange-500 transition-colors uppercase">
                                     <User className="mr-2 h-5 w-5" />
                                     Portal do Cliente
                                 </Link>
