@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Caveat&family=Libre+Baskerville:ital@1&display=swap');
 
 @layer base {
     /* ==========================================================================
@@ -91,8 +92,6 @@
 
     body {
         @apply bg-background text-foreground;
-        /* Dica de Design: Usar `font-light` no body todo pode dificultar a leitura de parágrafos longos.
-           É uma boa prática aplicar `font-normal` no body e `font-light` apenas nos cabeçalhos (h1, h2, etc.) */
         font-weight: 300; /* Equivalente a font-light */
     }
 
@@ -156,8 +155,6 @@
         width: 30px;
         height: 30px;
 
-        /* Gradiente usa a cor de texto (--foreground) com opacidade para criar a sombra,
-           adaptando-se automaticamente ao light/dark mode. */
         background: linear-gradient(
                 to left top,
                 transparent 50%,
@@ -165,7 +162,6 @@
                 hsl(var(--foreground) / 0.2)
         );
 
-        /* Sombra também usa a cor de texto do tema. */
         box-shadow: -2px -2px 5px hsl(var(--foreground) / 0.15);
         clip-path: polygon(100% 0, 0 100%, 100% 100%);
         transition: all 0.3s ease;
@@ -204,5 +200,17 @@
 
     .scrollbar-none::-webkit-scrollbar {
         display: none; /* Chrome, Safari e Opera */
+    }
+
+    .my-masonry-grid {
+        display: flex;
+        /* Este valor -1rem corresponde ao padding-left de 1rem no my-masonry-grid_column */
+        margin-left: -1rem;
+        width: auto;
+    }
+
+    .my-masonry-grid_column {
+        padding-left: 1rem;
+        background-clip: padding-box;
     }
 }

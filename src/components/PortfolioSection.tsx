@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { FiShare2, FiArrowLeft, FiArrowRight } from "react-icons/fi";
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi"; // FiShare2 REMOVIDO
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import { Button } from "./ui/button";
 import React from "react";
+// Importando a biblioteca de terceiros
+import Masonry from 'react-masonry-css';
+
 
 // Definição de tipos para os itens do portfólio (simples)
 interface PortfolioItem {
@@ -14,28 +17,23 @@ interface PortfolioItem {
     category: string;
 }
 
-// Componente MobileSwipeCard (Título Fixo, Descrição Rolável)
+// Componente MobileSwipeCard (Botão de Compartilhamento REMOVIDO)
 const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenModal: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const startX = useRef<number>(0);
     const isSwiping = useRef<boolean>(false);
-    const cardRef = useRef<HTMLDivElement>(null); // Ref para o card
+    const cardRef = useRef<HTMLDivElement>(null);
 
-    // Função para compartilhar o item
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const shareData = { title: item.title, text: item.description, url: item.image };
-        if (navigator.share) navigator.share(shareData).catch(console.error);
-        else navigator.clipboard.writeText(shareData.url).then(() => alert("Link copiada!"));
-    };
+    // Função handleShare REMOVIDA
 
     const handleTouchStart = (e: React.TouchEvent) => {
         const target = e.target as Element;
-        // Não iniciar swipe se o clique foi no botão de compartilhamento
-        if (target.closest('.share-button')) {
-            isSwiping.current = false;
-            return;
-        }
+        // Lógica para ignorar o botão de compartilhamento REMOVIDA,
+        // mas mantemos a verificação para qualquer botão futuro.
+        // if (target.closest('.share-button')) {
+        //     isSwiping.current = false;
+        //     return;
+        // }
         startX.current = e.touches[0].clientX;
         isSwiping.current = false;
     };
@@ -44,7 +42,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         if (startX.current === 0) return;
         const currentX = e.touches[0].clientX;
         const diff = Math.abs(startX.current - currentX);
-        // Se moveu mais de 10px, marca como swipe
         if (diff > 10) {
             isSwiping.current = true;
         }
@@ -54,32 +51,24 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         const endX = e.changedTouches[0].clientX;
         const diff = startX.current - endX;
         const absDiff = Math.abs(diff);
+        const tapThreshold = 15;
+        const swipeThreshold = 80;
 
-        // Thresholds mais altos e distintos
-        const tapThreshold = 15; // Movimento máximo para considerar toque
-        const swipeThreshold = 80; // Movimento mínimo para considerar swipe
-
-        // Se moveu muito pouco E não foi marcado como swipe = TOQUE
         if (absDiff < tapThreshold && !isSwiping.current) {
             e.preventDefault();
             if (!isOpen) {
-                // Abre o modal de visualização (light-box)
                 onOpenModal();
             } else {
-                // Fecha o overlay de descrição
                 setIsOpen(false);
             }
             startX.current = 0;
             return;
         }
 
-        // SWIPE LOGIC - apenas se passou do threshold E foi marcado como swipe
         if (isSwiping.current && absDiff > swipeThreshold) {
             if (diff > 0 && !isOpen) {
-                // Deslize para a esquerda -> Abre APENAS este card
                 setIsOpen(true);
             } else if (diff < 0 && isOpen) {
-                // Deslize para a direita -> Fecha o card
                 setIsOpen(false);
             }
         }
@@ -88,8 +77,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         isSwiping.current = false;
     };
 
-    // Classes para o OVERLAY COMPLETO (Visível apenas ao abrir)
-    // Novo visual: igual ao desktop (bg-black/70, layout flex col, padding 5)
     const fullOverlayClasses = `absolute inset-0 transition-all duration-300 flex flex-col bg-black/70 z-20
         ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`;
 
@@ -101,15 +88,8 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
-            <button
-                onClick={handleShare}
-                className="share-button absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-30 transition-colors"
-                aria-label="Compartilhar foto"
-            >
-                <FiShare2 className="w-5 h-5" />
-            </button>
+            {/* Botão de compartilhamento REMOVIDO */}
 
-            {/* Imagem */}
             <img
                 src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")}
                 alt={item.title}
@@ -117,7 +97,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
                 className="w-full h-auto object-cover"
             />
 
-            {/* OVERLAY COMPLETO (SÓ APARECE SE isOpen FOR TRUE) */}
             <div className={fullOverlayClasses}>
                 <div className="p-0 w-full transition-all duration-300 translate-y-4 h-full flex flex-col">
                     <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0 text-center">
@@ -137,14 +116,48 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
                 </div>
             </div>
 
-            {/* Novo indicador de deslize (frase + ícones animados) */}
             {!isOpen && (
                 <div className="absolute bottom-2 left-2 transform-none bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-2 animate-pulse z-20">
-                    <FiArrowLeft className="text-white" />
+
                     <span>Deslize para ver a descrição</span>
                     <FiArrowRight className="text-white" />
                 </div>
             )}
+        </div>
+    );
+};
+
+
+// Componente para o layout Masonry (Desktop) - Botão de Compartilhamento REMOVIDO
+const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
+    return (
+        <div
+            className={`relative group cursor-pointer rounded-none overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg w-full mb-4`}
+            onClick={() => setSelectedIndex(index)}
+        >
+            {/* Botão de compartilhamento REMOVIDO */}
+
+            <img
+                src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")}
+                alt={item.title}
+                loading="lazy"
+                className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
+                style={{ transitionProperty: "transform, filter" }}
+            />
+
+            {/* ESTILO DESKTOP: Overlay ativado por HOVER */}
+            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
+                <div className="p-0 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0 h-full flex flex-col">
+                    <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0">
+                        {item.title}
+                    </h3>
+                    <div className="flex-1 overflow-y-auto pr-1">
+                        <p className="text-sm text-white drop-shadow">
+                            {item.description}
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
@@ -165,7 +178,6 @@ const PortfolioSection = () => {
         const fetchPortfolioItems = async () => {
             try {
                 setIsLoading(true);
-                // NOTE: Assumindo que '/api/portfolio' existe e retorna PortfolioItem[]
                 const response = await fetch('/api/portfolio');
                 if (!response.ok) {
                     throw new Error('Falha ao buscar os dados do portfólio.');
@@ -178,13 +190,22 @@ const PortfolioSection = () => {
                 setIsLoading(false);
             }
         };
-
         fetchPortfolioItems();
     }, []);
+
 
     const filteredItems = activeCategory === "all"
         ? portfolioItems
         : portfolioItems.filter(item => item.category === activeCategory);
+
+    const categories = [
+        { id: "all", name: "TODOS" },
+        { id: "portrait", name: "RETRATOS" },
+        { id: "wedding", name: "CASAMENTOS" },
+        { id: "maternity", name: "MATERNIDADE" },
+        { id: "family", name: "FAMÍLIA" },
+        { id: "events", name: "EVENTOS" },
+    ];
 
     const MOBILE_LIMIT = 7;
     const DESKTOP_LIMIT = 14;
@@ -198,15 +219,6 @@ const PortfolioSection = () => {
         ? filteredItems
         : filteredItems.slice(0, DESKTOP_LIMIT);
     const shouldShowShowAllDesktopButton = !showAllDesktop && filteredItems.length > DESKTOP_LIMIT;
-
-    const categories = [
-        { id: "all", name: "TODOS" },
-        { id: "portrait", name: "RETRATOS" },
-        { id: "wedding", name: "CASAMENTOS" },
-        { id: "maternity", name: "MATERNIDADE" },
-        { id: "family", name: "FAMÍLIA" },
-        { id: "events", name: "EVENTOS" },
-    ];
 
 
     // EFEITO 1: Controle de teclado para o Lightbox
@@ -267,7 +279,6 @@ const PortfolioSection = () => {
         if (touchStartX.current === null || touchStartY.current === null) return;
         const diffX = Math.abs(e.touches[0].clientX - touchStartX.current);
         const diffY = Math.abs(e.touches[0].clientY - touchStartY.current);
-        // Marca como swipe se movimento horizontal > vertical e > 15px
         if (diffX > 15 && diffX > diffY) {
             isLightboxSwiping.current = true;
         }
@@ -280,7 +291,6 @@ const PortfolioSection = () => {
         const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
         const absDiffX = Math.abs(diffX);
 
-        // Só navega se foi marcado como swipe E movimento horizontal > vertical
         if (isLightboxSwiping.current && absDiffX > 70 && absDiffX > diffY) {
             if (diffX > 0 && selectedIndex !== null && selectedIndex > 0) {
                 setSelectedIndex(selectedIndex - 1);
@@ -311,6 +321,15 @@ const PortfolioSection = () => {
             portfolioGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 50);
     };
+
+    // Configuração de Breakpoints para o Masonry
+    const breakpointColumnsObj = {
+        default: 4, // 4 colunas (xl e acima)
+        1024: 3,  // 3 colunas (lg)
+        768: 2,   // 2 colunas (md)
+        640: 1,   // 1 coluna (sm)
+    };
+
 
     return (
         <section id="portfolio" className="py-16 md:py-24 bg-secondary/20">
@@ -357,7 +376,6 @@ const PortfolioSection = () => {
                         </button>
                     ))}
                 </div>
-                {/* Fade de rolagem à direita (melhora UX visual) */}
                 <div className="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-secondary/50 to-transparent pointer-events-none z-20"></div>
             </div>
 
@@ -397,53 +415,22 @@ const PortfolioSection = () => {
                             )}
                         </div>
 
-                        {/* Renderização DESKTOP (Masonry Layout com HOVER) */}
-                        <div
-                            key={activeCategory}
-                            ref={portfolioGridRef}
-                            className="hidden md:block columns-2 lg:columns-4 gap-4 px-6 md:px-12 mb-4"
-                        >
-                            {desktopItems.map((item, index) => (
-                                <div
-                                    key={item.id}
-                                    className="relative group cursor-pointer rounded-xl overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg inline-block w-full mb-4 break-inside-avoid"
-                                    onClick={() => setSelectedIndex(index)}
-                                >
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const shareData = { title: item.title, text: item.description, url: item.image };
-                                            if (navigator.share) navigator.share(shareData).catch(console.error);
-                                            else navigator.clipboard.writeText(shareData.url).then(() => alert("Link copiado!"));
-                                        }}
-                                        className="absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
-                                        aria-label="Compartilhar foto"
-                                    >
-                                        <FiShare2 className="w-5 h-5" />
-                                    </button>
-                                    <img
-                                        src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")}
-                                        alt={item.title}
-                                        loading="lazy"
-                                        className="w-full h-auto object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
-                                        style={{ transitionProperty: "transform, filter" }}
+                        {/* LAYOUT DESKTOP: USANDO REACT-MASONRY-CSS */}
+                        <div className="hidden md:block px-6 md:px-12" ref={portfolioGridRef}>
+                            <Masonry
+                                breakpointCols={breakpointColumnsObj}
+                                className="my-masonry-grid"
+                                columnClassName="my-masonry-grid_column"
+                            >
+                                {desktopItems.map((item, index) => (
+                                    <MasonryPhotoCard
+                                        key={item.id}
+                                        item={item}
+                                        index={index}
+                                        setSelectedIndex={setSelectedIndex}
                                     />
-
-                                    {/* ESTILO DESKTOP: Overlay ativado por HOVER */}
-                                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
-                                        <div className="p-0 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0 h-full flex flex-col">
-                                            <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0">
-                                                {item.title}
-                                            </h3>
-                                            <div className="flex-1 overflow-y-auto pr-1">
-                                                <p className="text-sm text-white drop-shadow">
-                                                    {item.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </Masonry>
                         </div>
 
                         {/* Botões MOSTRAR MAIS/MENOS (DESKTOP) */}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // 1. Importar o Link
+import { Link } from 'react-router-dom';
 import Logo from "../assets/logo.svg";
 import { Instagram, Mail, MapPin } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -35,9 +35,7 @@ const Footer = () => {
         return phone;
     }
 
-    // Função para scroll suave
     const scrollToSection = (sectionId: string) => {
-        // Se estivermos noutra página, navega para a página inicial com a hash
         if (window.location.pathname !== '/') {
             window.location.href = `/#${sectionId}`;
         } else {
@@ -48,7 +46,6 @@ const Footer = () => {
     return (
         <footer id="contact" className="bg-primary text-primary-foreground py-12">
             <div className="container mx-auto px-6 max-w-6xl">
-                {/* CORREÇÃO: Usando 2 colunas para tablet (md) e 4 colunas para desktop (lg) */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     {/* Brand */}
                     <div>
@@ -69,7 +66,8 @@ const Footer = () => {
                             <button onClick={() => scrollToSection("about")} className="block hover:text-accent transition-colors">Sobre</button>
                             <button onClick={() => scrollToSection("portfolio")} className="block hover:text-accent transition-colors">Portfolio</button>
                             <button onClick={() => scrollToSection("services")} className="block hover:text-accent transition-colors">Serviços</button>
-                            {/* 2. Adicionado Link para o Blog */}
+                            {/* LINHA ADICIONADA ABAIXO */}
+                            <button onClick={() => scrollToSection("testimonials")} className="block hover:text-accent transition-colors">Clientes</button>
                             <Link to="/blog" className="block hover:text-accent transition-colors">Blog</Link>
                         </div>
                     </div>
@@ -107,7 +105,6 @@ const Footer = () => {
                                 <>
                                     <div className="flex items-center">
                                         <MapPin className="w-4 h-4 mr-2 text-accent" />
-                                        {/* CORREÇÃO: Quebra o endereço se for muito longo */}
                                         <span className="break-words">{settings.location}</span>
                                     </div>
                                     <div className="elegant-border p-3 bg-primary/50">
@@ -122,7 +119,6 @@ const Footer = () => {
                                             </div>
                                             <div className="flex justify-between font-medium">
                                                 <span>Domingos</span>
-                                                {/* CORREÇÃO: Texto de agendamento pode usar menos espaço */}
                                                 <span className="text-right ml-2">Mediante agendamento</span>
                                             </div>
                                         </div>
