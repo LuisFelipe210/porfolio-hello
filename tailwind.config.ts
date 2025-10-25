@@ -14,7 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'], caveat: ['Caveat', 'cursive'], serif: ['Libre Baskerville', 'serif']
+        sans: ['Poppins', 'sans-serif'],
+        caveat: ['Caveat', 'cursive'],
+        serif: ['Libre Baskerville', 'serif'],
+        title: ['Didot', 'serif'], // ou Vogue se você tiver a fonte
+        subtitle: ['Montserrat', 'sans-serif'],
       },
       colors: {
           'petal-green': '#A3E6B0', // Ajuste para o tom exato

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { ArrowDown } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
-import { Skeleton } from "./ui/skeleton.tsx";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 
 const HeroSection = () => {
@@ -48,7 +47,7 @@ const HeroSection = () => {
             </div>
 
             {/* CONTAINER PRINCIPAL: Centralizado */}
-            <div className="relative z-10 text-left text-white px-6 max-w-5xl mx-auto w-full">
+            <div className="relative z-10 text-left text-white px-12 max-w-6xl mx-auto w-full">
                 {isReady && (
                     <div className="flex flex-col items-center justify-center w-full">
 
@@ -59,25 +58,25 @@ const HeroSection = () => {
                             <img
                                 src={Logo}
                                 alt="Hellô Borges Logo"
-                                className="h-16 sm:h-24 md:h-32 w-auto shrink-0"
+                                className="h-12 sm:h-22 md:h-32 w-auto shrink-0"
                             />
 
                             {/* BLOCO DE TEXTO */}
                             <div className="flex flex-col">
                                 {/* TITULO: Hellô Borges */}
-                                <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold font-serif leading-none text-white">
+                                <h1 className="text-4xl sm:text-6xl md:text-8xl font-title leading-none text-white">
                                     {settings.heroTitle}
                                 </h1>
-                                {/* FOTOGRAFIA: Peso aumentado */}
-                                <p className="text-lg sm:text-2xl md:text-4xl font-bold tracking-[0.4em] uppercase leading-tight -mt-1 md:-mt-3 text-white">
+                                {/* FOTOGRAFIA: Peso leve e geométrica */}
+                                <p className="text-xs sm:text-2xl md:text-4xl font-sans font-light tracking-[0.4em] uppercase leading-tight -mt-1 md:-mt-3 text-white">
                                     FOTOGRAFIA
                                 </p>
                             </div>
                         </div>
 
-                        {/* SUBTÍTULO DA HERO: TAMANHO MÍNIMO NO MOBILE (text-sm) e peso leve. Centralizado automaticamente pelo wrapper. */}
+                        {/* SUBTÍTULO DA HERO: TAMANHO MÍNIMO NO MOBILE (text-[10px]) e peso leve. Centralizado automaticamente pelo wrapper. */}
                         <p
-                            className="text-sm md:text-lg font-light mb-8 mt-6 max-w-2xl mx-auto text-center animate-fade-in-up text-white"
+                            className="text-[8px] md:text-xl font-extralight mb-8 mt-2 max-w-2xl mx-auto text-center animate-fade-in-up text-white"
                             style={{ animationDelay: "0.2s" }}
                         >
                             {settings.heroSubtitle}
