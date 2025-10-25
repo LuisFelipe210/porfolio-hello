@@ -1,4 +1,4 @@
-import { Camera, Heart, Users, UserPlus, Check } from "lucide-react";
+import { Camera, Heart, Users, UserPlus, Check, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
@@ -19,6 +19,7 @@ const iconMap: { [key:string]: React.ElementType } = {
 
 // --- Componente do Card Individual ---
 const ServiceCard = ({ service }: { service: Service }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const Icon = iconMap[service.icon] || Camera;
 
     const optimizedImageUrl = optimizeCloudinaryUrl(
@@ -26,8 +27,17 @@ const ServiceCard = ({ service }: { service: Service }) => {
         'f_auto,q_auto,w_800'
     );
 
+    const handleCardClick = () => {
+        // No desktop, não faz nada (hover funciona)
+        // No mobile, abre/fecha
+        if (window.innerWidth < 1024) {
+            setIsOpen(!isOpen);
+        }
+    };
+
     return (
         <div
+            onClick={handleCardClick}
             className={`
                 group relative flex-shrink-0 w-full h-[50vh] md:h-[65vh] max-h-[550px]
                 rounded-2xl overflow-hidden shadow-2xl transform-gpu snap-center
@@ -39,9 +49,22 @@ const ServiceCard = ({ service }: { service: Service }) => {
                 alt={service.title}
                 className={`absolute inset-0 w-full h-full object-cover
                            transition-all duration-700 ease-in-out
-                           group-hover:scale-110 group-hover:blur-sm`}
+                           group-hover:scale-110 group-hover:blur-sm
+                           ${isOpen ? 'scale-110 blur-sm' : ''}`}
             />
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-all duration-500 group-hover:bg-black/80`} />
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent 
+                            transition-all duration-500 group-hover:bg-black/80
+                            ${isOpen ? 'bg-black/80' : ''}`}
+            />
+
+            {/* Indicador de clique (apenas mobile) */}
+            <div className="lg:hidden absolute top-4 right-4 z-10">
+                <div className={`w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center 
+                               border border-white/30 transition-all duration-300
+                               ${isOpen ? 'opacity-0' : 'animate-pulse'}`}>
+                    <ChevronDown className="w-5 h-5 text-white" />
+                </div>
+            </div>
 
             <div className="relative h-full flex flex-col justify-end p-6 md:p-8 text-white">
                 <div className="flex items-center gap-3">
@@ -52,11 +75,12 @@ const ServiceCard = ({ service }: { service: Service }) => {
                 </div>
 
                 <div className={`transition-all duration-500 ease-in-out
-                                group-hover:opacity-100 group-hover:max-h-96 group-hover:mt-6 group-hover:translate-y-0
-                                opacity-0 max-h-0 translate-y-4 pointer-events-none`}
+                                lg:group-hover:opacity-100 lg:group-hover:max-h-96 lg:group-hover:mt-6 lg:group-hover:translate-y-0
+                                lg:opacity-0 lg:max-h-0 lg:translate-y-4
+                                ${isOpen ? 'opacity-100 max-h-96 mt-6 translate-y-0' : 'opacity-0 max-h-0 translate-y-4 pointer-events-none lg:pointer-events-none'}`}
                 >
                     <p className="text-white/80 leading-relaxed text-sm mb-4">{service.description}</p>
-                    <ul className="space-y-1.5 mb-6">
+                    <ul className="space-y-1.5 mb-4">
                         {service.features.map((f: string) => (
                             <li key={f} className="text-sm text-white/90 flex items-start">
                                 <Check className="w-4 h-4 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
@@ -67,8 +91,9 @@ const ServiceCard = ({ service }: { service: Service }) => {
                     <a
                         href={`https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20saber%20os%20valores%20para%20o%20serviço%20${encodeURIComponent(service.title)}.`}
                         target="_blank" rel="noopener noreferrer"
-                        className="bg-orange-500 text-white dark:text-black font-semibold px-5 py-2 rounded-lg
-                                   hover:bg-orange-600 transition-colors inline-block self-start text-sm shadow-lg"
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-orange-500 text-white dark:text-black font-semibold px-4 py-1.5 rounded-lg
+                                   hover:bg-orange-600 transition-colors inline-block self-start text-xs md:text-sm shadow-lg"
                     >
                         Consultar Valores
                     </a>
@@ -110,7 +135,6 @@ const ServicesSection = () => {
         const cardContainer = el.firstElementChild;
         if (!cardContainer) return;
 
-        // A largura do slide agora é baseada na sua basis, mas usamos a largura real para o cálculo
         const cardWidth = cardContainer.clientWidth;
         const gap = 16;
         const newActiveIndex = Math.round(el.scrollLeft / (cardWidth + gap));

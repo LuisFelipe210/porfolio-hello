@@ -40,15 +40,27 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         isSwiping.current = false;
     };
 
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (startX.current === 0) return;
+        const currentX = e.touches[0].clientX;
+        const diff = Math.abs(startX.current - currentX);
+        // Se moveu mais de 10px, marca como swipe
+        if (diff > 10) {
+            isSwiping.current = true;
+        }
+    };
+
     const handleTouchEnd = (e: React.TouchEvent) => {
         const endX = e.changedTouches[0].clientX;
         const diff = startX.current - endX;
         const absDiff = Math.abs(diff);
-        // AUMENTADO para melhorar a distinção entre toque e deslize
-        const tapThreshold = 20;
-        const swipeThreshold = 60; // Aumentado para 60
+
+        // Thresholds mais altos e distintos
+        const tapThreshold = 15; // Movimento máximo para considerar toque
+        const swipeThreshold = 80; // Movimento mínimo para considerar swipe
+
+        // Se moveu muito pouco E não foi marcado como swipe = TOQUE
         if (absDiff < tapThreshold && !isSwiping.current) {
-            // AÇÃO DE TOQUE RÁPIDO (TOQUE SIMPLES)
             e.preventDefault();
             if (!isOpen) {
                 // Abre o modal de visualização (light-box)
@@ -57,16 +69,23 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
                 // Fecha o overlay de descrição
                 setIsOpen(false);
             }
+            startX.current = 0;
             return;
         }
-        // SWIPE LOGIC (DESLIZE)
-        if (diff > swipeThreshold && !isOpen) {
-            // Deslize para a esquerda -> Abre APENAS este card
-            setIsOpen(true);
-        } else if (diff < -swipeThreshold && isOpen) {
-            // Deslize para a direita -> Fecha o card
-            setIsOpen(false);
+
+        // SWIPE LOGIC - apenas se passou do threshold E foi marcado como swipe
+        if (isSwiping.current && absDiff > swipeThreshold) {
+            if (diff > 0 && !isOpen) {
+                // Deslize para a esquerda -> Abre APENAS este card
+                setIsOpen(true);
+            } else if (diff < 0 && isOpen) {
+                // Deslize para a direita -> Fecha o card
+                setIsOpen(false);
+            }
         }
+
+        startX.current = 0;
+        isSwiping.current = false;
     };
 
     // Classes para o OVERLAY COMPLETO (Visível apenas ao abrir)
@@ -79,6 +98,7 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
             ref={cardRef}
             className="relative w-full rounded-lg overflow-hidden shadow-xl cursor-pointer z-10"
             onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
             <button
@@ -234,17 +254,44 @@ const PortfolioSection = () => {
 
     // Lógica de touch para o modal de visualização (light-box)
     const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+    const isLightboxSwiping = useRef<boolean>(false);
 
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+        isLightboxSwiping.current = false;
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+        const diffX = Math.abs(e.touches[0].clientX - touchStartX.current);
+        const diffY = Math.abs(e.touches[0].clientY - touchStartY.current);
+        // Marca como swipe se movimento horizontal > vertical e > 15px
+        if (diffX > 15 && diffX > diffY) {
+            isLightboxSwiping.current = true;
+        }
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
-        if (touchStartX.current === null) return;
-        const diff = e.changedTouches[0].clientX - touchStartX.current;
-        if (diff > 50 && selectedIndex !== null && selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
-        if (diff < -50 && selectedIndex !== null && selectedIndex < filteredItems.length - 1) setSelectedIndex(selectedIndex + 1);
+        if (touchStartX.current === null || touchStartY.current === null) return;
+
+        const diffX = e.changedTouches[0].clientX - touchStartX.current;
+        const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+        const absDiffX = Math.abs(diffX);
+
+        // Só navega se foi marcado como swipe E movimento horizontal > vertical
+        if (isLightboxSwiping.current && absDiffX > 70 && absDiffX > diffY) {
+            if (diffX > 0 && selectedIndex !== null && selectedIndex > 0) {
+                setSelectedIndex(selectedIndex - 1);
+            } else if (diffX < 0 && selectedIndex !== null && selectedIndex < filteredItems.length - 1) {
+                setSelectedIndex(selectedIndex + 1);
+            }
+        }
+
         touchStartX.current = null;
+        touchStartY.current = null;
+        isLightboxSwiping.current = false;
     };
 
 
@@ -426,7 +473,7 @@ const PortfolioSection = () => {
                                     disabled={selectedIndex === 0}
                                     className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30"
                                 >❮</button>
-                                <div className="flex-1 flex items-center justify-center px-4" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                                <div className="flex-1 flex items-center justify-center px-4" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
                                     <img
                                         src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1080")}
                                         alt={filteredItems[selectedIndex].title}
