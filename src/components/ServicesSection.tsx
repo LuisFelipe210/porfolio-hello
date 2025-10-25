@@ -17,7 +17,7 @@ const iconMap: { [key:string]: React.ElementType } = {
     Camera: Camera, Heart: Heart, UserPlus: UserPlus, Users: Users,
 };
 
-// --- Componente do Card Individual (REVERTIDO PARA HOVER) ---
+// --- Componente do Card Individual ---
 const ServiceCard = ({ service }: { service: Service }) => {
     const Icon = iconMap[service.icon] || Camera;
 
@@ -27,10 +27,9 @@ const ServiceCard = ({ service }: { service: Service }) => {
     );
 
     return (
-        // A classe 'group' habilita o efeito hover nos filhos
         <div
             className={`
-                group relative flex-shrink-0 w-full h-[75vh] max-h-[550px]
+                group relative flex-shrink-0 w-full h-[50vh] md:h-[65vh] max-h-[550px]
                 rounded-2xl overflow-hidden shadow-2xl transform-gpu snap-center
                 cursor-pointer transition-all duration-300
             `}
@@ -38,15 +37,11 @@ const ServiceCard = ({ service }: { service: Service }) => {
             <img
                 src={optimizedImageUrl}
                 alt={service.title}
-                // Blur e Scale aplicados diretamente no group-hover
                 className={`absolute inset-0 w-full h-full object-cover
                            transition-all duration-700 ease-in-out
-                           group-hover:scale-110 group-hover:blur-lg`}
+                           group-hover:scale-110 group-hover:blur-sm`}
             />
-            {/* O Overlay escurece no group-hover */}
             <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-all duration-500 group-hover:bg-black/80`} />
-
-            {/* Ícone do Dedo foi REMOVIDO */}
 
             <div className="relative h-full flex flex-col justify-end p-6 md:p-8 text-white">
                 <div className="flex items-center gap-3">
@@ -56,7 +51,6 @@ const ServiceCard = ({ service }: { service: Service }) => {
                     <h3 className="text-2xl font-bold">{service.title}</h3>
                 </div>
 
-                {/* O conteúdo aparece com base no group-hover */}
                 <div className={`transition-all duration-500 ease-in-out
                                 group-hover:opacity-100 group-hover:max-h-96 group-hover:mt-6 group-hover:translate-y-0
                                 opacity-0 max-h-0 translate-y-4 pointer-events-none`}
@@ -108,8 +102,6 @@ const ServicesSection = () => {
         fetchServices();
     }, []);
 
-    // Removida a lógica de activeCardId/handleCardClick
-
     const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
 
     const updateCarouselState = useCallback(() => {
@@ -118,6 +110,7 @@ const ServicesSection = () => {
         const cardContainer = el.firstElementChild;
         if (!cardContainer) return;
 
+        // A largura do slide agora é baseada na sua basis, mas usamos a largura real para o cálculo
         const cardWidth = cardContainer.clientWidth;
         const gap = 16;
         const newActiveIndex = Math.round(el.scrollLeft / (cardWidth + gap));
@@ -162,16 +155,15 @@ const ServicesSection = () => {
                     >
                         {isLoading ? (
                             Array.from({ length: 4 }).map((_, idx) => (
-                                <div key={idx} className="flex-shrink-0 basis-[85vw] md:basis-1/2 lg:basis-auto lg:w-auto">
-                                    <Skeleton className="h-[75vh] max-h-[550px] w-full rounded-2xl bg-zinc-800" />
+                                <div key={idx} className="flex-shrink-0 basis-[90%] sm:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto">
+                                    <Skeleton className="h-[50vh] md:h-[65vh] max-h-[550px] w-full rounded-2xl bg-zinc-800" />
                                 </div>
                             ))
                         ) : (
                             services.map((service) => (
                                 <div
                                     key={service._id}
-                                    // Responsividade: 85vw no mobile, 50% no tablet, auto no desktop (grid)
-                                    className="flex-shrink-0 basis-[85vw] sm:basis-[calc(50%-8px)] md:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto snap-start"
+                                    className="flex-shrink-0 basis-[90%] sm:basis-[calc(50%-8px)] md:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto snap-start"
                                 >
                                     <ServiceCard
                                         service={service}

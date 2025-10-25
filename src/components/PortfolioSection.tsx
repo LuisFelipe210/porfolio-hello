@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { FiShare2 } from "react-icons/fi";
+import { FiShare2, FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import { Button } from "./ui/button";
+import React from "react";
 
 // Definição de tipos para os itens do portfólio (simples)
 interface PortfolioItem {
@@ -14,9 +15,11 @@ interface PortfolioItem {
 }
 
 // Componente MobileSwipeCard (Título Fixo, Descrição Rolável)
-const MobileSwipeCard = ({ item, isOpen, onToggle, onOpenModal }: { item: PortfolioItem, isOpen: boolean, onToggle: (id: string | null) => void, onOpenModal: (id: string) => void }) => {
+const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenModal: () => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const startX = useRef<number>(0);
     const isSwiping = useRef<boolean>(false);
+    const cardRef = useRef<HTMLDivElement>(null); // Ref para o card
 
     // Função para compartilhar o item
     const handleShare = (e: React.MouseEvent) => {
@@ -28,7 +31,7 @@ const MobileSwipeCard = ({ item, isOpen, onToggle, onOpenModal }: { item: Portfo
 
     const handleTouchStart = (e: React.TouchEvent) => {
         const target = e.target as Element;
-
+        // Não iniciar swipe se o clique foi no botão de compartilhamento
         if (target.closest('.share-button')) {
             isSwiping.current = false;
             return;
@@ -41,44 +44,46 @@ const MobileSwipeCard = ({ item, isOpen, onToggle, onOpenModal }: { item: Portfo
         const endX = e.changedTouches[0].clientX;
         const diff = startX.current - endX;
         const absDiff = Math.abs(diff);
-
-        const swipeThreshold = 50;
-
-        if (absDiff < 10 && !isSwiping.current) {
+        // AUMENTADO para melhorar a distinção entre toque e deslize
+        const tapThreshold = 20;
+        const swipeThreshold = 60; // Aumentado para 60
+        if (absDiff < tapThreshold && !isSwiping.current) {
             // AÇÃO DE TOQUE RÁPIDO (TOQUE SIMPLES)
+            e.preventDefault();
             if (!isOpen) {
                 // Abre o modal de visualização (light-box)
-                onOpenModal(item.id);
+                onOpenModal();
             } else {
                 // Fecha o overlay de descrição
-                onToggle(null);
+                setIsOpen(false);
             }
             return;
         }
-
         // SWIPE LOGIC (DESLIZE)
         if (diff > swipeThreshold && !isOpen) {
-            // Deslize para a esquerda -> Abre APENAS este card (usando item.id)
-            onToggle(item.id);
+            // Deslize para a esquerda -> Abre APENAS este card
+            setIsOpen(true);
         } else if (diff < -swipeThreshold && isOpen) {
             // Deslize para a direita -> Fecha o card
-            onToggle(null);
+            setIsOpen(false);
         }
     };
 
-    // Classes para o OVERLAY COMPLETO (revela a rolagem total ao deslizar)
-    const fullOverlayClasses = `absolute inset-0 transition-all duration-300 flex flex-col p-4 z-10 
-        ${isOpen ? 'opacity-100 bg-black/80' : 'opacity-0 bg-transparent pointer-events-none'}`;
+    // Classes para o OVERLAY COMPLETO (Visível apenas ao abrir)
+    // Novo visual: igual ao desktop (bg-black/70, layout flex col, padding 5)
+    const fullOverlayClasses = `absolute inset-0 transition-all duration-300 flex flex-col bg-black/70 z-20
+        ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`;
 
     return (
         <div
-            className="relative w-full rounded-lg overflow-hidden shadow-xl cursor-pointer"
+            ref={cardRef}
+            className="relative w-full rounded-lg overflow-hidden shadow-xl cursor-pointer z-10"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
             <button
                 onClick={handleShare}
-                className="share-button absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-20 transition-colors"
+                className="share-button absolute top-2 right-2 text-white bg-black/50 hover:bg-accent/80 p-2 rounded-full z-30 transition-colors"
                 aria-label="Compartilhar foto"
             >
                 <FiShare2 className="w-5 h-5" />
@@ -92,36 +97,32 @@ const MobileSwipeCard = ({ item, isOpen, onToggle, onOpenModal }: { item: Portfo
                 className="w-full h-auto object-cover"
             />
 
-            {/* 2. OVERLAY COMPLETO (Visível APENAS quando SWAP/ABERTO) */}
+            {/* OVERLAY COMPLETO (SÓ APARECE SE isOpen FOR TRUE) */}
             <div className={fullOverlayClasses}>
-                {/* 2a. TÍTULO FIXO NO TOPO */}
-                <h3 className="text-xl sm:text-2xl font-semibold mb-2 uppercase text-accent drop-shadow-lg transition-transform duration-300 flex-shrink-0 text-center truncate"
-                    style={{ transform: isOpen ? 'translateY(0)' : 'translateY(20px)' }}
-                >
-                    {item.title}
-                </h3>
-
-                {/* 2b. DESCRIÇÃO ROLÁVEL (flex-1 ocupa o espaço restante, overflow-y-auto permite rolagem) */}
-                <div className="flex-1 w-full text-center overflow-y-auto px-2 mb-2">
-                    <p className="text-sm sm:text-base text-zinc-300 drop-shadow transition-transform duration-300 delay-100"
-                       style={{ transform: isOpen ? 'translateY(0)' : 'translateY(20px)' }}
+                <div className="p-0 w-full transition-all duration-300 translate-y-4 h-full flex flex-col">
+                    <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0 text-center">
+                        {item.title}
+                    </h3>
+                    <div className="flex-1 overflow-y-auto pr-1">
+                        <p className="text-sm text-white drop-shadow text-center">
+                            {item.description}
+                        </p>
+                    </div>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+                        className="text-sm mt-3 self-center text-accent hover:text-accent/80 transition-colors uppercase font-medium"
                     >
-                        {item.description}
-                    </p>
+                        Voltar
+                    </button>
                 </div>
-
-                <button
-                    onClick={(e) => { e.stopPropagation(); onToggle(null); }}
-                    className="text-sm self-center text-accent hover:text-accent/80 transition-colors uppercase font-medium flex-shrink-0"
-                >
-                    Voltar
-                </button>
             </div>
 
-            {/* Indicador de deslize (visível APENAS quando a descrição está fechada) */}
+            {/* Novo indicador de deslize (frase + ícones animados) */}
             {!isOpen && (
-                <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-black/50 to-transparent flex items-center justify-end pr-1 transition-opacity duration-300 pointer-events-none">
-                    <span className="text-white text-2xl opacity-70 animate-pulse">❮</span>
+                <div className="absolute bottom-2 left-2 transform-none bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-2 animate-pulse z-20">
+                    <FiArrowLeft className="text-white" />
+                    <span>Deslize para ver a descrição</span>
+                    <FiArrowRight className="text-white" />
                 </div>
             )}
         </div>
@@ -135,14 +136,16 @@ const PortfolioSection = () => {
     const [activeCategory, setActiveCategory] = useState("all");
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [showAllMobile, setShowAllMobile] = useState(false);
-    // ESTADO: activeDetailsId armazena o ID (string) da foto aberta, ou null.
-    const [activeDetailsId, setActiveDetailsId] = useState<string | null>(null);
+    const [showAllDesktop, setShowAllDesktop] = useState(false);
     const mobileActionRef = useRef<HTMLDivElement>(null);
+    const portfolioGridRef = useRef<HTMLDivElement>(null);
+
 
     useEffect(() => {
         const fetchPortfolioItems = async () => {
             try {
                 setIsLoading(true);
+                // NOTE: Assumindo que '/api/portfolio' existe e retorna PortfolioItem[]
                 const response = await fetch('/api/portfolio');
                 if (!response.ok) {
                     throw new Error('Falha ao buscar os dados do portfólio.');
@@ -163,14 +166,18 @@ const PortfolioSection = () => {
         ? portfolioItems
         : portfolioItems.filter(item => item.category === activeCategory);
 
-    // Função para abrir o modal de visualização a partir do clique em um item
-    const openModal = (itemId: string) => {
-        const index = filteredItems.findIndex(item => item.id === itemId);
-        if (index !== -1) {
-            setSelectedIndex(index);
-        }
-    }
+    const MOBILE_LIMIT = 7;
+    const DESKTOP_LIMIT = 14;
 
+    const mobileItems = showAllMobile
+        ? filteredItems
+        : filteredItems.slice(0, MOBILE_LIMIT);
+    const shouldShowShowAllButton = !showAllMobile && filteredItems.length > MOBILE_LIMIT;
+
+    const desktopItems = showAllDesktop
+        ? filteredItems
+        : filteredItems.slice(0, DESKTOP_LIMIT);
+    const shouldShowShowAllDesktopButton = !showAllDesktop && filteredItems.length > DESKTOP_LIMIT;
 
     const categories = [
         { id: "all", name: "TODOS" },
@@ -181,12 +188,8 @@ const PortfolioSection = () => {
         { id: "events", name: "EVENTOS" },
     ];
 
-    const MOBILE_LIMIT = 7;
-    const mobileItems = showAllMobile
-        ? filteredItems
-        : filteredItems.slice(0, MOBILE_LIMIT);
-    const shouldShowShowAllButton = !showAllMobile && filteredItems.length > MOBILE_LIMIT;
 
+    // EFEITO 1: Controle de teclado para o Lightbox
     useEffect(() => {
         if (selectedIndex === null) return;
         const handleKey = (e: KeyboardEvent) => {
@@ -198,6 +201,20 @@ const PortfolioSection = () => {
         return () => window.removeEventListener("keydown", handleKey);
     }, [selectedIndex, filteredItems.length]);
 
+    // EFEITO 2: Bloqueio de scroll do body quando qualquer overlay estiver aberto
+    useEffect(() => {
+        const isOverlayOpen = selectedIndex !== null;
+        if (isOverlayOpen) {
+            document.body.classList.add('overflow-hidden');
+        } else {
+            document.body.classList.remove('overflow-hidden');
+        }
+        return () => {
+            document.body.classList.remove('overflow-hidden');
+        };
+    }, [selectedIndex]);
+
+
     const categoriesScrollRef = useRef<HTMLDivElement>(null);
 
     const scrollToCategory = (categoryId: string, index: number) => {
@@ -206,15 +223,16 @@ const PortfolioSection = () => {
         if (!scrollEl) return;
         const button = scrollEl.children[index] as HTMLElement;
         if (!button) return;
-        const scrollLeft = scrollEl.scrollLeft;
+        const containerWidth = scrollEl.offsetWidth;
         const buttonLeft = button.offsetLeft;
         const buttonWidth = button.offsetWidth;
-        const containerWidth = scrollEl.offsetWidth;
+
         const targetScrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
+
         scrollEl.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
     };
 
-    // A lógica de touch para o modal de visualização (light-box) foi mantida aqui
+    // Lógica de touch para o modal de visualização (light-box)
     const touchStartX = useRef<number | null>(null);
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -240,17 +258,25 @@ const PortfolioSection = () => {
         }, 50);
     };
 
+    const handleShowLessDesktop = () => {
+        setShowAllDesktop(false);
+        setTimeout(() => {
+            portfolioGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+    };
+
     return (
         <section id="portfolio" className="py-16 md:py-24 bg-secondary/20">
             <div className="container mx-auto max-w-6xl px-6 md:px-12">
                 <div className="text-center mb-12">
                     <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in uppercase">Portfólio</h2>
                 </div>
+                {/* Categorias DESKTOP */}
                 <div className="hidden md:flex flex-wrap justify-center gap-4 mb-12 animate-fade-in">
                     {categories.map((category) => (
                         <button
                             key={category.id}
-                            onClick={() => { setActiveCategory(category.id); }}
+                            onClick={() => { setActiveCategory(category.id); setShowAllDesktop(false); }}
                             className={`px-6 py-2 text-sm font-light tracking-wide transition-all uppercase ${
                                 activeCategory === category.id
                                     ? "text-accent border-b-2 border-accent"
@@ -263,6 +289,7 @@ const PortfolioSection = () => {
                 </div>
             </div>
 
+            {/* Categorias MOBILE (Scroll Horizontal) */}
             <div className="relative md:hidden">
                 <div
                     ref={categoriesScrollRef}
@@ -271,7 +298,7 @@ const PortfolioSection = () => {
                     {categories.map((category, index) => (
                         <button
                             key={category.id}
-                            onClick={() => scrollToCategory(category.id, index)}
+                            onClick={() => { scrollToCategory(category.id, index); setShowAllMobile(false); }}
                             className={`relative pb-1 text-base tracking-wide font-light transition-all duration-300 whitespace-nowrap snap-center uppercase
               ${
                                 activeCategory === category.id
@@ -283,6 +310,7 @@ const PortfolioSection = () => {
                         </button>
                     ))}
                 </div>
+                {/* Fade de rolagem à direita (melhora UX visual) */}
                 <div className="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-secondary/50 to-transparent pointer-events-none z-20"></div>
             </div>
 
@@ -303,13 +331,12 @@ const PortfolioSection = () => {
                                 <MobileSwipeCard
                                     key={item.id}
                                     item={item}
-                                    isOpen={activeDetailsId === item.id}
-                                    onToggle={setActiveDetailsId}
-                                    onOpenModal={openModal}
+                                    onOpenModal={() => setSelectedIndex(index)}
                                 />
                             ))}
                         </div>
 
+                        {/* Botões MOSTRAR MAIS/MENOS (MOBILE) */}
                         <div className="flex justify-center mb-12 md:hidden px-6" ref={mobileActionRef}>
                             {shouldShowShowAllButton && (
                                 <button onClick={() => setShowAllMobile(true)} className={linkClasses}>
@@ -326,9 +353,10 @@ const PortfolioSection = () => {
                         {/* Renderização DESKTOP (Masonry Layout com HOVER) */}
                         <div
                             key={activeCategory}
-                            className="hidden md:block columns-2 lg:columns-4 gap-4 px-6 md:px-12 mb-12"
+                            ref={portfolioGridRef}
+                            className="hidden md:block columns-2 lg:columns-4 gap-4 px-6 md:px-12 mb-4"
                         >
-                            {filteredItems.map((item, index) => (
+                            {desktopItems.map((item, index) => (
                                 <div
                                     key={item.id}
                                     className="relative group cursor-pointer rounded-xl overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg inline-block w-full mb-4 break-inside-avoid"
@@ -356,15 +384,10 @@ const PortfolioSection = () => {
 
                                     {/* ESTILO DESKTOP: Overlay ativado por HOVER */}
                                     <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
-                                        {/* Contêiner de conteúdo: Transição para o efeito de subida */}
                                         <div className="p-0 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0 h-full flex flex-col">
-
-                                            {/* TÍTULO FIXO */}
                                             <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0">
                                                 {item.title}
                                             </h3>
-
-                                            {/* DESCRIÇÃO ROLÁVEL (flex-1 para ocupar o espaço restante) */}
                                             <div className="flex-1 overflow-y-auto pr-1">
                                                 <p className="text-sm text-white drop-shadow">
                                                     {item.description}
@@ -372,19 +395,37 @@ const PortfolioSection = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    {/* FIM ESTILO DESKTOP */}
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Botões MOSTRAR MAIS/MENOS (DESKTOP) */}
+                        <div className="flex justify-center mb-12 hidden md:flex px-6">
+                            {shouldShowShowAllDesktopButton && (
+                                <button onClick={() => setShowAllDesktop(true)} className={linkClasses}>
+                                    Mostrar Todas ({filteredItems.length} Fotos)
+                                </button>
+                            )}
+                            {showAllDesktop && (
+                                <button onClick={handleShowLessDesktop} className={linkClasses}>
+                                    Mostrar Menos
+                                </button>
+                            )}
                         </div>
                     </>
                 )}
 
+                {/* LIGHTBOX / MODAL DE VISUALIZAÇÃO */}
                 {selectedIndex !== null && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedIndex(null)}>
                         <div className="relative w-full max-w-4xl h-full md:h-auto bg-transparent" onClick={(e) => e.stopPropagation()}>
                             <button onClick={() => setSelectedIndex(null)} className="absolute top-2 right-2 text-white text-3xl z-10 hover:text-accent transition-colors" aria-label="Fechar visualização">×</button>
                             <div className="flex items-center justify-between h-full">
-                                <button onClick={() => setSelectedIndex(i => (i! > 0 ? i! - 1 : i))} disabled={selectedIndex === 0} className={`text-white text-4xl p-2 z-10 ${selectedIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:text-accent"}`} aria-label="Imagem anterior">❮</button>
+                                <button
+                                    onClick={() => selectedIndex !== null && setSelectedIndex(selectedIndex > 0 ? selectedIndex - 1 : 0)}
+                                    disabled={selectedIndex === 0}
+                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30"
+                                >❮</button>
                                 <div className="flex-1 flex items-center justify-center px-4" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                                     <img
                                         src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1080")}
@@ -392,10 +433,14 @@ const PortfolioSection = () => {
                                         className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300"
                                     />
                                 </div>
-                                <button onClick={() => setSelectedIndex(i => (i! < filteredItems.length - 1 ? i! + 1 : i))} disabled={selectedIndex === filteredItems.length - 1} className={`text-white text-4xl p-2 z-10 ${selectedIndex === filteredItems.length - 1 ? "opacity-30 cursor-not-allowed" : "hover:text-accent"}`} aria-label="Próxima imagem">❯</button>
+                                <button
+                                    onClick={() => selectedIndex !== null && setSelectedIndex(selectedIndex < filteredItems.length - 1 ? selectedIndex + 1 : filteredItems.length - 1)}
+                                    disabled={selectedIndex === filteredItems.length - 1}
+                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30"
+                                >❯</button>
                             </div>
-                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 px-3 py-1 rounded text-white text-sm flex items-center space-x-2">
-                                <span>{selectedIndex + 1}</span><span>/</span><span>{filteredItems.length}</span>
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded text-white text-sm opacity-80">
+                                <span>{selectedIndex + 1} / {filteredItems.length}</span>
                             </div>
                         </div>
                     </div>

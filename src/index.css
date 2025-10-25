@@ -135,6 +135,9 @@
             opacity: 0.5;
         }
     }
+    body.overflow-hidden {
+        overflow: hidden !important;
+    }
 
     .animate-fade-in-up {
         animation: fadeInUp 0.8s ease-out forwards;

@@ -15,15 +15,15 @@ interface TestimonialFromAPI {
 }
 
 // ===== DADOS VISUAIS ATUALIZADOS: 4 CORES E ROTAÇÕES =====
-const cardColors: ('orange' | 'stone' | 'amber' | 'rose' )[] = ['orange', 'stone', 'amber', 'rose'];
-const cardRotations = [-4, 3, 5, -2, 4, -3]; // 6 rotações para maior variedade
+const cardColors: ('orange' | 'stone' | 'amber' | 'rose')[] = ['orange', 'stone', 'amber', 'rose'];
+const cardRotations = [-4, 3, 5, -2, 4, -3];
 
-// --- Componente do Card Individual (com a altura ajustada) ---
+// --- Componente do Card Individual (sem alteração) ---
 const TestimonialCard = ({ text, author, source, color, rotation }: {
     text: string;
     author: string;
     source: string;
-    color: 'orange' | 'stone' | 'amber' | 'rose' ;
+    color: 'orange' | 'stone' | 'amber' | 'rose';
     rotation: number;
 }) => {
     const colorMap = {
@@ -51,12 +51,13 @@ const TestimonialCard = ({ text, author, source, color, rotation }: {
     );
 };
 
-// --- A seção principal de depoimentos (COM AUMENTO DE LARGURA) ---
+// --- A seção principal de depoimentos (COM REFINAMENTO MOBILE) ---
 const TestimonialsSection = () => {
     const [testimonials, setTestimonials] = useState<TestimonialFromAPI[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedIndex, setSelectedIndex] = useState(0);
 
+    // Ajustamos o Embla para ter um gap interno no CSS (pl-8)
     const [emblaRef, emblaApi] = useEmblaCarousel({
         loop: true,
         align: 'start',
@@ -79,7 +80,6 @@ const TestimonialsSection = () => {
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-
     const scrollTo = useCallback((index: number) => emblaApi && emblaApi.scrollTo(index), [emblaApi]);
 
     useEffect(() => {
@@ -103,7 +103,6 @@ const TestimonialsSection = () => {
 
     return (
         <section id="testimonials" className="py-16 md:py-24 bg-gray-50 dark:bg-zinc-900 overflow-x-hidden">
-            {/* ===== AUMENTO DA LARGURA: max-w-screen-xl (1280px) ou maior ===== */}
             <div className="container mx-auto px-4 max-w-screen-xl">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl sm:text-5xl font-semibold text-gray-900 dark:text-white">
@@ -138,7 +137,7 @@ const TestimonialsSection = () => {
                         <div className="flex -ml-8">
                             {isLoading ? (
                                 Array.from({ length: 3 }).map((_, index) => (
-                                    <div key={index} className="flex-grow-0 flex-shrink-0 basis-full lg:basis-1/3 pl-8">
+                                    <div key={index} className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-1/2 lg:basis-1/3 pl-8">
                                         <div className="py-8">
                                             <Skeleton className="h-80 w-full rounded-lg bg-gray-200 dark:bg-zinc-800" />
                                         </div>
@@ -146,7 +145,9 @@ const TestimonialsSection = () => {
                                 ))
                             ) : (
                                 testimonials.map((testimonial, index) => (
-                                    <div key={testimonial._id} className="flex-grow-0 flex-shrink-0 basis-full sm:basis-1/2 lg:basis-1/3 pl-8">
+                                    // CORREÇÃO FINAL NO MOBILE: Basis seguro de 90%
+                                    <div key={testimonial._id}
+                                         className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[calc(50%-16px)] lg:basis-1/3 pl-8">
                                         <div className="h-full py-8">
                                             <TestimonialCard
                                                 text={testimonial.text}
