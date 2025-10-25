@@ -10,7 +10,7 @@ interface TestimonialFromAPI {
     _id: string;
     text: string;
     author: string;
-    source: string; // Garantindo consistência com a API
+    source: string;
     imageUrl: string;
 }
 
@@ -48,7 +48,6 @@ const TestimonialsSection = () => {
                 setIsLoading(true);
                 const response = await fetch('/api/testimonials');
                 if (!response.ok) throw new Error('Falha ao buscar depoimentos.');
-                // Na sua API, o campo é 'role', vamos mapear para 'source' para o card
                 const data = await response.json();
                 const mappedData = data.map((item: any) => ({ ...item, source: item.role }));
                 setTestimonials(mappedData);
@@ -68,7 +67,7 @@ const TestimonialsSection = () => {
             <div className="container mx-auto px-4 max-w-screen-xl">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl sm:text-5xl font-semibold text-gray-900 dark:text-white">
-                       MEMÓRIAS DE NOSSOS CLIENTES
+                        Memórias dos Nossos Clientes
                     </h2>
                     <p className="text-lg text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">
                         Momentos reais capturados através de parcerias de sucesso.
@@ -81,23 +80,23 @@ const TestimonialsSection = () => {
                         <Button onClick={scrollNext} className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-800 rounded-full h-12 w-12 -mr-20" size="icon" aria-label="Próximo depoimento"><ChevronRight className="h-6 w-6" /></Button>
                     </div>
 
-                    {/* <-- MUDANÇA: Ajustado o espaçamento para mobile com -mx-2 */}
+                    {/* MUDANÇA: Margem negativa menor (-ml-3) */}
                     <div className="overflow-hidden -mx-2" ref={emblaRef}>
-                        {/* <-- MUDANÇA: Ajustado o espaçamento para mobile com -ml-4 */}
-                        <div className="flex -ml-4">
+                        <div className="flex -ml-3">
                             {isLoading ? (
                                 Array.from({ length: 3 }).map((_, index) => (
-                                    // <-- MUDANÇA: Ajustado o espaçamento para mobile com pl-4
-                                    <div key={index} className="flex-[0_0_90%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] pl-4 sm:pl-6">
-                                        <div className="py-8"><Skeleton className="h-[28rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" /></div>
+                                    // MUDANÇA: Largura do item menor (85%) e padding menor (pl-3)
+                                    <div key={index} className="flex-[0_0_85%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] pl-3 sm:pl-6">
+                                        {/* MUDANÇA: Padding vertical menor (py-6) */}
+                                        <div className="py-6"><Skeleton className="h-[26rem] sm:h-[28rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" /></div>
                                     </div>
                                 ))
                             ) : (
                                 testimonials.map((testimonial, index) => (
-                                    // <-- MUDANÇA: Ajustado o espaçamento para mobile com pl-4
-                                    <div key={testimonial._id} className="flex-[0_0_90%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] pl-4 sm:pl-6">
-                                        {/* <-- MUDANÇA: Removido o min-h para um layout mais flexível */}
-                                        <div className="h-full py-8">
+                                    // MUDANÇA: Largura do item menor (85%) e padding menor (pl-3)
+                                    <div key={testimonial._id} className="flex-[0_0_85%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] pl-3 sm:pl-6">
+                                        {/* MUDANÇA: Padding vertical menor (py-6) */}
+                                        <div className="h-full py-6">
                                             <TestimonialCard
                                                 text={testimonial.text}
                                                 author={testimonial.author}
@@ -129,3 +128,4 @@ const TestimonialsSection = () => {
 };
 
 export default TestimonialsSection;
+

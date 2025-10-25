@@ -1,11 +1,6 @@
-// Dentro do seu arquivo: TestimonialCard.tsx
-
 import React from 'react';
 
-// Lembre-se de adicionar a fonte 'Caveat' para um toque manuscrito
-// No seu CSS global: @import url('https://fonts.googleapis.com/css2?family=Caveat&family=Libre+Baskerville:ital@1&display=swap');
-// No seu tailwind.config.js:
-// theme: { extend: { fontFamily: { caveat: ['Caveat', 'cursive'], serif: ['Libre Baskerville', 'serif'] } } }
+// ... (Lembre-se de ter as fontes 'Caveat' e 'Libre Baskerville' no seu CSS)
 
 interface TestimonialCardProps {
     text: string;
@@ -23,25 +18,29 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
                                                              rotation,
                                                          }) => {
     return (
-        // Container principal: A moldura do Polaroid
+        // MUDANÇA: Padding menor no mobile (p-2 pb-3) e maior no desktop (sm:p-3 sm:pb-4)
         <div
-            className="group w-full h-full bg-white p-3 pb-4 shadow-xl rounded-sm border border-gray-200/60
+            className="group w-full h-full bg-white p-2 pb-3 sm:p-3 sm:pb-4 shadow-xl rounded-sm border border-gray-200/60
                        transform transition-all duration-300 ease-out hover:scale-105 hover:shadow-2xl hover:z-10"
             style={{ transform: `rotate(${rotation}deg)` }}
         >
-            {/* A "Foto": Ocupa a parte de cima */}
+            {/* MUDANÇA: Altura da imagem menor no mobile (h-40) e maior no desktop (sm:h-48) */}
+            {/* MUDANÇA: Margem inferior menor no mobile (mb-2) e maior no desktop (sm:mb-4) */}
             <div
-                className="w-full h-48 bg-cover bg-center mb-4"
+                className="w-full h-40 sm:h-48 bg-cover bg-center mb-2 sm:mb-4"
                 style={{ backgroundImage: `url(${imageUrl})` }}
             />
 
-            {/* Área de Texto: Na borda branca inferior, garantindo legibilidade */}
-            <div className="px-1 flex flex-col h-[calc(100%-13rem)]"> {/* 12rem (h-48) + 1rem (mb-4) */}
-                <p className="font-serif text-lg italic text-gray-700 flex-grow mb-4">
+            {/* MUDANÇA: Removido o 'h-calc' e usado 'flex-1' para o container de texto ser flexível */}
+            <div className="px-1 flex flex-col flex-1">
+                {/* MUDANÇA: Fonte do texto menor no mobile (text-base) e maior no desktop (sm:text-lg) */}
+                {/* MUDANÇA: Margem inferior menor no mobile (mb-2) e maior no desktop (sm:mb-4) */}
+                <p className="font-serif text-base sm:text-lg italic text-gray-700 flex-grow mb-2 sm:mb-4">
                     "{text}"
                 </p>
                 <div className="text-right">
-                    <p className="font-caveat text-2xl text-gray-800 leading-none">{author}</p>
+                    {/* MUDANÇA: Fonte do autor menor no mobile (text-xl) e maior no desktop (sm:text-2xl) */}
+                    <p className="font-caveat text-xl sm:text-2xl text-gray-800 leading-none">{author}</p>
                     <p className="text-xs text-gray-500">{source}</p>
                 </div>
             </div>
@@ -50,3 +49,4 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
 };
 
 export default TestimonialCard;
+

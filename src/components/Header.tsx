@@ -55,7 +55,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
         <>
             <header
                 className={`fixed top-4 left-0 right-0 mx-auto z-50 transition-all duration-500 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-md shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl h-[70px]
-                    ${isLoginPage ? 'w-[20%]' : 'w-[80%] md:w-[45%] md:left-1/2 md:-translate-x-1/2'}`}
+                    ${isLoginPage ? 'w-[20%]' : 'w-[75%] md:w-[45%] md:left-1/2 md:-translate-x-1/2'}`}
             >
                 <nav className="px-3 md:px-5 py-4 md:py-3 flex items-center justify-between">
                     <div className="flex items-center shrink-0">
