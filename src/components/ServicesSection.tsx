@@ -1,4 +1,4 @@
-import { Camera, Heart, Users, UserPlus, Check, ChevronDown } from "lucide-react";
+import { Camera, Heart, Users, UserPlus, Check, Hand } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
@@ -49,11 +49,11 @@ const ServiceCard = ({ service }: { service: Service }) => {
                 alt={service.title}
                 className={`absolute inset-0 w-full h-full object-cover
                            transition-all duration-700 ease-in-out
-                           group-hover:scale-110 group-hover:blur-sm
+                           lg:group-hover:scale-110 lg:group-hover:blur-sm
                            ${isOpen ? 'scale-110 blur-sm' : ''}`}
             />
             <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent 
-                            transition-all duration-500 group-hover:bg-black/80
+                            transition-all duration-500 lg:group-hover:bg-black/80
                             ${isOpen ? 'bg-black/80' : ''}`}
             />
 
@@ -61,10 +61,26 @@ const ServiceCard = ({ service }: { service: Service }) => {
             <div className="lg:hidden absolute top-4 right-4 z-10">
                 <div className={`w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center 
                                border border-white/30 transition-all duration-300
-                               ${isOpen ? 'opacity-0' : 'animate-pulse'}`}>
-                    <ChevronDown className="w-5 h-5 text-white" />
+                               ${isOpen ? 'opacity-0' : 'opacity-100'}`}
+                     style={{
+                         animation: isOpen ? 'none' : 'pulse-slow 3s ease-in-out infinite'
+                     }}>
+                    <Hand className="w-5 h-5 text-white" />
                 </div>
             </div>
+
+            <style>{`
+                @keyframes pulse-slow {
+                    0%, 100% {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                    50% {
+                        opacity: 0.6;
+                        transform: scale(1.1);
+                    }
+                }
+            `}</style>
 
             <div className="relative h-full flex flex-col justify-end p-6 md:p-8 text-white">
                 <div className="flex items-center gap-3">
