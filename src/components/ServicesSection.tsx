@@ -190,7 +190,7 @@ const ServicesSection = () => {
                 <div className="relative">
                     <div
                         ref={carouselRef}
-                        className="flex snap-x snap-mandatory px-4 gap-4
+                        className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 gap-4
                                    lg:grid lg:grid-cols-4 lg:gap-6 lg:p-0"
                     >
                         {isLoading ? (
