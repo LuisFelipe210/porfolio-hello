@@ -67,7 +67,7 @@ const TestimonialsSection = () => {
             <div className="container mx-auto px-4 max-w-screen-xl">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl sm:text-5xl font-semibold text-gray-900 dark:text-white">
-                        Memórias dos Nossos Clientes
+                        MEMÓRIAS DE NOSSOS CLIENTES
                     </h2>
                     <p className="text-lg text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">
                         Momentos reais capturados através de parcerias de sucesso.
