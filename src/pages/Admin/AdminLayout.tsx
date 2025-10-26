@@ -3,8 +3,17 @@ import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
-    LogOut, LayoutDashboard, ImageIcon, Menu, User, Settings,
-    MessageSquareQuote, Inbox, Rss, Users, Home
+    LogOut,
+    LayoutDashboard,
+    ImageIcon,
+    Menu,
+    User,
+    Settings,
+    MessageSquareQuote,
+    Inbox,
+    Rss,
+    Users,
+    Home
 } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -30,7 +39,7 @@ const AdminLayout = () => {
         localStorage.setItem('theme', 'dark');
     }, []);
 
-    // O REDIRECIONAMENTO FOI REMOVIDO DAQUI
+    // --- CORREÇÃO: O REDIRECIONAMENTO PROBLEMÁTICO FOI REMOVIDO DAQUI ---
 
     const handleLogout = () => {
         localStorage.removeItem('authToken');
@@ -41,6 +50,7 @@ const AdminLayout = () => {
         if (path === '/admin') return location.pathname === '/admin';
         return location.pathname.startsWith(path);
     };
+
 
     const NavLinks = ({ className }: { className?: string }) => (
         <nav className={`flex flex-col gap-2 p-4 ${className}`}>
@@ -60,7 +70,6 @@ const AdminLayout = () => {
                     {hasUnreadMessages && <span className="absolute top-1/2 right-4 -translate-y-1/2 h-2.5 w-2.5 bg-orange-500 rounded-full animate-pulse" />}
                 </Button>
             </Link>
-            {/* Resto dos links... */}
             <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><ImageIcon className="mr-3 h-5 w-5" /> Portfólio</Button></Link>
             <Link to="/admin/services" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><LayoutDashboard className="mr-3 h-5 w-5" /> Serviços</Button></Link>
             <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
@@ -71,6 +80,7 @@ const AdminLayout = () => {
     );
 
     const sidebarWidth = '280px';
+
     return (
         <div className="flex h-screen overflow-hidden bg-black text-white">
             <div className="fixed inset-0 z-0"><img src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")} alt="Background" className="w-full h-full object-cover" /><div className="absolute inset-0 bg-black/70 backdrop-blur-sm" /></div>
@@ -78,7 +88,16 @@ const AdminLayout = () => {
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="relative z-30 flex h-24 items-center justify-between px-4 sm:px-6 md:px-8 bg-black/30 backdrop-blur-md border-b border-white/10">
                     <div className="flex items-center gap-4">
-                        {isMobile ? (<Sheet open={isSheetOpen} onOpenChange={setSheetOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10"><Menu className="h-6 w-6" />{hasUnreadMessages && (<span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-orange-500 animate-pulse" />)}</Button></SheetTrigger><SheetContent side="left" className="flex flex-col p-0 bg-black/80 backdrop-blur-lg border-r border-white/10"><div className="flex items-center gap-3 p-4 border-b border-white/10"><img src={Logo} alt="Hellô Borges" className="h-10 w-auto" /><span className="text-xl font-semibold text-white">Painel</span></div><NavLinks className="flex-1" /><div className="mt-auto p-4 border-t border-white/10"><Button variant="outline" className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base" onClick={handleLogout}><LogOut className="mr-3 h-5 w-5" /> Sair</Button></div></SheetContent></Sheet>) : (<Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white hover:bg-white/10"><Menu className="h-6 w-6" /></Button>)}
+                        {isMobile ? (<Sheet open={isSheetOpen} onOpenChange={setSheetOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10"><Menu className="h-6 w-6" />{hasUnreadMessages && (<span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-orange-500 animate-pulse" />)}</Button></SheetTrigger>
+                            {/* --- CORREÇÃO: ADICIONADO SCROLL AO CONTEÚDO DO MENU MOBILE --- */}
+                            <SheetContent side="left" className="flex flex-col p-0 bg-black/80 backdrop-blur-lg border-r border-white/10">
+                                <div className="flex items-center gap-3 p-4 border-b border-white/10 shrink-0"><img src={Logo} alt="Hellô Borges" className="h-10 w-auto" /><span className="text-xl font-semibold text-white">Painel</span></div>
+                                <div className="flex-1 overflow-y-auto">
+                                    <NavLinks />
+                                </div>
+                                <div className="mt-auto p-4 border-t border-white/10 shrink-0"><Button variant="outline" className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base" onClick={handleLogout}><LogOut className="mr-3 h-5 w-5" /> Sair</Button></div>
+                            </SheetContent>
+                        </Sheet>) : (<Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white hover:bg-white/10"><Menu className="h-6 w-6" /></Button>)}
                         {!isMobile && <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />}
                     </div>
                     {isMobile && <img src={Logo} alt="Hellô Borges" className="h-8 w-auto absolute left-1/2 -translate-x-1/2" />}
