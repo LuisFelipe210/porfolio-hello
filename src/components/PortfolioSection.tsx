@@ -1,39 +1,28 @@
 import { useState, useEffect, useRef } from "react";
-import { FiArrowLeft, FiArrowRight } from "react-icons/fi"; // FiShare2 REMOVIDO
+import { FiArrowLeft } from "react-icons/fi";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
-import { Button } from "./ui/button";
 import React from "react";
-// Importando a biblioteca de terceiros
 import Masonry from 'react-masonry-css';
 
 
-// Definição de tipos para os itens do portfólio (simples)
 interface PortfolioItem {
-    id: string; // O ID DEVE SER ÚNICO
+    id: string;
     title: string;
     description: string;
     image: string;
     category: string;
 }
 
-// Componente MobileSwipeCard (Botão de Compartilhamento REMOVIDO)
+// Componente MobileSwipeCard
 const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenModal: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const startX = useRef<number>(0);
     const isSwiping = useRef<boolean>(false);
     const cardRef = useRef<HTMLDivElement>(null);
 
-    // Função handleShare REMOVIDA
-
     const handleTouchStart = (e: React.TouchEvent) => {
         const target = e.target as Element;
-        // Lógica para ignorar o botão de compartilhamento REMOVIDA,
-        // mas mantemos a verificação para qualquer botão futuro.
-        // if (target.closest('.share-button')) {
-        //     isSwiping.current = false;
-        //     return;
-        // }
         startX.current = e.touches[0].clientX;
         isSwiping.current = false;
     };
@@ -128,14 +117,13 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
 };
 
 
-// Componente para o layout Masonry (Desktop) - Botão de Compartilhamento REMOVIDO
+// Componente para o layout Masonry
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
     return (
         <div
             className={`relative group cursor-pointer rounded-none overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg w-full mb-4`}
             onClick={() => setSelectedIndex(index)}
         >
-            {/* Botão de compartilhamento REMOVIDO */}
 
             <img
                 src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")}

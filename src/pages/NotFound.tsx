@@ -20,12 +20,12 @@ const NotFound = () => {
                     <img src={Logo} alt="Hellô Borges Logo" className="h-12 w-auto animate-fade-in" />
                 </Link>
 
-                {/* Título de impacto (ALL CAPS, grande, negrito) */}
+                {/* Título  */}
                 <h1 className="mb-4 text-6xl md:text-8xl font-bold uppercase tracking-widest text-orange-500 animate-fade-in-up">
                     404
                 </h1>
 
-                {/* Mensagem de erro em Sans-serif */}
+                {/* Mensagem de erro */}
                 <p className="mb-8 text-lg text-zinc-300 animate-fade-in">
                     Ops! Não conseguimos encontrar a página que você procura.
                 </p>
