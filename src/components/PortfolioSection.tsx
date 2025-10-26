@@ -450,7 +450,7 @@ const PortfolioSection = () => {
                                 >❮</button>
                                 <div className="flex-1 flex items-center justify-center px-4" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
                                     <img
-                                        src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1080")}
+                                        src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_720")}
                                         alt={filteredItems[selectedIndex].title}
                                         className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300"
                                     />

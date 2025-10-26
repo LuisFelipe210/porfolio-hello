@@ -24,7 +24,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
 
     const optimizedImageUrl = optimizeCloudinaryUrl(
         service.imageUrl,
-        'f_auto,q_auto,w_800'
+        'f_auto,q_auto,w_600'
     );
 
     const handleCardClick = () => {
