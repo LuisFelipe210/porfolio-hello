@@ -100,11 +100,11 @@ const ClientLoginPage = () => {
                                 placeholder="••••••••"
                                 className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
                             />
-                            <div className="text-right -mt-1">
-                                <Link to="/portal/forgot-password" className="text-sm text-gray-900 dark:text-muted-foreground hover:text-foreground hover:underline transition-colors px-1">
-                                    Esqueceu-se da senha?
-                                </Link>
-                            </div>
+                            {/*<div className="text-right -mt-1">*/}
+                            {/*    <Link to="/portal/forgot-password" className="text-sm text-gray-900 dark:text-muted-foreground hover:text-foreground hover:underline transition-colors px-1">*/}
+                            {/*        Esqueceu-se da senha?*/}
+                            {/*    </Link>*/}
+                            {/*</div>*/}
                         </div>
                     </CardContent>
                     <CardFooter>
