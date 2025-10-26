@@ -82,7 +82,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
                 }
             `}</style>
 
-            <div className="relative h-full flex flex-col justify-end p-6 md:p-8 text-white">
+            <div className="relative z-20 h-full flex flex-col justify-end p-6 md:p-8 text-white pointer-events-auto">
                 <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
                         <Icon className="w-5 h-5 text-orange-400" />
@@ -93,7 +93,8 @@ const ServiceCard = ({ service }: { service: Service }) => {
                 <div className={`transition-all duration-500 ease-in-out
                                 lg:group-hover:opacity-100 lg:group-hover:max-h-96 lg:group-hover:mt-6 lg:group-hover:translate-y-0
                                 lg:opacity-0 lg:max-h-0 lg:translate-y-4
-                                ${isOpen ? 'opacity-100 max-h-96 mt-6 translate-y-0' : 'opacity-0 max-h-0 translate-y-4 pointer-events-none lg:pointer-events-none'}`}
+                                lg:group-hover:pointer-events-auto
+                                ${isOpen ? 'opacity-100 max-h-96 mt-6 translate-y-0' : 'opacity-0 max-h-0 translate-y-4'}`}
                 >
                     <p className="text-white/80 leading-relaxed text-sm mb-4">{service.description}</p>
                     <ul className="space-y-1.5 mb-4">
@@ -105,10 +106,10 @@ const ServiceCard = ({ service }: { service: Service }) => {
                         ))}
                     </ul>
                     <a
-                        href={`https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20saber%20os%20valores%20para%20o%20serviço%20${encodeURIComponent(service.title)}.`}
+                        href={`https://api.whatsapp.com/send?phone=5574991248392&text=${encodeURIComponent('Olá, gostaria de saber os valores para o serviço ' + service.title + '.')}`}
                         target="_blank" rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-orange-500 text-white dark:text-black font-semibold px-4 py-1.5 rounded-lg
+                        className="relative z-30 bg-orange-500 text-white dark:text-black font-semibold px-4 py-1.5 rounded-lg
                                    hover:bg-orange-600 transition-colors inline-block self-start text-xs md:text-sm shadow-lg"
                     >
                         Consultar Valores
