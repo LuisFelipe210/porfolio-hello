@@ -25,13 +25,11 @@ export default async function handler(req, res) {
 
         // --- ROTA PÚBLICA: BUSCAR ARTIGOS (GET) ---
         if (req.method === 'GET') {
-            // Se houver um 'slug' na query, busca um único artigo
             if (req.query.slug) {
                 const post = await collection.findOne({ slug: req.query.slug });
                 if (!post) return res.status(404).json({ error: 'Artigo não encontrado.' });
                 return res.status(200).json(post);
             }
-            // Se não, busca todos os artigos
             const posts = await collection.find({}).sort({ createdAt: -1 }).toArray();
             return res.status(200).json(posts);
         }
@@ -65,7 +63,6 @@ export default async function handler(req, res) {
             const { _id, ...updatedData } = req.body;
             if (!id || !ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido.' });
 
-            // Se o título mudar, atualizamos o slug
             if (updatedData.title) {
                 updatedData.slug = createSlug(updatedData.title);
             }
@@ -76,14 +73,31 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Artigo atualizado.' });
         }
 
-        // --- ROTA PROTEGIDA: EXCLUIR ARTIGO (DELETE) ---
+        // --- ROTA PROTEGIDA: EXCLUIR ARTIGO(S) (DELETE) ---
         if (req.method === 'DELETE') {
             const { id } = req.query;
-            if (!id || !ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido.' });
+            const { postIds } = req.body;
 
-            const result = await collection.deleteOne({ _id: new ObjectId(id) });
-            if (result.deletedCount === 0) return res.status(404).json({ error: 'Artigo não encontrado.' });
-            return res.status(200).json({ message: 'Artigo excluído.' });
+            // Lógica para excluir múltiplos artigos
+            if (postIds && Array.isArray(postIds)) {
+                if (postIds.length === 0) {
+                    return res.status(400).json({ error: 'Nenhum ID de artigo foi fornecido.' });
+                }
+                const objectIds = postIds.map(id => new ObjectId(id));
+                const result = await collection.deleteMany({ _id: { $in: objectIds } });
+                return res.status(200).json({ message: `${result.deletedCount} artigos excluídos com sucesso.` });
+            }
+
+            // Lógica original para excluir um único artigo
+            if (id && ObjectId.isValid(id)) {
+                const result = await collection.deleteOne({ _id: new ObjectId(id) });
+                if (result.deletedCount === 0) {
+                    return res.status(404).json({ error: 'Artigo não encontrado.' });
+                }
+                return res.status(200).json({ message: 'Artigo excluído.' });
+            }
+
+            return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
         }
 
         res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);

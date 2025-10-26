@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from "@/components/ui/progress"; // <-- Componente de progresso
+import { Progress } from "@/components/ui/progress";
 import { useToast } from '@/hooks/use-toast';
-import { Upload } from 'lucide-react';
+import { Upload, FileImage } from 'lucide-react';
 
 interface UploadPhotosDialogProps {
     galleryId: string;
@@ -18,7 +18,7 @@ interface UploadPhotosDialogProps {
 export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChange, onUploadComplete }: UploadPhotosDialogProps) => {
     const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [progress, setProgress] = useState(0); // <-- Estado do progresso
+    const [progress, setProgress] = useState(0);
     const { toast } = useToast();
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,41 +45,27 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            formData.append('folder', 'borges-captures/galleries'); // opcional
+            formData.append('folder', 'borges-captures/galleries');
 
             const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
             try {
-                const uploadResponse = await fetch(uploadUrl, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!uploadResponse.ok) {
-                    const error = await uploadResponse.json();
-                    console.error("Erro no Cloudinary:", error);
-                    throw new Error(`Falha no upload de ${file.name}`);
-                }
-
+                const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
+                if (!uploadResponse.ok) throw new Error(`Falha no upload de ${file.name}`);
                 const uploadData = await uploadResponse.json();
                 uploadedUrls.push(uploadData.secure_url);
                 completed++;
-                // Lógica de atualização do progresso (por arquivo concluído)
                 setProgress((completed / files.length) * 100);
             } catch (error) {
-                throw new Error(`Erro no upload de ${file.name}`);
+                console.error("Erro no upload para o Cloudinary:", error);
+                // Lança o erro para que o Promise.all possa capturá-lo
+                throw error;
             }
         });
 
         try {
             await Promise.all(uploadPromises);
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: error.message });
-            setIsUploading(false);
-            return;
-        }
 
-        try {
             const token = localStorage.getItem('authToken');
             const updatedImages = [...existingImages, ...uploadedUrls];
 
@@ -92,14 +78,14 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
                 body: JSON.stringify({ images: updatedImages }),
             });
 
-            if (!response.ok) throw new Error('Falha ao atualizar a galeria.');
+            if (!response.ok) throw new Error('Falha ao atualizar a galeria na base de dados.');
 
             toast({ title: 'Sucesso!', description: `${files.length} fotos adicionadas.` });
             onUploadComplete();
             setFiles([]);
             onOpenChange(false);
         } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Erro', description: error.message });
+            toast({ variant: 'destructive', title: 'Erro no Upload', description: error.message || 'Um ou mais uploads falharam.' });
         } finally {
             setIsUploading(false);
         }
@@ -107,49 +93,47 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            {/* Ajuste de estilo para Dark Mode/Transparente */}
-            <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl border-white/10 text-white">
+            <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl border-white/10 text-white">
                 <DialogHeader>
                     <DialogTitle className="text-white">Adicionar Fotos à Galeria</DialogTitle>
+                    <DialogDescription>Selecione as fotos que deja enviar. O progresso será exibido abaixo.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div>
-                        <Label htmlFor="photo-upload" className="text-white">Selecionar fotos</Label>
+                        <Label htmlFor="photo-upload" className="sr-only">Selecionar fotos</Label>
                         <Input
                             id="photo-upload"
                             type="file"
                             multiple
                             onChange={handleFileSelect}
-                            className="bg-black/80 border border-gray-500 text-white placeholder:text-white rounded-xl file:text-white file:bg-black/70 file:border-0"
+                            className="bg-black/70 border border-dashed border-white/30 text-white placeholder:text-white rounded-xl file:text-white file:bg-black/70 file:border-0 h-24 flex items-center justify-center"
                         />
-                        <p className="text-sm text-white/70 mt-2">{files.length > 0 ? `${files.length} ficheiros selecionados.` : 'Nenhum ficheiro selecionado.'}</p>
+                        {files.length > 0 && (
+                            <div className="flex items-center text-sm text-white/70 mt-3">
+                                <FileImage className="h-4 w-4 mr-2" />
+                                <span>{files.length} ficheiro(s) selecionado(s).</span>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Exibição do progresso */}
                     {isUploading && (
-                        <div className="space-y-2">
-                            <Progress value={progress} />
-                            <p className="text-sm text-white/70">Enviando... {Math.round(progress)}%</p>
+                        <div className="space-y-2 pt-2">
+                            <Progress value={progress} className="w-full" />
+                            <p className="text-sm text-white/70 text-center">A enviar... {Math.round(progress)}%</p>
                         </div>
                     )}
                 </div>
                 <DialogFooter>
-                    <Button
-                        variant="secondary"
-                        onClick={() => onOpenChange(false)}
-                        // CORREÇÃO: Adicionada classe rounded-xl
-                        className="bg-gray-700 hover:bg-gray-600 text-white rounded-xl"
-                    >
+                    <Button variant="secondary" onClick={() => onOpenChange(false)} className="rounded-xl h-12">
                         Cancelar
                     </Button>
                     <Button
                         onClick={handleUpload}
                         disabled={isUploading || files.length === 0}
-                        // CORREÇÃO: Adicionada classe rounded-xl
-                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl"
+                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12"
                     >
                         <Upload className="mr-2 h-4 w-4" />
-                        {isUploading ? 'Enviando...' : `Enviar ${files.length} Fotos`}
+                        {isUploading ? 'A enviar...' : `Enviar ${files.length} Foto(s)`}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -56,8 +56,6 @@ async function sendPasswordResetEmail(email, token) {
     }
 }
 
-
-
 export default async function handler(req, res) {
     try {
         const db = await connectToDatabase(process.env.MONGODB_URI);
@@ -101,7 +99,6 @@ export default async function handler(req, res) {
                 console.log(`[DEBUG] Nenhum cliente encontrado para o e-mail: ${email}`);
             }
 
-            // Por segurança, sempre retorna uma mensagem genérica para o utilizador.
             return res.status(200).json({ message: 'Se o e-mail estiver registado, um link de redefinição foi enviado.' });
         }
 
@@ -158,7 +155,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Senha atualizada com sucesso!' });
         }
 
-
         // --- O RESTO DAS AÇÕES PROTEGIDAS ---
         const { clientId } = decoded;
         if (!clientId) return res.status(401).json({ error: 'Token inválido.' });
@@ -190,44 +186,43 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Senha atualizada com sucesso!', token: newToken });
         }
 
+        // *** INÍCIO DA CORREÇÃO ***
+        // --- AÇÃO: BUSCAR INFORMAÇÕES DO CLIENTE (NOME) ---
+        if (action === 'getClientInfo' && req.method === 'GET') {
+            const client = await clientsCollection.findOne(
+                { _id: new ObjectId(clientId) },
+                { projection: { name: 1 } } // Pega apenas o campo 'name'
+            );
+            if (!client) {
+                return res.status(404).json({ error: 'Cliente não encontrado.' });
+            }
+            return res.status(200).json({ name: client.name });
+        }
+        // *** FIM DA CORREÇÃO ***
+
         // --- AÇÃO: BUSCAR GALERIAS DO CLIENTE ---
         if (action === 'getGalleries' && req.method === 'GET') {
             const galleries = await galleriesCollection.find({ clientId: new ObjectId(clientId) }).toArray();
             return res.status(200).json(galleries);
         }
 
-        // --- AÇÃO NOVA: ATUALIZAR SELEÇÃO (AUTOSAVE) ---
+        // --- AÇÃO: ATUALIZAR SELEÇÃO (AUTOSAVE) ---
         if (action === 'updateSelection' && req.method === 'POST') {
             const { galleryId, selectedImages } = req.body;
             if (!galleryId || !selectedImages) return res.status(400).json({ error: 'Dados incompletos.' });
 
-            const updatedAt = new Date(); // Adiciona timestamp da última atualização
-
-            // ATUALIZA AS SELEÇÕES NO SERVIDOR, MAS NÃO MUDA O STATUS PARA 'selection_complete'
+            const updatedAt = new Date();
             const result = await galleriesCollection.updateOne(
-                {
-                    _id: new ObjectId(galleryId),
-                    clientId: new ObjectId(clientId),
-                    // Garante que só podemos atualizar se a seleção ainda não foi finalizada.
-                    status: { $ne: 'selection_complete' }
-                },
-                { $set: { selections: selectedImages, updatedAt } } // adiciona updatedAt
+                { _id: new ObjectId(galleryId), clientId: new ObjectId(clientId), status: { $ne: 'selection_complete' } },
+                { $set: { selections: selectedImages, updatedAt } }
             );
 
             if (result.matchedCount === 0) {
                 return res.status(404).json({ error: 'Galeria não encontrada, não pertence a este cliente ou a seleção já foi finalizada.' });
             }
-
-            // Busca a galeria atualizada e retorna junto
             const updatedGallery = await galleriesCollection.findOne({ _id: new ObjectId(galleryId) });
-
-            // Resposta de sucesso para o Autosave
-            return res.status(200).json({
-                message: 'Seleção salva com sucesso (autosave)!',
-                gallery: updatedGallery
-            });
+            return res.status(200).json({ message: 'Seleção salva com sucesso (autosave)!', gallery: updatedGallery });
         }
-
 
         // --- AÇÃO: SUBMETER SELEÇÃO DE FOTOS (FINALIZAR) ---
         if (action === 'submitSelection' && req.method === 'POST') {

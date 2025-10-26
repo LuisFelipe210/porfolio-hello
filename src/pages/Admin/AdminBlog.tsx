@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -28,7 +28,8 @@ const AdminBlog = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
     const { toast } = useToast();
 
     const [title, setTitle] = useState('');
@@ -50,6 +51,7 @@ const AdminBlog = () => {
         setIsLoading(true);
         try {
             const response = await fetch('/api/blog');
+            if (!response.ok) throw new Error("Falha ao carregar artigos.");
             const data = await response.json();
             setPosts(data);
         } catch (error) {
@@ -84,30 +86,17 @@ const AdminBlog = () => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        // Opcional: Adicionar pasta para organização
         formData.append('folder', 'borges-captures/blog');
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-
-        const uploadRes = await fetch(uploadUrl, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!uploadRes.ok) {
-            const error = await uploadRes.json();
-            console.error("Erro no Cloudinary:", error);
-            throw new Error('Falha no upload direto para Cloudinary.');
-        }
-
+        const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
+        if (!uploadRes.ok) throw new Error('Falha no upload para o Cloudinary.');
         const uploadData = await uploadRes.json();
-        return uploadData.secure_url; // Retorna a URL segura da imagem
+        return uploadData.secure_url;
     };
-
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!editingId && !file) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem de capa.' });
             return;
@@ -116,11 +105,8 @@ const AdminBlog = () => {
         setIsSubmitting(true);
         try {
             let coverImage = '';
-
             if (file) {
-                // VVVV CORREÇÃO: Chamada direta ao Cloudinary VVVV
                 coverImage = await handleCloudinaryUpload(file);
-                // ^^^^ CORREÇÃO: Chamada direta ao Cloudinary ^^^^
             }
 
             const token = localStorage.getItem('authToken');
@@ -148,213 +134,137 @@ const AdminBlog = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        // A lógica de exclusão está no modal, mas esta função não é usada
+    const handleDelete = async () => {
+        if (selectedPosts.size === 0) return;
+        setIsDeleting(true);
+
+        try {
+            const token = localStorage.getItem('authToken');
+            const ids = Array.from(selectedPosts);
+            const response = await fetch('/api/blog', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ postIds: ids }),
+            });
+            if (!response.ok) throw new Error('Falha ao excluir o(s) artigo(s).');
+            toast({ title: 'Sucesso', description: `${ids.length} artigo(s) excluído(s).` });
+            fetchPosts();
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o(s) artigo(s).' });
+        } finally {
+            setIsDeleteDialogOpen(false);
+            setSelectedPosts(new Set());
+            setIsDeleting(false);
+        }
+    };
+
+    const handleSelectionChange = (id: string, checked: boolean) => {
+        const newSet = new Set(selectedPosts);
+        if (checked) {
+            newSet.add(id);
+        } else {
+            newSet.delete(id);
+        }
+        setSelectedPosts(newSet);
     };
 
     return (
-        // Container principal: Ocupa a altura total disponível e define o layout como coluna.
-        <div className="flex flex-col h-full">
-            {/* Título: Fixo no topo (shrink-0) */}
-            <div className="py-6 shrink-0">
-                <h1 className="text-white font-bold text-2xl tracking-tight">Gerir Blog</h1>
-                <p className="text-white/80">Aqui você pode criar, editar e excluir artigos do blog.</p>
-            </div>
-
-            {/* Botão de Novo Artigo: Fixo no topo (shrink-0) */}
-            <div className="flex justify-end items-center mb-6 shrink-0">
-                <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                    <DialogTrigger asChild>
+        <div className="flex flex-col h-full animate-fade-in">
+            {/* CABEÇALHO */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">Gerir Blog</h1>
+                    <p className="text-white/80">Crie, edite e remova os artigos do seu blog.</p>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {selectedPosts.size > 0 && (
                         <Button
-                            variant="default"
-                            onClick={() => handleOpenDialog()}
-                            className="bg-black rounded-xl text-white font-bold hover:bg-gray-800/20 transition-all flex items-center"
+                            variant="outline"
+                            onClick={() => setIsDeleteDialogOpen(true)}
+                            className="border border-red-500/80 text-red-500 hover:bg-red-500/20 bg-transparent rounded-xl font-semibold transition-all w-full sm:w-auto"
                         >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Novo Artigo
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedPosts.size})
                         </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-2xl bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
-                        <DialogHeader>
-                            <DialogTitle className="text-white font-bold text-xl">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
-                                <Label htmlFor="title" className="text-white font-bold">Título</Label>
-                                <Input
-                                    id="title"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    required
-                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="coverImage" className="text-white font-bold">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label>
-                                <Input
-                                    id="coverImage"
-                                    type="file"
-                                    onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                                    required={!editingId}
-                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
-                                />
-                                {file && (
-                                    <div className="mt-2">
-                                        <img src={URL.createObjectURL(file)} alt="Pré-visualização" className="w-40 h-28 object-cover rounded-xl border border-gray-500" />
-                                    </div>
-                                )}
-                            </div>
-                            <div>
-                                <Label htmlFor="content" className="text-white font-bold">Conteúdo</Label>
-                                <Textarea
-                                    id="content"
-                                    rows={12}
-                                    value={content}
-                                    onChange={(e) => setContent(e.target.value)}
-                                    required
-                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white"
-                                />
-                            </div>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
-                                    >
-                                        Cancelar
-                                    </Button>
-                                </DialogClose>
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-bold transition-all"
-                                >
-                                    {isSubmitting ? 'Salvando...' : 'Salvar'}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                    )}
+                    <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog()} className="bg-orange-500 rounded-xl text-white hover:bg-orange-600 transition-all font-semibold w-full sm:w-auto">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Novo Artigo
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                            <DialogHeader>
+                                <DialogTitle className="text-white font-bold text-xl">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
+                                <DialogDescription className="text-white/80">{editingId ? "Altere os detalhes abaixo." : "Preencha os detalhes e faça o upload da imagem de capa."}</DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div><Label htmlFor="title" className="text-white font-bold">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                                <div><Label htmlFor="coverImage" className="text-white font-bold">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label><Input id="coverImage" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" /></div>
+                                <div><Label htmlFor="content" className="text-white font-bold">Conteúdo</Label><Textarea id="content" rows={10} value={content} onChange={(e) => setContent(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" /></div>
+                                <DialogFooter className="!mt-6">
+                                    <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
+                                    <Button type="submit" disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isSubmitting ? 'A guardar...' : 'Guardar'}</Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
-            {/* Busca e Filtro: Fixo no topo (shrink-0) */}
+            {/* FILTROS E BUSCA */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
-                <Input
-                    placeholder="Buscar artigo..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-1/2 bg-black/50 text-white border border-gray-500 placeholder:text-white focus:border-gray-300 focus:ring-white"
-                />
-                <select
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
-                    className="border border-gray-500 rounded-xl bg-black/50 px-3 py-2 text-sm text-white focus:border-gray-300 focus:ring-white"
-                >
+                <div className="relative w-full sm:w-1/2 md:w-1/3">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
+                    <Input placeholder="Buscar por título..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
+                </div>
+                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full sm:w-auto">
                     <option value="recent">Mais recentes</option>
                     <option value="oldest">Mais antigos</option>
                 </select>
             </div>
 
-            {/* Container da Lista de Artigos: Ocupa o espaço restante e tem rolagem */}
-            <div className="flex-1 overflow-y-auto scrollbar-visible pr-2">
-                <div className="space-y-6">
+            {/* LISTA DE ARTIGOS */}
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                <div className="space-y-4">
                     {isLoading ? (
-                        <>
-                            <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
-                            <Skeleton className="h-24 w-full bg-black/60 rounded-xl" />
-                        </>
+                        <><Skeleton className="h-24 w-full bg-black/60 rounded-3xl" /><Skeleton className="h-24 w-full bg-black/60 rounded-3xl" /></>
                     ) : filteredPosts.length > 0 ? (
                         filteredPosts.map((post) => (
-                            <div key={post._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up">
-                                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
-                                    <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                                        <div className="flex items-center gap-6">
-                                            <img
-                                                src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200")}
-                                                alt={post.title}
-                                                className="w-20 h-14 rounded-xl object-cover border border-gray-500 shrink-0"
-                                            />
-                                            <div>
-                                                <h3 className="text-white font-bold text-lg">{post.title}</h3>
-                                                <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
-                                            </div>
+                            <Card key={post._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 transition-all duration-300 hover:border-orange-500/50 relative">
+                                <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4 flex-1">
+                                        <input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded shrink-0" checked={selectedPosts.has(post._id)} onChange={(e) => handleSelectionChange(post._id, e.target.checked)} />
+                                        <img src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200,c_fill,ar_16:9,g_auto")} alt={post.title} className="w-32 h-20 rounded-2xl object-cover border border-white/10 shrink-0" />
+                                        <div className="flex-1">
+                                            <h3 className="text-white font-bold text-lg leading-tight">{post.title}</h3>
+                                            <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
                                         </div>
-                                        <div className="flex gap-2 self-end sm:self-center">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleOpenDialog(post)}
-                                                className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => {
-                                                    setPostToDelete(post);
-                                                    setIsDeleteDialogOpen(true);
-                                                }}
-                                                className="border border-red-600 text-red-600 rounded-xl hover:bg-red-600/10 transition-all"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
+                                    </div>
+                                    <div className="flex gap-2 self-end sm:self-center">
+                                        <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         ))
                     ) : (
-                        <p className="text-center text-white/80 pt-12">Nenhum artigo encontrado.</p>
+                        <p className="text-center text-white/60 pt-12">Nenhum artigo encontrado.</p>
                     )}
                 </div>
             </div>
 
-            {postToDelete && (
-                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
-                        <DialogHeader>
-                            <DialogTitle className="text-white font-bold text-xl">Confirmar exclusão</DialogTitle>
-                        </DialogHeader>
-                        <p className="text-center mt-4 text-white/80">Tem certeza que deseja excluir o artigo "{postToDelete.title}"? Esta ação não pode ser desfeita.</p>
-                        <DialogFooter className="flex justify-end gap-2 mt-4">
-                            <DialogClose asChild>
-                                <Button
-                                    variant="secondary"
-                                    className="bg-black rounded-xl text-white hover:bg-gray-800/20 transition-all"
-                                >
-                                    Cancelar
-                                </Button>
-                            </DialogClose>
-                            <Button
-                                variant="destructive"
-                                onClick={async () => {
-                                    if (!postToDelete) return;
-                                    try {
-                                        const token = localStorage.getItem('authToken');
-                                        const response = await fetch(`/api/blog?id=${postToDelete._id}`, {
-                                            method: 'DELETE',
-                                            headers: { 'Authorization': `Bearer ${token}` },
-                                        });
-                                        if (!response.ok) throw new Error('Falha ao excluir.');
-                                        toast({ title: 'Sucesso', description: 'Artigo excluído.' });
-                                        fetchPosts();
-                                    } catch (error) {
-                                        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o artigo.' });
-                                    } finally {
-                                        setIsDeleteDialogOpen(false);
-                                        setPostToDelete(null);
-                                    }
-                                }}
-                                className="border border-red-600 text-red-600 rounded-xl hover:bg-red-600/10 transition-all"
-                            >
-                                Excluir
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
+            {/* DIÁLOGO DE EXCLUSÃO */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold">Confirmar exclusão</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-white/80">Tem a certeza que deseja excluir os {selectedPosts.size} artigos selecionados? Esta ação não pode ser desfeita.</p>
+                    <DialogFooter className="flex justify-end gap-2 !mt-6">
+                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
+                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={isDeleting}><Trash2 className="h-4 w-4 mr-2" />{isDeleting ? 'A excluir...' : 'Excluir'}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

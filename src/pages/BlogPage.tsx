@@ -7,7 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
-import Logo from '@/assets/logo.svg';
+import { ArrowRight } from 'lucide-react';
 
 interface Post {
     _id: string;
@@ -15,6 +15,7 @@ interface Post {
     slug: string;
     coverImage: string;
     createdAt: string;
+    content: string; // Adicionado para a pré-visualização
 }
 
 const BlogPage = () => {
@@ -22,9 +23,13 @@ const BlogPage = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        // Força o tema escuro na página
+        document.documentElement.classList.add('dark');
+
         const fetchPosts = async () => {
             try {
                 const response = await fetch('/api/blog');
+                if (!response.ok) throw new Error("Falha ao carregar artigos.");
                 const data = await response.json();
                 setPosts(data);
             } catch (error) {
@@ -36,50 +41,98 @@ const BlogPage = () => {
         fetchPosts();
     }, []);
 
-    return (
-        // CORREÇÃO: Fundo da página alterado para herdar o tema padrão
-        <div className="relative min-h-screen overflow-hidden">
-            {/* Efeitos de fundo (divs com gradientes radiais) removidos */}
-            <Header />
-            <main className="pt-24 md:pt-32">
-                <section className="section-padding">
-                    <div className="container mx-auto max-w-4xl">
-                        <div className="text-center mb-16">
-                            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mb-6">
-                                <img src={Logo} alt="Logo" className="h-12 sm:h-14 w-auto animate-fade-in" />
-                                <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent drop-shadow-md">
-                                    Diário de Bordo
-                                </h1>
-                            </div>
-                            <p className="text-lg sm:text-xl text-muted-foreground/90 max-w-xl mx-auto">
-                                Histórias, dicas e bastidores do meu trabalho criativo.
-                            </p>
-                        </div>
+    const featuredPost = posts[0];
+    const otherPosts = posts.slice(1);
 
-                        {isLoading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <Skeleton className="h-80 w-full rounded-xl" />
-                                <Skeleton className="h-80 w-full rounded-xl" />
+    const truncateText = (text: string, length: number) => {
+        if (!text) return '';
+        if (text.length <= length) return text;
+        return text.substring(0, length) + '...';
+    };
+
+    return (
+        <div className="relative min-h-screen bg-black text-white overflow-hidden">
+            <div className="absolute inset-0 z-0 opacity-30">
+                <img
+                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")}
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                />
+            </div>
+            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black via-black/80 to-transparent" />
+
+            <Header />
+            <main className="relative z-20 pt-24 md:pt-32">
+                <section className="container mx-auto section-padding">
+                    <div className="text-center mb-16 animate-fade-in">
+                        {/* CORREÇÃO: Adicionado py-2 para evitar que o texto seja cortado */}
+                        <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent drop-shadow-md py-2">
+                            Blog
+                        </h1>
+                        <p className="text-lg sm:text-xl text-white/80 max-w-xl mx-auto mt-4">
+                            Histórias, dicas e bastidores do meu trabalho criativo.
+                        </p>
+                    </div>
+
+                    {isLoading ? (
+                        <div className="space-y-12">
+                            <Skeleton className="h-96 w-full rounded-3xl bg-black/60" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <Skeleton className="h-80 w-full rounded-3xl bg-black/60" />
+                                <Skeleton className="h-80 w-full rounded-3xl bg-black/60" />
+                                <Skeleton className="h-80 w-full rounded-3xl bg-black/60" />
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                                {posts.map((post) => (
+                        </div>
+                    ) : (
+                        <div className="space-y-12">
+                            {/* Artigo em Destaque */}
+                            {featuredPost && (
+                                <Link to={`/blog/${featuredPost.slug}`} className="group block">
+                                    <Card className="overflow-hidden h-full border border-white/10 rounded-3xl bg-black/50 backdrop-blur-md shadow-lg hover:border-orange-500/50 transition-all duration-300">
+                                        <div className="grid md:grid-cols-2 items-center">
+                                            <div className="overflow-hidden aspect-[4/3]">
+                                                <img
+                                                    src={optimizeCloudinaryUrl(featuredPost.coverImage, "f_auto,q_auto,w_800")}
+                                                    alt={featuredPost.title}
+                                                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                                                />
+                                            </div>
+                                            <div className="p-8 md:p-12">
+                                                <CardDescription className="text-orange-400 font-semibold mb-2">
+                                                    Artigo em Destaque
+                                                </CardDescription>
+                                                <CardTitle className="text-3xl lg:text-4xl font-bold leading-tight text-white group-hover:text-orange-400 transition-colors">
+                                                    {featuredPost.title}
+                                                </CardTitle>
+                                                <p className="mt-4 text-white/80 line-clamp-3">
+                                                    {truncateText(featuredPost.content, 150)}
+                                                </p>
+                                                <div className="mt-6 flex items-center font-semibold text-orange-400">
+                                                    Ler mais <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            )}
+
+                            {/* Outros Artigos */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {otherPosts.map((post) => (
                                     <Link to={`/blog/${post.slug}`} key={post._id} className="group block">
-                                        {/* Fundo do card herda o bg-background no modo claro e usa dark:bg-card/60 no escuro */}
-                                        <Card className="overflow-hidden h-full border border-border/40 rounded-2xl bg-white dark:bg-card/60 backdrop-blur-md shadow-sm hover:shadow-lg hover:border-accent/60 transition-all duration-300">
+                                        <Card className="overflow-hidden h-full border border-white/10 rounded-3xl bg-black/50 backdrop-blur-md shadow-lg hover:border-orange-500/50 transition-all duration-300">
                                             <div className="overflow-hidden aspect-[16/10]">
                                                 <img
                                                     src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_800")}
                                                     alt={post.title}
-                                                    loading="lazy"
-                                                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                                                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                                                 />
                                             </div>
-                                            <CardHeader className="p-5">
-                                                <CardTitle className="text-xl font-semibold leading-tight group-hover:text-accent transition-colors">
+                                            <CardHeader className="p-6">
+                                                <CardTitle className="text-xl font-semibold leading-tight text-white group-hover:text-orange-400 transition-colors">
                                                     {post.title}
                                                 </CardTitle>
-                                                <CardDescription className="pt-2 text-muted-foreground/80">
+                                                <CardDescription className="pt-2 text-white/70">
                                                     {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
                                                 </CardDescription>
                                             </CardHeader>
@@ -87,11 +140,13 @@ const BlogPage = () => {
                                     </Link>
                                 ))}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </section>
             </main>
-            <Footer />
+            <div className="relative z-20">
+                <Footer />
+            </div>
         </div>
     );
 };

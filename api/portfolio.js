@@ -58,16 +58,31 @@ export default async function handler(req, res) {
 
         if (req.method === 'DELETE') {
             const { id } = req.query;
-            if (!id || !ObjectId.isValid(id)) {
-                return res.status(400).json({ error: 'ID inválido.' });
+            const { itemIds } = req.body;
+
+            // Lógica para excluir múltiplos itens
+            if (itemIds && Array.isArray(itemIds)) {
+                if (itemIds.length === 0) {
+                    return res.status(400).json({ error: 'Nenhum ID de item foi fornecido.' });
+                }
+                const objectIds = itemIds.map(id => new ObjectId(id));
+                const result = await collection.deleteMany({ _id: { $in: objectIds } });
+                return res.status(200).json({ message: `${result.deletedCount} itens excluídos com sucesso.` });
             }
 
-            const result = await collection.deleteOne({ _id: new ObjectId(id) });
-            if (result.deletedCount === 0) {
-                return res.status(404).json({ error: 'Item não encontrado.' });
+            // Lógica original para excluir um único item
+            if (id && ObjectId.isValid(id)) {
+                const result = await collection.deleteOne({ _id: new ObjectId(id) });
+                if (result.deletedCount === 0) {
+                    return res.status(404).json({ error: 'Item não encontrado.' });
+                }
+                return res.status(200).json({ message: 'Item excluído com sucesso.' });
             }
-            return res.status(200).json({ message: 'Item excluído com sucesso.' });
+
+            // Se nenhum ID for fornecido (nem na query, nem no body)
+            return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
         }
+
 
         return res.status(405).json({ error: 'Método não permitido.' });
 

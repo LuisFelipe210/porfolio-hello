@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -18,208 +18,147 @@ interface Settings {
 
 const AdminSettings = () => {
     const [settings, setSettings] = useState<Settings | null>(null);
+    const [initialSettings, setInitialSettings] = useState<Settings | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isSubmittingPage, setIsSubmittingPage] = useState(false);
-    const [isSubmittingContacts, setIsSubmittingContacts] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
 
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch('/api/settings');
-                const data = await response.json();
-                setSettings(data);
-            } catch (error) {
-                toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as configurações.' });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchSettings();
+    const isModified = JSON.stringify(settings) !== JSON.stringify(initialSettings);
+
+    const fetchSettings = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/settings');
+            if (!response.ok) throw new Error("Falha ao carregar configurações.");
+            const data = await response.json();
+            setSettings(data);
+            setInitialSettings(data);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as configurações.' });
+        } finally {
+            setIsLoading(false);
+        }
     }, [toast]);
 
-    const handleSavePage = async (e: React.FormEvent) => {
+    useEffect(() => {
+        fetchSettings();
+    }, [fetchSettings]);
+
+
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!settings) return;
-        setIsSubmittingPage(true);
+        setIsSubmitting(true);
 
         try {
             const token = localStorage.getItem('authToken');
             const response = await fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({
-                    _id: settings._id,
-                    heroTitle: settings.heroTitle,
-                    heroSubtitle: settings.heroSubtitle,
-                    whatsapp: settings.whatsapp,
-                    email: settings.email,
-                    instagram: settings.instagram,
-                    location: settings.location,
-                }),
+                body: JSON.stringify(settings),
             });
 
             if (!response.ok) throw new Error('Falha ao salvar as configurações.');
-            toast({ title: 'Sucesso!', description: 'As configurações da página inicial foram atualizadas.' });
+            toast({ title: 'Sucesso!', description: 'As configurações foram atualizadas.' });
+            setInitialSettings(settings); // Atualiza o estado inicial para o novo estado salvo
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações da página inicial.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });
         } finally {
-            setIsSubmittingPage(false);
+            setIsSubmitting(false);
         }
     };
 
-    const handleSaveContacts = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!settings) return;
-        setIsSubmittingContacts(true);
-
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({
-                    _id: settings._id,
-                    heroTitle: settings.heroTitle,
-                    heroSubtitle: settings.heroSubtitle,
-                    whatsapp: settings.whatsapp,
-                    email: settings.email,
-                    instagram: settings.instagram,
-                    location: settings.location,
-                }),
-            });
-
-            if (!response.ok) throw new Error('Falha ao salvar as configurações.');
-            toast({ title: 'Sucesso!', description: 'As configurações de contatos e redes foram atualizadas.' });
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações de contatos e redes.' });
-        } finally {
-            setIsSubmittingContacts(false);
-        }
-    };
-
-    if (isLoading || !settings) {
-        return (
-            <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
-                <CardHeader>
-                    <Skeleton className="h-8 w-64 rounded-xl bg-black/60" />
-                    <Skeleton className="h-4 w-full mt-2 rounded-xl bg-black/60" />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <Skeleton className="h-10 w-full rounded-xl bg-black/60" />
-                    <Skeleton className="h-10 w-full rounded-xl bg-black/60" />
-                    <Skeleton className="h-10 w-full rounded-xl bg-black/60" />
-                </CardContent>
-            </Card>
-        );
-    }
-
-    const InputField = ({
-                            id,
-                            label,
-                            type = 'text',
-                            value,
-                            onChange,
-                        }: {
-        id: string;
+    const InputField = ({ id, label, type = 'text', value, onChange }: {
+        id: keyof Settings;
         label: string;
         type?: string;
         value: string;
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        onChange: (id: keyof Settings, value: string) => void;
     }) => (
         <div className="flex flex-col">
-            <Label htmlFor={id} className="mb-1 font-semibold text-white">{label}</Label>
+            <Label htmlFor={id} className="mb-2 font-semibold text-white">{label}</Label>
             <Input
                 id={id}
                 type={type}
                 value={value}
-                onChange={onChange}
-                className="rounded-md border border-gray-500 bg-black/80 placeholder:text-white text-white focus:border-gray-300 focus:ring-1 focus:ring-white"
+                onChange={(e) => onChange(id, e.target.value)}
+                className="bg-black/70 border-white/20 rounded-xl h-12"
             />
         </div>
     );
 
+    if (isLoading || !settings) {
+        return <Skeleton className="h-[500px] w-full bg-black/60 rounded-3xl" />;
+    }
+
     return (
-        // Container principal flex-col para forçar a rolagem interna
-        <div className="flex flex-col h-full">
-
-            {/* Título e Descrição Fixos (shrink-0) */}
-            <div className="shrink-0 mb-4">
-                <h1 className="text-3xl font-bold text-white mb-4">Configurações Gerais</h1>
-                <p className="text-white mb-4">Edite informações globais que aparecem em várias partes do site.</p>
+        <form onSubmit={handleSave} className="flex flex-col h-full animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">Configurações Gerais</h1>
+                    <p className="text-white/80">Edite informações globais que aparecem em várias partes do site.</p>
+                </div>
+                <Button type="submit" disabled={isSubmitting || !isModified} className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all h-12 px-6 font-semibold w-full sm:w-auto">
+                    {isSubmitting ? 'A guardar...' : 'Guardar Alterações'}
+                </Button>
             </div>
 
-            {/* Conteúdo com Rolagem (flex-1 overflow-y-auto) */}
-            <div className="flex-1 overflow-y-auto space-y-8 scrollbar-visible pr-2">
-                <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
-                    <CardContent className="space-y-6 pt-6">
-                        <form onSubmit={handleSavePage}>
-                            <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Página Inicial</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <InputField
-                                    id="heroTitle"
-                                    label="Título Principal"
-                                    value={settings.heroTitle}
-                                    onChange={(e) => setSettings({ ...settings, heroTitle: e.target.value })}
-                                />
-                                <InputField
-                                    id="heroSubtitle"
-                                    label="Subtítulo"
-                                    value={settings.heroSubtitle}
-                                    onChange={(e) => setSettings({ ...settings, heroSubtitle: e.target.value })}
-                                />
-                            </div>
-                            <div className="mt-6 flex justify-end">
-                                <Button type="submit" disabled={isSubmittingPage} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition">
-                                    {isSubmittingPage ? 'Salvando...' : 'Salvar Página Inicial'}
-                                </Button>
-                            </div>
-                        </form>
+
+            <div className="flex-1 overflow-y-auto space-y-8 pr-2 -mr-2">
+                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
+                    <CardHeader>
+                        <h2 className="text-2xl font-semibold text-white">Página Inicial</h2>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            id="heroTitle"
+                            label="Título Principal"
+                            value={settings.heroTitle}
+                            onChange={(id, value) => setSettings({ ...settings, [id]: value })}
+                        />
+                        <InputField
+                            id="heroSubtitle"
+                            label="Subtítulo"
+                            value={settings.heroSubtitle}
+                            onChange={(id, value) => setSettings({ ...settings, [id]: value })}
+                        />
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl bg-black/70 backdrop-blur-md border-none shadow-md">
-                    <CardContent className="space-y-6 pt-6">
-                        <form onSubmit={handleSaveContacts}>
-                            <h2 className="text-2xl font-semibold border-b border-white pb-3 mb-6 text-white">Contatos e Redes</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <InputField
-                                    id="whatsapp"
-                                    label="WhatsApp (apenas números)"
-                                    value={settings.whatsapp}
-                                    onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
-                                />
-                                <InputField
-                                    id="email"
-                                    label="E-mail de Contato"
-                                    type="email"
-                                    value={settings.email}
-                                    onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                                />
-                                <InputField
-                                    id="instagram"
-                                    label="Link do Instagram"
-                                    value={settings.instagram}
-                                    onChange={(e) => setSettings({ ...settings, instagram: e.target.value })}
-                                />
-                                <InputField
-                                    id="location"
-                                    label="Localização (Rodapé)"
-                                    value={settings.location}
-                                    onChange={(e) => setSettings({ ...settings, location: e.target.value })}
-                                />
-                            </div>
-                            <div className="mt-6 flex justify-end">
-                                <Button type="submit" disabled={isSubmittingContacts} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition">
-                                    {isSubmittingContacts ? 'Salvando...' : 'Salvar Contatos e Redes'}
-                                </Button>
-                            </div>
-                        </form>
+                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
+                    <CardHeader>
+                        <h2 className="text-2xl font-semibold text-white">Contactos e Redes Sociais</h2>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            id="whatsapp"
+                            label="WhatsApp (apenas números com indicativo)"
+                            value={settings.whatsapp}
+                            onChange={(id, value) => setSettings({ ...settings, [id]: value })}
+                        />
+                        <InputField
+                            id="email"
+                            label="E-mail de Contacto"
+                            type="email"
+                            value={settings.email}
+                            onChange={(id, value) => setSettings({ ...settings, [id]: value })}
+                        />
+                        <InputField
+                            id="instagram"
+                            label="Link do Instagram"
+                            value={settings.instagram}
+                            onChange={(id, value) => setSettings({ ...settings, [id]: value })}
+                        />
+                        <InputField
+                            id="location"
+                            label="Localização (Rodapé)"
+                            value={settings.location}
+                            onChange={(id, value) => setSettings({ ...settings, [id]: value })}
+                        />
                     </CardContent>
                 </Card>
             </div>
-        </div>
+        </form>
     );
 };
 

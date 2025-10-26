@@ -49,6 +49,23 @@ export default async function handler(req, res) {
 
         // --- ROTA PROTEGIDA: EXCLUIR DEPOIMENTO (DELETE) ---
         if (req.method === 'DELETE') {
+            const { testimonialIds } = req.body;
+
+            // Lógica para excluir vários depoimentos
+            if (testimonialIds && Array.isArray(testimonialIds)) {
+                if (testimonialIds.length === 0) {
+                    return res.status(400).json({ error: 'O array de IDs está vazio.' });
+                }
+                const objectIds = testimonialIds.map(id => new ObjectId(id));
+                const result = await collection.deleteMany({ _id: { $in: objectIds } });
+
+                if (result.deletedCount === 0) {
+                    return res.status(404).json({ error: 'Nenhum depoimento encontrado para os IDs fornecidos.' });
+                }
+                return res.status(200).json({ message: `${result.deletedCount} depoimento(s) excluído(s) com sucesso.` });
+            }
+
+            // Lógica para excluir um único depoimento (mantida)
             const { id } = req.query;
             if (!id || !ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido.' });
 

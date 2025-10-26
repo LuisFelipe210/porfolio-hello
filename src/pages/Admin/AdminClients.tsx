@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy, Edit } from 'lucide-react';
+import { PlusCircle, Trash2, GalleryHorizontal, RefreshCw, Copy, Edit, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Interface atualizada para incluir a frase
@@ -16,6 +16,7 @@ interface Client {
     recoveryEmail?: string;
     password?: string;
     phrase?: string;
+    createdAt: string; // Adicionado para ordenação
 }
 
 const AdminClients = () => {
@@ -37,7 +38,7 @@ const AdminClients = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
+    const [sortOrder, setSortOrder] = useState<'a-z' | 'z-a'>('a-z');
 
     const fetchClients = async () => {
         setIsLoading(true);
@@ -99,10 +100,10 @@ const AdminClients = () => {
         toast({ title: 'Senha gerada', description: 'Senha aleatória gerada com sucesso.' });
     };
 
-    const copyToClipboard = (text: string) => {
+    const copyToClipboard = (text: string, label: string) => {
         if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
-            toast({ title: 'Copiado', description: `${text} copiado para a área de transferência.` });
+            toast({ title: 'Copiado!', description: `${label} copiado para a área de transferência.` });
         }).catch(() => {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível copiar.' });
         });
@@ -124,10 +125,13 @@ const AdminClients = () => {
                 : '/api/admin/portal?action=createClient';
             const method = isEditing ? 'PUT' : 'POST';
 
-            // Inclui a frase no corpo da requisição
             const body: any = { name, email, recoveryEmail: recoveryEmail || null, phrase: phrase || null };
-            if (!isEditing) {
+            if (!isEditing && password) {
                 body.password = password;
+            } else if (!isEditing && !password) {
+                toast({ variant: 'destructive', title: 'Erro', description: 'A senha é obrigatória para novos clientes.' });
+                setIsSubmitting(false);
+                return;
             }
 
             const response = await fetch(url, {
@@ -155,11 +159,7 @@ const AdminClients = () => {
         setIsDeleting(true);
         try {
             const token = localStorage.getItem('authToken');
-            const ids = Array.from(selectedClients).filter(id => id && id.length === 24);
-            if (ids.length === 0) {
-                toast({ variant: 'destructive', title: 'Erro', description: 'Nenhum cliente válido selecionado.' });
-                return;
-            }
+            const ids = Array.from(selectedClients);
 
             const response = await fetch(`/api/admin/portal?action=deleteClients`, {
                 method: 'DELETE',
@@ -168,7 +168,7 @@ const AdminClients = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao excluir os clientes.');
-            toast({ title: 'Sucesso', description: `${ids.length} clientes excluídos.` });
+            toast({ title: 'Sucesso', description: `${ids.length} cliente(s) excluído(s).` });
             setSelectedClients(new Set());
             fetchClients();
             setIsDeleteDialogOpen(false);
@@ -180,197 +180,108 @@ const AdminClients = () => {
     };
 
     const filteredClients = clients
-        .filter((client) => client.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        .sort((a, b) => sortOrder === 'recent' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+        .filter((client) => client.name.toLowerCase().includes(searchTerm.toLowerCase()) || client.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => {
+            if (sortOrder === 'a-z') {
+                return a.name.localeCompare(b.name);
+            }
+            return b.name.localeCompare(a.name);
+        });
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex justify-between items-center mb-6 shrink-0">
-                <h1 className="text-3xl font-bold text-white">Gerir Clientes</h1>
-                <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                    <DialogTrigger asChild>
+        <div className="flex flex-col h-full animate-fade-in">
+            {/* CABEÇALHO */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">Gerir Clientes</h1>
+                    <p className="text-white/80">Crie, edite e gira o acesso dos seus clientes.</p>
+                </div>
+                {/* BOTÕES DE AÇÃO NO CABEÇALHO */}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {selectedClients.size > 0 && (
                         <Button
-                            onClick={() => handleOpenDialog(null)}
-                            className="bg-black/70 rounded-xl text-white hover:bg-white/10 transition-all"
+                            type="button"
+                            disabled={isDeleting}
+                            onClick={() => setIsDeleteDialogOpen(true)}
+                            className="border border-red-500/80 hover:bg-red-500/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent w-full sm:w-auto"
                         >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Novo Cliente
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir ({selectedClients.size})
                         </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
-                        <DialogHeader>
-                            <DialogTitle className="text-xl font-semibold text-white">
-                                {currentClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <Label htmlFor="name" className="text-white mb-1 font-semibold">Nome do Cliente</Label>
-                                <Input
-                                    id="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    required
-                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white rounded-xl"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="email" className="text-white mb-1 font-semibold">Email de Login</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white rounded-xl"
-                                    />
-                                    {!currentClient && (
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            onClick={generateRandomEmail}
-                                            title="Gerar email aleatório"
-                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                        >
-                                            <RefreshCw className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        size="icon"
-                                        onClick={() => copyToClipboard(email)}
-                                        title="Copiar email"
-                                        className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                    >
-                                        <Copy className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                            <div>
-                                <Label htmlFor="recoveryEmail" className="text-white mb-1 font-semibold">Email de Recuperação (Opcional)</Label>
-                                <Input
-                                    id="recoveryEmail"
-                                    type="email"
-                                    placeholder="O e-mail real do cliente"
-                                    value={recoveryEmail}
-                                    onChange={(e) => setRecoveryEmail(e.target.value)}
-                                    className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white rounded-xl"
-                                />
-                                <p className="text-xs text-white/60 mt-1">Preencha para que o cliente possa recuperar a senha.</p>
-                            </div>
-                            {!currentClient && (
+                    )}
+                    <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
+                        <DialogTrigger asChild>
+                            <Button
+                                onClick={() => handleOpenDialog(null)}
+                                className="bg-orange-500 rounded-xl text-white hover:bg-orange-600 transition-all font-semibold w-full sm:w-auto"
+                            >
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Novo Cliente
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-semibold text-white">
+                                    {currentClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}
+                                </DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div><Label htmlFor="name" className="text-white mb-1 font-semibold">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
                                 <div>
-                                    <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha</Label>
+                                    <Label htmlFor="email" className="text-white mb-1 font-semibold">Email de Login</Label>
                                     <div className="flex items-center gap-2">
-                                        <Input
-                                            id="password"
-                                            type="text"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            required
-                                            className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white rounded-xl"
-                                        />
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            onClick={generateRandomPassword}
-                                            title="Gerar senha aleatória"
-                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                        >
-                                            <RefreshCw className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            onClick={() => copyToClipboard(password)}
-                                            title="Copiar senha"
-                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
+                                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                                        {!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>}
+                                        <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Bloco para o campo de frase (agora sempre editável) */}
-                            <div>
-                                <Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar senha temporária</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        id="phrase"
-                                        value={phrase}
-                                        onChange={(e) => setPhrase(e.target.value)}
-                                        className="bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white rounded-xl"
-                                    />
-                                    {/* Mostra o botão de cópia apenas no modo de edição */}
-                                    {currentClient && (
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            onClick={() => copyToClipboard(phrase)}
-                                            title="Copiar frase"
-                                            className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                        >
-                                            <Copy className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        className="rounded-xl"
-                                    >Cancelar</Button>
-                                </DialogClose>
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl transition-all text-white"
-                                >
-                                    {isSubmitting ? 'Salvando...' : 'Salvar'}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                                <div><Label htmlFor="recoveryEmail" className="text-white mb-1 font-semibold">Email de Recuperação (Opcional)</Label><Input id="recoveryEmail" type="email" placeholder="O e-mail real do cliente" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                                {!currentClient && (
+                                    <div>
+                                        <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>
+                                        <div className="flex items-center gap-2">
+                                            <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                                            <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
+                                            <Button type="button" size="icon" onClick={() => copyToClipboard(password, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                        </div>
+                                    </div>
+                                )}
+                                <div><Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar Senha (opcional)</Label><Input id="phrase" value={phrase} onChange={(e) => setPhrase(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                                <DialogFooter className="!mt-6">
+                                    <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
+                                    <Button type="submit" disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isSubmitting ? 'A guardar...' : 'Guardar'}</Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
+            {/* FILTROS E BUSCA */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
-                <Input
-                    placeholder="Buscar cliente..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-1/2 bg-black/80 border border-gray-500 text-white placeholder:text-white focus:border-gray-300 focus:ring-white rounded-xl"
-                />
-                <select
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
-                    className="border border-gray-500 rounded-xl bg-black/80 text-white px-3 py-2 text-sm focus:border-gray-300 focus:ring-white"
-                >
-                    <option value="recent">A-Z</option>
-                    <option value="oldest">Z-A</option>
+                <div className="relative w-full sm:w-1/2 md:w-1/3">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
+                    <Input placeholder="Buscar por nome ou email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
+                </div>
+                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'a-z' | 'z-a')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full sm:w-auto">
+                    <option value="a-z">Ordenar A-Z</option>
+                    <option value="z-a">Ordenar Z-A</option>
                 </select>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2">
+            {/* LISTA DE CLIENTES */}
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {isLoading ? (
-                        <>
-                            <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
-                            <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
-                            <Skeleton className="h-32 w-full bg-black/60 rounded-xl" />
-                        </>
+                        Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />)
                     ) : filteredClients.length > 0 ? (
                         filteredClients.map((client) => (
-                            <div key={client._id} className="motion-safe:animate-fade-in motion-safe:animate-slide-up relative">
-                                <div className="flex flex-col p-6 gap-4 bg-black/70 backdrop-blur-md rounded-3xl shadow-md transition-all duration-300 hover:bg-black/80 relative">
+                            <div key={client._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 flex flex-col p-6 gap-4 relative transition-all duration-300 hover:border-orange-500/50">
+                                <div className="absolute top-4 left-4">
                                     <input
                                         type="checkbox"
-                                        className="absolute top-4 left-4 w-5 h-5 accent-orange-500"
+                                        id={`client-check-${client._id}`}
+                                        className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded"
                                         checked={selectedClients.has(client._id)}
                                         onChange={(e) => {
                                             const newSet = new Set(selectedClients);
@@ -379,86 +290,56 @@ const AdminClients = () => {
                                             setSelectedClients(newSet);
                                         }}
                                     />
-                                    <div className="flex-1 flex flex-row items-center justify-between p-0 ml-6">
-                                        <div className="flex flex-col">
-                                            <h2 className="text-xl font-semibold text-white">{client.name}</h2>
-                                            <span className="text-white/80">{client.email}</span>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            title="Editar Cliente"
-                                            onClick={() => handleOpenDialog(client)}
-                                            className="text-white rounded-xl hover:bg-white/10 transition-all"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
+                                </div>
+                                <div className="flex-1 flex flex-col justify-center text-center items-center gap-1 pl-6">
+                                    <h2 className="text-xl font-semibold text-white truncate w-full" title={client.name}>{client.name}</h2>
+                                    <div className="flex items-center gap-2 text-white/80">
+                                        <span className="truncate" title={client.email}>{client.email}</span>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => copyToClipboard(client.email, "Email")}><Copy className="h-4 w-4" /></Button>
                                     </div>
-                                    <div className="p-0">
-                                        <div className="flex gap-2">
-                                            <Button
-                                                asChild
-                                                className="w-full bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                            >
-                                                <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                                                    <GalleryHorizontal className="mr-2 h-4 w-4" />
-                                                    Gerir Galerias
-                                                </Link>
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="icon"
-                                                title="Copiar email"
-                                                onClick={() => copyToClipboard(client.email)}
-                                                className="bg-black/70 rounded-xl hover:bg-white/10 transition-all text-white"
-                                            >
-                                                <Copy className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
+                                </div>
+                                <div className="flex gap-2 w-full">
+                                    <Button asChild className="w-full bg-white/10 rounded-xl hover:bg-white/20 transition-all text-white">
+                                        <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
+                                            <GalleryHorizontal className="mr-2 h-4 w-4" />
+                                            Galerias
+                                        </Link>
+                                    </Button>
+                                    <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20 aspect-square" onClick={() => handleOpenDialog(client)}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <p className="text-center text-white/60 pt-12 col-span-full">Nenhum cliente encontrado.</p>
+                        <div className="text-center text-white/60 pt-12 col-span-full">
+                            <p>Nenhum cliente encontrado.</p>
+                        </div>
                     )}
                 </div>
             </div>
 
-            <div className="flex justify-end mt-6">
-                <Button
-                    type="button"
-                    disabled={selectedClients.size === 0 || isDeleting}
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    className="border border-red-500 hover:bg-red-700/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent"
-                >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir Selecionados ({selectedClients.size})
-                </Button>
-            </div>
-
+            {/* DIÁLOGO DE EXCLUSÃO */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-0">
+                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-semibold text-white">Confirmar exclusão</DialogTitle>
+                        <DialogTitle className="text-xl font-semibold">Confirmar exclusão</DialogTitle>
                     </DialogHeader>
                     <p className="text-white/80">
-                        Tem certeza que deseja excluir {selectedClients.size > 1
+                        Tem a certeza que deseja excluir {selectedClients.size > 1
                         ? `${selectedClients.size} clientes selecionados`
-                        : `o cliente ${Array.from(selectedClients).length === 1 ? clients.find(c => c._id === Array.from(selectedClients)[0])?.name : ''}`}? Todas as suas galerias também serão removidas.
+                        : `o cliente selecionado`}? Todas as suas galerias também serão removidas permanentemente.
                     </p>
-                    <DialogFooter className="flex justify-end gap-2">
-                        <DialogClose asChild>
-                            <Button variant="secondary" className="rounded-xl">Cancelar</Button>
-                        </DialogClose>
+                    <DialogFooter className="flex justify-end gap-2 !mt-6">
+                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
                         <Button
                             type="button"
                             disabled={isDeleting}
                             onClick={handleDeleteClients}
-                            className="bg-transparent border-0 rounded-xl hover:bg-red-600/20 text-red-500 transition-all flex items-center"
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12"
                         >
-                            <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-                            {isDeleting ? 'Excluindo...' : 'Excluir'}
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {isDeleting ? 'A excluir...' : 'Excluir'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
