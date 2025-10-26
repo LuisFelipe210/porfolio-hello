@@ -118,9 +118,9 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
 
             {!isOpen && (
                 <div className="absolute bottom-2 left-2 transform-none bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-2 animate-pulse z-20">
-
+                    <FiArrowLeft className="text-white" />
                     <span>Deslize para ver a descrição</span>
-                    <FiArrowRight className="text-white" />
+
                 </div>
             )}
         </div>
