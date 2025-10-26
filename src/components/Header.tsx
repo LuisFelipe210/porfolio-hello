@@ -41,7 +41,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
 
     if (variant === "minimal") {
         return (
-            <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] transition-all duration-500 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl h-[70px]">
+            <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-[90%] transition-all duration-500 bg-white/50 dark:bg-zinc-900/20 backdrop-blur-2xl shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl h-[70px]">
                 <nav className="px-3 md:px-5 py-4 md:py-3 flex items-center justify-center">
                     <Link to="/" onClick={() => scrollToSection("home")} className="focus:outline-none">
                         <img src={Logo} alt="Logo da Hellô Borges" className="h-7 md:h-10 w-auto cursor-pointer" />
@@ -54,7 +54,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
     return (
         <>
             <header
-                className={`fixed top-4 left-0 right-0 mx-auto z-50 transition-all duration-500 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-md shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl h-[70px]
+                className={`fixed top-4 left-0 right-0 mx-auto z-50 transition-all duration-500 bg-white/50 dark:bg-zinc-900/20 backdrop-blur-md shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl h-[70px]
                     ${isLoginPage ? 'w-[20%]' : 'w-[88%] md:w-[55%] md:left-1/2 md:-translate-x-1/2'}`}
             >
                 <nav className="px-3 md:px-5 py-4 md:py-3 flex items-center justify-between">
