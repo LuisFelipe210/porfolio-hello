@@ -6,7 +6,20 @@ import { FaWhatsapp } from "react-icons/fa";
 import { Skeleton } from './ui/skeleton';
 
 const Footer = () => {
-    const [settings, setSettings] = useState({ whatsapp: '', email: '', instagram: '', location: '' });
+    // O estado continua a buscar todos os campos, incluindo os de horário
+    const [settings, setSettings] = useState({
+        whatsapp: '',
+        email: '',
+        instagram: '',
+        location: '',
+        horarioSeg: '', // Embora não seja exibido, é bom manter para consistência
+        horarioTer: '',
+        horarioQua: '',
+        horarioQui: '',
+        horarioSex: '', // Este será usado para "Segunda a Sexta"
+        horarioSab: '', // Este será usado para "Sábado"
+        horarioDom: '', // Este será usado para "Domingo"
+    });
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -15,7 +28,7 @@ const Footer = () => {
                 const response = await fetch('/api/settings');
                 const data = await response.json();
                 if (data) {
-                    setSettings(data);
+                    setSettings(prevSettings => ({ ...prevSettings, ...data }));
                 }
             } catch (error) {
                 console.error("Erro ao buscar configurações do rodapé:", error);
@@ -66,7 +79,6 @@ const Footer = () => {
                             <button onClick={() => scrollToSection("about")} className="block hover:text-accent transition-colors">Sobre</button>
                             <button onClick={() => scrollToSection("portfolio")} className="block hover:text-accent transition-colors">Portfolio</button>
                             <button onClick={() => scrollToSection("services")} className="block hover:text-accent transition-colors">Serviços</button>
-                            {/* LINHA ADICIONADA ABAIXO */}
                             <button onClick={() => scrollToSection("testimonials")} className="block hover:text-accent transition-colors">Clientes</button>
                             <Link to="/blog" className="block hover:text-accent transition-colors">Blog</Link>
                         </div>
@@ -89,7 +101,7 @@ const Footer = () => {
                                 </a>
                                 <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-accent transition-colors">
                                     <Instagram className="w-4 h-4 mr-2 text-accent" />
-                                    <span>@{settings.instagram.split('/').pop()}</span>
+                                    <span>@{settings.instagram.split('/').filter(Boolean).pop()}</span>
                                 </a>
                             </div>
                         )}
@@ -103,24 +115,31 @@ const Footer = () => {
                                 <div className="space-y-3"><Skeleton className="h-5 w-3/4 bg-white/10" /><Skeleton className="h-24 w-full bg-white/10" /></div>
                             ) : (
                                 <>
-                                    <div className="flex items-center">
-                                        <MapPin className="w-4 h-4 mr-2 text-accent" />
+                                    <div className="flex items-start">
+                                        <MapPin className="w-4 h-4 mr-2 text-accent flex-shrink-0 mt-1" />
                                         <span className="break-words">{settings.location}</span>
                                     </div>
+                                    {/* CORREÇÃO: Bloco de horário com estrutura fixa e dados dinâmicos */}
                                     <div className="elegant-border p-3 bg-primary/50">
                                         <div className="space-y-2 text-xs text-primary-foreground/80">
-                                            <div className="flex justify-between font-medium whitespace-nowrap">
-                                                <span>Segunda a Sexta</span>
-                                                <span>9h às 18h</span>
-                                            </div>
-                                            <div className="flex justify-between font-medium whitespace-nowrap">
-                                                <span>Sábados</span>
-                                                <span>9h às 14h</span>
-                                            </div>
-                                            <div className="flex justify-between font-medium">
-                                                <span>Domingos</span>
-                                                <span className="text-right ml-2">Mediante agendamento</span>
-                                            </div>
+                                            {settings.horarioSex && (
+                                                <div className="flex justify-between font-medium whitespace-nowrap">
+                                                    <span>Segunda a Sexta</span>
+                                                    <span>{settings.horarioSex}</span>
+                                                </div>
+                                            )}
+                                            {settings.horarioSab && (
+                                                <div className="flex justify-between font-medium whitespace-nowrap">
+                                                    <span>Sábados</span>
+                                                    <span>{settings.horarioSab}</span>
+                                                </div>
+                                            )}
+                                            {settings.horarioDom && (
+                                                <div className="flex justify-between font-medium">
+                                                    <span>Domingos</span>
+                                                    <span className="text-right ml-2">{settings.horarioDom}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </>
