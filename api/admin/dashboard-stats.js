@@ -1,69 +1,84 @@
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
 import jwt from 'jsonwebtoken';
 
+let cachedDb = null;
 async function connectToDatabase(uri) {
-    if (global.mongoClient) {
-        return global.mongoClient.db('helloborges_portfolio');
-    }
-    const client = new MongoClient(uri);
-    global.mongoClient = client;
-    await client.connect();
-    return client.db('helloborges_portfolio');
+    if (cachedDb) return cachedDb;
+    const client = await MongoClient.connect(uri);
+    const db = client.db('helloborges_portfolio');
+    cachedDb = db;
+    return db;
 }
 
 export default async function handler(req, res) {
     try {
+        if (req.method !== 'GET') {
+            res.setHeader('Allow', ['GET']);
+            return res.status(405).json({ error: `Método ${req.method} não permitido.` });
+        }
+
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) return res.status(401).json({ error: 'Acesso não autorizado.' });
-
-        // Decodifica o token para obter o nome do admin
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const adminUsername = decoded.username || 'Admin'; // Pega o 'username' do token
+        const adminUsername = decoded.username || 'Admin';
 
         const db = await connectToDatabase(process.env.MONGODB_URI);
 
-        if (req.method === 'GET') {
-            const clientCount = await db.collection('clients').countDocuments();
-            const portfolioCount = await db.collection('portfolioItems').countDocuments();
-            const postCount = await db.collection('posts').countDocuments();
-            const lastMessage = await db.collection('messages').find({ read: false }).sort({ createdAt: -1 }).limit(1).toArray();
-            const lastSelection = await db.collection('galleries').aggregate([
+        // ▼▼▼ CORREÇÃO APLICADA AQUI ▼▼▼
+        const [
+            clientCount,
+            portfolioCount,
+            postCount,
+            testimonialsCount, // 1. Adicionada a nova contagem
+            portfolioByCategory,
+            latestClients
+        ] = await Promise.all([
+            db.collection('clients').countDocuments(),
+            db.collection('portfolioItems').countDocuments(),
+            db.collection('posts').countDocuments(),
+            db.collection('testimonials').countDocuments(), // 2. Contagem dos testemunhos
+            db.collection('portfolioItems').aggregate([
+                { $group: { _id: "$category", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]).toArray(),
+            db.collection('clients').find({}).sort({ createdAt: -1 }).limit(3).toArray(),
+        ]);
+        // ▲▲▲ FIM DA CORREÇÃO ▲▲▲
+
+        const [pendingGalleries, unreadSelections] = await Promise.all([
+            db.collection('galleries').countDocuments({ status: 'selection_pending' }),
+            db.collection('galleries').countDocuments({ status: 'selection_complete', read: { $ne: true } })
+        ]);
+
+        const [lastMessage, lastSelection] = await Promise.all([
+            db.collection('messages').find({ read: false }).sort({ createdAt: -1 }).limit(1).toArray(),
+            db.collection('galleries').aggregate([
                 { $match: { status: 'selection_complete', read: { $ne: true } } },
                 { $sort: { selectionDate: -1 } }, { $limit: 1 },
                 { $lookup: { from: 'clients', localField: 'clientId', foreignField: '_id', as: 'clientInfo' } },
                 { $unwind: { path: '$clientInfo', preserveNullAndEmptyArrays: true } }
-            ]).toArray();
-            const portfolioByCategory = await db.collection('portfolioItems').aggregate([
-                { $group: { _id: "$category", count: { $sum: 1 } } },
-                { $sort: { _id: 1 } }
-            ]).toArray();
-            const latestClients = await db.collection('clients').find({}).sort({ _id: -1 }).limit(3).toArray();
+            ]).toArray()
+        ]);
 
-            // --- NOVO: ESTATÍSTICAS DE GALERIAS ---
-            const pendingGalleries = await db.collection('galleries').countDocuments({ status: 'selection_pending' });
-            const unreadSelections = await db.collection('galleries').countDocuments({ status: 'selection_complete', read: { $ne: true } });
-
-            return res.status(200).json({
-                admin: { name: adminUsername }, // Envia o nome do admin
-                stats: {
-                    clients: clientCount,
-                    portfolio: portfolioCount,
-                    posts: postCount,
-                    portfolioByCategory,
-                    galleryStatus: { // Adicionado
-                        pending: pendingGalleries,
-                        unread: unreadSelections,
-                    }
-                },
-                activity: {
-                    lastMessage: lastMessage[0] || null,
-                    lastSelection: lastSelection[0] || null,
-                    latestClients,
+        return res.status(200).json({
+            admin: { name: adminUsername },
+            stats: {
+                clients: clientCount,
+                portfolio: portfolioCount,
+                posts: postCount,
+                testimonials: testimonialsCount, // 3. Adicionado ao objeto de resposta
+                portfolioByCategory,
+                galleryStatus: {
+                    pending: pendingGalleries,
+                    unread: unreadSelections,
                 }
-            });
-        }
-
-        return res.status(405).json({ error: 'Método não permitido.' });
+            },
+            activity: {
+                lastMessage: lastMessage[0] || null,
+                lastSelection: lastSelection[0] || null,
+                latestClients,
+            }
+        });
 
     } catch (error) {
         console.error('API Error (/api/admin/dashboard-stats):', error);

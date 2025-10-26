@@ -18,11 +18,12 @@ export default async function handler(req, res) {
 
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const messagesCollection = db.collection('messages');
-        const galleriesCollection = db.collection('client_galleries'); // Nome da coleção corrigido para consistência
+        // --- CORREÇÃO: Usar o nome de coleção consistente 'galleries' ---
+        const galleriesCollection = db.collection('galleries');
         const { action, id, selectionId } = req.query;
 
-        // --- AÇÃO: BUSCAR TODO O CONTEÚDO DA CAIXA DE ENTRADA ---
-        if (req.method === 'GET') {
+        // --- CORREÇÃO: Adicionada verificação explícita para a ação ---
+        if (req.method === 'GET' && action === 'getGalleries') {
             const messages = await messagesCollection.find({}).sort({ createdAt: -1 }).toArray();
 
             const selections = await galleriesCollection.aggregate([
