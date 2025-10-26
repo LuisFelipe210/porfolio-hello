@@ -54,7 +54,7 @@ const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages,
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-white z-20 h-12 w-12 rounded-full hover:bg-white/10" onClick={onClose}><X className="h-7 w-7" /></Button>
                 {currentIndex > 0 && <Button variant="ghost" size="icon" className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 rounded-full hover:bg-white/10" onClick={() => onNavigate('prev')}><ChevronLeft className="h-10 w-10" /></Button>}
                 <div className="relative flex flex-col items-center justify-center gap-4 animate-zoom-in">
-                    <img src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1920")} alt="Foto do ensaio em tamanho grande" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl" onContextMenu={(e) => e.preventDefault()} />
+                    <img src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_720")} alt="Foto do ensaio em tamanho grande" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl" onContextMenu={(e) => e.preventDefault()} />
                     {!isSelectionComplete && (
                         <button onClick={() => toggleSelection(currentImage)} className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-white font-semibold transition-all duration-200 ${isSelected ? 'bg-orange-500 hover:bg-orange-600 scale-105' : 'bg-black/50 hover:bg-black/70'}`}>
                             {isSelected ? <CheckCircle className="h-5 w-5" /> : <Heart className="h-5 w-5" />}
@@ -129,7 +129,12 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                     const isSelected = selectedImages.has(imageUrl);
                     return (
                         <div key={imageUrl + index} className="aspect-square bg-black/70 rounded-2xl cursor-pointer group relative overflow-hidden border border-transparent hover:border-white/50" onClick={() => setModalImageIndex(index)}>
-                            <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400,c_fill,ar_1:1,g_auto")} alt="Foto do ensaio" className={`w-full h-full object-cover transition-all duration-300 ${isSelected ? 'scale-105 opacity-40' : 'group-hover:scale-105'}`} />
+                            <img
+                                src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_300,c_fill,ar_1:1,g_auto")}
+                                alt="Foto do ensaio"
+                                className={`w-full h-full object-cover transition-all duration-300 ${isSelected ? 'scale-105 opacity-40' : 'group-hover:scale-105'}`}
+                                loading="lazy"
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             {!isSelectionComplete && (
                                 <div onClick={(e) => toggleSelection(imageUrl, e)} className={`absolute top-2.5 right-2.5 h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${isSelected ? 'bg-orange-500 border-orange-500 scale-110' : 'bg-black/50 border-white/50 group-hover:border-white'}`}>
@@ -234,7 +239,7 @@ const ClientGalleryPage = () => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center text-white/60 pt-12"><p>Nenhuma galeria foi criada para si ainda.</p></div>
+                <div className="text-center text-white/60 pt-12"><p>Ainda não há galerias disponíveis para você.</p></div>
             )}
         </div>
     );
