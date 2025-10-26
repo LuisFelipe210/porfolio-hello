@@ -11,8 +11,6 @@ import FloatingContact from "./components/FloatingContact";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
 
-// --- 1. ALTERAR IMPORTS PARA USAR LAZY LOADING ---
-
 // Páginas Públicas
 const Index = lazy(() => import("./pages/Index"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
@@ -62,7 +60,7 @@ const App = () => {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <ThemeProvider defaultTheme="default" storageKey="vite-ui-theme" attribute="class">
+            <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class">
                 <TooltipProvider>
                     <Toaster />
                     {isLoading && window.location.pathname === '/' && <ShutterPreloader />}
