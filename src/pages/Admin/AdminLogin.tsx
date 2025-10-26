@@ -46,7 +46,7 @@ const AdminLogin = () => {
             });
 
             // Redireciona para a página de clientes após o login
-            navigate('/admin/clients');
+            navigate('/admin');
         } catch (error) {
             toast({
                 variant: 'destructive',
