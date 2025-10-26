@@ -17,6 +17,9 @@ const Index = lazy(() => import("./pages/Index"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// --- 1. IMPORTAR O NOVO DASHBOARD ---
+const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
 const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./pages/Admin/AdminLayout"));
 const AdminPortfolio = lazy(() => import("./pages/Admin/AdminPortfolio"));
@@ -28,6 +31,7 @@ const AdminMessages = lazy(() => import("./pages/Admin/AdminMessages"));
 const AdminBlog = lazy(() => import("./pages/Admin/AdminBlog"));
 const AdminClients = lazy(() => import("./pages/Admin/AdminClients"));
 const AdminClientGalleries = lazy(() => import("./pages/Admin/AdminClientGalleries"));
+
 const ClientLoginPage = lazy(() => import("./pages/Portal/ClientLoginPage"));
 const ClientLayout = lazy(() => import("./pages/Portal/ClientLayout"));
 const ClientGalleryPage = lazy(() => import("./pages/Portal/ClientGalleryPage"));
@@ -66,12 +70,10 @@ const App = () => {
                             <ScrollToTop />
                             <Suspense fallback={<PageLoader />}>
                                 <Routes>
-                                    {/* --- Rotas Públicas --- */}
                                     <Route path="/" element={<Index />} />
                                     <Route path="/blog" element={<BlogPage />} />
                                     <Route path="/blog/:slug" element={<BlogPostPage />} />
 
-                                    {/* --- Rotas do Portal do Cliente --- */}
                                     <Route path="/portal/login" element={<ClientLoginPage />} />
                                     <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
                                     <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
@@ -80,15 +82,15 @@ const App = () => {
                                         <Route path="reset-password" element={<ClientResetPasswordPage />} />
                                     </Route>
 
-                                    {/* --- Rotas do Painel de Administração --- */}
                                     <Route path="/admin/login" element={<AdminLogin />} />
 
-                                    {/* --- CORREÇÃO: Envolver a rota do AdminLayout com o Provider --- */}
                                     <Route path="/admin" element={
                                         <MessagesProvider>
                                             <AdminLayout />
                                         </MessagesProvider>
                                     }>
+                                        {/* --- 2. ADICIONAR A NOVA ROTA DO DASHBOARD --- */}
+                                        <Route index element={<AdminDashboard />} />
                                         <Route path="portfolio" element={<AdminPortfolio />} />
                                         <Route path="services" element={<AdminServices />} />
                                         <Route path="about" element={<AdminAbout />} />
@@ -100,7 +102,6 @@ const App = () => {
                                         <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
                                     </Route>
 
-                                    {/* --- Rota "Não Encontrado" --- */}
                                     <Route path="*" element={<NotFound />} />
                                 </Routes>
                             </Suspense>
