@@ -54,9 +54,12 @@ const AboutSection = () => {
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     {/* Coluna de Conteúdo */}
                     <div className="animate-fade-in">
-                        <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-foreground">
-                            Sobre Mim
-                        </h2>
+                        <div className="flex items-center gap-4 mb-6">
+                            <h2 className="text-4xl md:text-5xl font-semibold text-foreground">
+                                Sobre Mim
+                            </h2>
+                            <Camera className="w-10 h-10 md:w-12 md:h-12 text-accent rotate-12" />
+                        </div>
                         {isLoading || !content ? (
                             <div className="space-y-4">
                                 <Skeleton className="h-6 w-full" />

@@ -149,10 +149,10 @@ const ServicesSection = () => {
     const updateCarouselState = useCallback(() => {
         if (isDesktop || !carouselRef.current) return;
         const el = carouselRef.current;
-        const cardContainer = el.firstElementChild;
+        const cardContainer = el.children[0];
         if (!cardContainer) return;
 
-        const cardWidth = cardContainer.clientWidth;
+        const cardWidth = (cardContainer as HTMLElement).clientWidth;
         const gap = 16;
         const newActiveIndex = Math.round(el.scrollLeft / (cardWidth + gap));
         setActiveIndex(newActiveIndex);
@@ -173,7 +173,7 @@ const ServicesSection = () => {
     const scrollToIndex = (index: number) => {
         if (!carouselRef.current) return;
         const el = carouselRef.current;
-        const cardWidth = el.firstElementChild?.clientWidth || el.clientWidth;
+        const cardWidth = el.children[0]?.clientWidth || el.clientWidth;
         const gap = 16;
         el.scrollTo({ left: index * (cardWidth + gap), behavior: "smooth" });
     };
@@ -181,9 +181,11 @@ const ServicesSection = () => {
     return (
         <section id="services" className="py-16 md:py-24 bg-background">
             <div className="container mx-auto max-w-screen-2xl">
-                <div className="text-center mb-16 px-4">
-                    <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in">SERVIÇOS</h2>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
+                <div className="mb-16 px-4">
+                    <div className="flex justify-center">
+                        <h2 className="text-4xl md:text-5xl font-semibold animate-fade-in text-center">SERVIÇOS</h2>
+                    </div>
+                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in text-center mt-4">
                         Oferecendo diferentes tipos de sessões fotográficas, para capturar o que há de mais especial.
                     </p>
                 </div>
@@ -191,8 +193,9 @@ const ServicesSection = () => {
                 <div className="relative">
                     <div
                         ref={carouselRef}
-                        className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 gap-4
-                                   lg:grid lg:grid-cols-4 lg:gap-6 lg:p-0"
+                        style={{ scrollbarWidth: !isDesktop ? 'none' : undefined, msOverflowStyle: !isDesktop ? 'none' : undefined, WebkitOverflowScrolling: !isDesktop ? 'touch' : undefined }}
+                        className={`${!isDesktop ? "flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 gap-4" : "lg:grid lg:grid-cols-4 lg:gap-6 lg:p-0"}`}
+                        data-carousel-scroll={!isDesktop ? true : undefined}
                     >
                         {isLoading ? (
                             Array.from({ length: 4 }).map((_, idx) => (
@@ -217,12 +220,26 @@ const ServicesSection = () => {
                     {!isLoading && !isDesktop && services.length > 1 && (
                         <div className="flex justify-center space-x-2 mt-8 lg:hidden">
                             {services.map((_, idx) => (
-                                <button key={idx} className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? "bg-orange-500 w-6" : "bg-gray-400 w-2.5"}`} onClick={() => scrollToIndex(idx)} aria-label={`Ir para o serviço ${services[idx]?.title || ''}`} />
+                                <button
+                                    key={idx}
+                                    className={
+                                        `h-2.5 rounded-full transition-all duration-300 ` +
+                                        (idx === activeIndex
+                                            ? "bg-black dark:bg-white w-6"
+                                            : "bg-gray-400 w-2.5")
+                                    }
+                                    onClick={() => scrollToIndex(idx)}
+                                    aria-label={`Ir para o serviço ${services[idx]?.title || ''}`}
+                                />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+            <style>{`
+                [data-carousel-scroll]::-webkit-scrollbar { display: none; }
+                [data-carousel-scroll] { -webkit-overflow-scrolling: touch; scrollbar-width: none; ms-overflow-style: none; }
+            `}</style>
         </section>
     );
 };
