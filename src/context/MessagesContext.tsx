@@ -1,19 +1,17 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
 interface MessagesContextType {
     hasUnreadMessages: boolean;
     refreshMessages: () => Promise<void>;
 }
 
-const MessagesContext = createContext<MessagesContextType>({
-    hasUnreadMessages: false,
-    refreshMessages: async () => {},
-});
+// O valor padrão pode ser undefined para apanhar erros se o provider não for usado
+const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
 
 export const MessagesProvider = ({ children }: { children: ReactNode }) => {
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
-    const refreshMessages = async () => {
+    const refreshMessages = useCallback(async () => {
         try {
             const token = localStorage.getItem("authToken");
             if (!token) {
@@ -21,7 +19,8 @@ export const MessagesProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
 
-            const response = await fetch("/api/messages", {
+            // --- CORREÇÃO: Adicionado o parâmetro ?action=getGalleries ---
+            const response = await fetch("/api/messages?action=getGalleries", {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -31,26 +30,24 @@ export const MessagesProvider = ({ children }: { children: ReactNode }) => {
 
             const data = await response.json();
 
-            // Verifica se existe alguma mensagem de contato não lida
-            const unreadContactMessages = data.messages.some((msg: any) => !msg.read);
-            // Verifica se existe alguma seleção de cliente não lida
-            const unreadSelections = data.selections.some((sel: any) => !sel.read);
+            // A sua lógica aqui já estava perfeita!
+            const unreadContactMessages = data.messages?.some((msg: { read: boolean }) => !msg.read) || false;
+            const unreadSelections = data.selections?.some((sel: { read: boolean }) => !sel.read) || false;
 
-            // A notificação será ativada se qualquer uma das condições for verdadeira
             setHasUnreadMessages(unreadContactMessages || unreadSelections);
 
         } catch (error) {
             console.error("Erro ao checar notificações:", error);
-            setHasUnreadMessages(false); // Garante que o estado seja falso em caso de erro
+            setHasUnreadMessages(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem("authToken");
         if (token) {
             refreshMessages();
         }
-    }, []);
+    }, [refreshMessages]);
 
     return (
         <MessagesContext.Provider value={{ hasUnreadMessages, refreshMessages }}>
@@ -59,4 +56,10 @@ export const MessagesProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-export const useMessages = () => useContext(MessagesContext);
+export const useMessages = () => {
+    const context = useContext(MessagesContext);
+    if (context === undefined) {
+        throw new Error("useMessages deve ser usado dentro de um MessagesProvider");
+    }
+    return context;
+};

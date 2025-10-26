@@ -24,8 +24,7 @@ const AdminLayout = () => {
     const location = useLocation();
     const isMobile = useIsMobile();
     const [isSheetOpen, setSheetOpen] = useState(false);
-    // Inicia a sidebar fechada por padrão em telas maiores para um visual mais limpo
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const { hasUnreadMessages } = useMessages();
 
@@ -34,16 +33,11 @@ const AdminLayout = () => {
         if (!token) navigate('/admin/login');
     }, [navigate]);
 
-    // Força o tema escuro
     useEffect(() => {
-        const html = document.documentElement;
-        if (!html.classList.contains('dark')) {
-            html.classList.add('dark');
-        }
+        document.documentElement.classList.add('dark');
         localStorage.setItem('theme', 'dark');
     }, []);
 
-    // Redireciona da raiz do admin para a página de clientes
     useEffect(() => {
         if (location.pathname === '/admin' || location.pathname === '/admin/') {
             navigate('/admin/clients', { replace: true });
@@ -56,7 +50,6 @@ const AdminLayout = () => {
     };
 
     const isLinkActive = (path: string) => {
-        // Faz a verificação exata para a página de clientes
         if (path === '/admin/clients') {
             return location.pathname === path || location.pathname.startsWith('/admin/clients/');
         }
@@ -67,22 +60,17 @@ const AdminLayout = () => {
     const NavLinks = ({ className }: { className?: string }) => (
         <nav className={`flex flex-col gap-2 p-4 ${className}`}>
             <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <Users className="mr-3 h-5 w-5" />
-                    Clientes
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}>
+                    <Users className="mr-3 h-5 w-5" /> Clientes
                 </Button>
             </Link>
 
+            {/* --- CORREÇÃO APLICADA AQUI --- */}
             <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200 relative`}
-                >
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200 relative`}>
                     <Inbox className="mr-3 h-5 w-5" />
                     Mensagens
+                    {/* A mesma bolinha que pisca, adicionada aqui */}
                     {hasUnreadMessages && (
                         <span
                             className="absolute top-1/2 right-4 -translate-y-1/2 h-2.5 w-2.5 bg-orange-500 rounded-full animate-pulse"
@@ -93,72 +81,47 @@ const AdminLayout = () => {
             </Link>
 
             <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <ImageIcon className="mr-3 h-5 w-5" />
-                    Portfólio
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}>
+                    <ImageIcon className="mr-3 h-5 w-5" /> Portfólio
                 </Button>
             </Link>
 
             <Link to="/admin/services" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <LayoutDashboard className="mr-3 h-5 w-5" />
-                    Serviços
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}>
+                    <LayoutDashboard className="mr-3 h-5 w-5" /> Serviços
                 </Button>
             </Link>
 
             <Link to="/admin/about" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <User className="mr-3 h-5 w-5" />
-                    Sobre Mim
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}>
+                    <User className="mr-3 h-5 w-5" /> Sobre Mim
                 </Button>
             </Link>
 
             <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <MessageSquareQuote className="mr-3 h-5 w-5" />
-                    Depoimentos
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}>
+                    <MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos
                 </Button>
             </Link>
 
             <Link to="/admin/blog" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <Rss className="mr-3 h-5 w-5" />
-                    Blog
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}>
+                    <Rss className="mr-3 h-5 w-5" /> Blog
                 </Button>
             </Link>
 
             <Link to="/admin/settings" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}
-                >
-                    <Settings className="mr-3 h-5 w-5" />
-                    Configurações
+                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 transition-colors duration-200`}>
+                    <Settings className="mr-3 h-5 w-5" /> Configurações
                 </Button>
             </Link>
         </nav>
     );
 
-    const sidebarWidth = '280px'; // Aumentei a largura para mais conforto
+    const sidebarWidth = '280px';
 
     return (
         <div className="flex h-screen overflow-hidden bg-black text-white">
-            {/* Background Image e Overlay */}
             <div className="fixed inset-0 z-0">
                 <img
                     src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")}
@@ -168,10 +131,9 @@ const AdminLayout = () => {
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             </div>
 
-            {/* Sidebar para Desktop */}
             {!isMobile && (
                 <aside
-                    className="h-full bg-black/50 backdrop-blur-lg border-r border-white/10 p-4 flex flex-col relative z-20 transition-all duration-300 ease-in-out"
+                    className="h-full bg-black/50 backdrop-blur-lg border-r border-white/10 flex flex-col relative z-20 transition-all duration-300 ease-in-out"
                     style={{
                         width: isSidebarOpen ? sidebarWidth : '0',
                         minWidth: isSidebarOpen ? sidebarWidth : '0',
@@ -186,22 +148,15 @@ const AdminLayout = () => {
                     </div>
                     <NavLinks className="flex-1" />
                     <div className="mt-auto p-4 border-t border-white/10">
-                        <Button
-                            variant="outline"
-                            className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base"
-                            onClick={handleLogout}
-                        >
-                            <LogOut className="mr-3 h-5 w-5" />
-                            Sair
+                        <Button variant="outline" className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base" onClick={handleLogout}>
+                            <LogOut className="mr-3 h-5 w-5" /> Sair
                         </Button>
                     </div>
                 </aside>
             )}
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header para todas as telas */}
-                <header className="relative z-30 flex h-24 items-center justify-between px-4 sm:px-6 md:px-8
-                    bg-black/30 backdrop-blur-md border-b border-white/10">
+                <header className="relative z-30 flex h-24 items-center justify-between px-4 sm:px-6 md:px-8 bg-black/30 backdrop-blur-md border-b border-white/10">
                     <div className="flex items-center gap-4">
                         {isMobile ? (
                             <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
@@ -220,13 +175,8 @@ const AdminLayout = () => {
                                     </div>
                                     <NavLinks className="flex-1" />
                                     <div className="mt-auto p-4 border-t border-white/10">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base"
-                                            onClick={handleLogout}
-                                        >
-                                            <LogOut className="mr-3 h-5 w-5" />
-                                            Sair
+                                        <Button variant="outline" className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base" onClick={handleLogout}>
+                                            <LogOut className="mr-3 h-5 w-5" /> Sair
                                         </Button>
                                     </div>
                                 </SheetContent>
@@ -239,12 +189,10 @@ const AdminLayout = () => {
                         {!isMobile && <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />}
                     </div>
                     {isMobile && <img src={Logo} alt="Hellô Borges" className="h-8 w-auto absolute left-1/2 -translate-x-1/2" />}
-                    {isMobile && <div className="w-10"></div> /* Espaçador para centralizar o logo */}
+                    <div className="w-10"></div>
                 </header>
 
-                {/* Área de conteúdo principal */}
                 <main className="relative z-10 flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-                    {/* O Outlet renderiza a rota filha (ex: AdminClients, AdminPortfolio) */}
                     <Outlet />
                 </main>
             </div>

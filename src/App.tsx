@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { MessagesProvider } from "./context/MessagesContext";
 
 // Componentes Globais e Utilitários
 import ShutterPreloader from "./components/ShutterPreloader";
@@ -11,13 +12,11 @@ import FloatingContact from "./components/FloatingContact";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
 
-// Páginas Públicas
+// Páginas com Lazy Loading
 const Index = lazy(() => import("./pages/Index"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-
-// Páginas do Painel de Administração
 const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./pages/Admin/AdminLayout"));
 const AdminPortfolio = lazy(() => import("./pages/Admin/AdminPortfolio"));
@@ -29,8 +28,6 @@ const AdminMessages = lazy(() => import("./pages/Admin/AdminMessages"));
 const AdminBlog = lazy(() => import("./pages/Admin/AdminBlog"));
 const AdminClients = lazy(() => import("./pages/Admin/AdminClients"));
 const AdminClientGalleries = lazy(() => import("./pages/Admin/AdminClientGalleries"));
-
-// Páginas do Portal do Cliente
 const ClientLoginPage = lazy(() => import("./pages/Portal/ClientLoginPage"));
 const ClientLayout = lazy(() => import("./pages/Portal/ClientLayout"));
 const ClientGalleryPage = lazy(() => import("./pages/Portal/ClientGalleryPage"));
@@ -40,7 +37,6 @@ const ResetPasswordWithTokenPage = lazy(() => import("./pages/Portal/ResetPasswo
 
 const queryClient = new QueryClient();
 
-// --- 2. CRIAR UM COMPONENTE DE LOADING PARA O SUSPENSE ---
 const PageLoader = () => (
     <div className="flex h-screen w-full items-center justify-center bg-black">
         <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
@@ -60,7 +56,7 @@ const App = () => {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class">
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
                 <TooltipProvider>
                     <Toaster />
                     {isLoading && window.location.pathname === '/' && <ShutterPreloader />}
@@ -68,7 +64,6 @@ const App = () => {
                     <div className="site-content">
                         <BrowserRouter>
                             <ScrollToTop />
-                            {/* --- 3. ENVOLVER CADA ROTA COM SUSPENSE --- */}
                             <Suspense fallback={<PageLoader />}>
                                 <Routes>
                                     {/* --- Rotas Públicas --- */}
@@ -87,7 +82,13 @@ const App = () => {
 
                                     {/* --- Rotas do Painel de Administração --- */}
                                     <Route path="/admin/login" element={<AdminLogin />} />
-                                    <Route path="/admin" element={<AdminLayout />}>
+
+                                    {/* --- CORREÇÃO: Envolver a rota do AdminLayout com o Provider --- */}
+                                    <Route path="/admin" element={
+                                        <MessagesProvider>
+                                            <AdminLayout />
+                                        </MessagesProvider>
+                                    }>
                                         <Route path="portfolio" element={<AdminPortfolio />} />
                                         <Route path="services" element={<AdminServices />} />
                                         <Route path="about" element={<AdminAbout />} />
