@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
 import { optimizeCloudinaryUrl } from '@/lib/utils';
-import Header from '@/components/Header'; // Importando o Header
+import Header from '@/components/Header';
 
 const ClientLoginPage = () => {
     const [email, setEmail] = useState('');
@@ -16,10 +16,7 @@ const ClientLoginPage = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    // Força o tema escuro na página de login
-    useEffect(() => {
-        document.documentElement.classList.add('dark');
-    }, []);
+    // O useEffect que forçava o tema escuro foi removido para permitir a troca de tema.
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,7 +37,6 @@ const ClientLoginPage = () => {
             toast({
                 title: 'Login bem-sucedido!',
                 description: 'A redirecionar para o seu portal...',
-                className: 'bg-black/80 text-white border-green-500',
             });
 
             if (mustResetPassword) {
@@ -56,12 +52,12 @@ const ClientLoginPage = () => {
     };
 
     return (
-        <div className="relative flex items-center justify-center min-h-screen bg-black text-white p-4">
+        // --- CORREÇÃO: A div principal agora usa bg-background para o tema ---
+        <div className="relative flex items-center justify-center min-h-screen bg-background text-foreground p-4">
 
-            {/* Header incluído aqui */}
             <Header isLoginPage={true} />
 
-            {/* Background Image e Overlay */}
+            {/* --- CORREÇÃO: A IMAGEM DE FUNDO FOI ADICIONADA NOVAMENTE --- */}
             <div className="absolute inset-0 z-0">
                 <img
                     src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")}
@@ -71,19 +67,18 @@ const ClientLoginPage = () => {
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
             </div>
 
-            {/* Formulário de Login */}
-            <Card className="w-full max-w-sm z-10 animate-fade-in-up bg-black/50 backdrop-blur-lg border border-white/10 text-white rounded-3xl">
+            <Card className="w-full max-w-sm z-10 animate-fade-in-up bg-card/50 backdrop-blur-lg border rounded-3xl">
                 <CardHeader className="text-center">
                     <img src={Logo} alt="Hellô Borges Logo" className="h-16 w-auto mx-auto mb-4" />
                     <CardTitle className="text-2xl font-bold">Portal do Cliente</CardTitle>
-                    <CardDescription className="text-white/80">
+                    <CardDescription className="text-black dark:text-white">
                         Aceda à sua galeria privada para selecionar as suas fotos.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email" className="text-black dark:text-white">Email</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -91,11 +86,11 @@ const ClientLoginPage = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 placeholder="O seu email de acesso"
-                                className="bg-black/70 border-white/20 rounded-xl h-12"
+                                className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Palavra-passe</Label>
+                            <Label htmlFor="password" className="text-black dark:text-white">Palavra-passe</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -103,8 +98,13 @@ const ClientLoginPage = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 placeholder="••••••••"
-                                className="bg-black/70 border-white/20 rounded-xl h-12"
+                                className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
                             />
+                            <div className="text-right -mt-1">
+                                <Link to="/portal/forgot-password" className="text-sm text-gray-900 dark:text-muted-foreground hover:text-foreground hover:underline transition-colors px-1">
+                                    Esqueceu-se da senha?
+                                </Link>
+                            </div>
                         </div>
                     </CardContent>
                     <CardFooter>
