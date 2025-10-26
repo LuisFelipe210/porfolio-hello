@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Camera, Heart, Users } from "lucide-react";
+import { FaHeartbeat } from "react-icons/fa";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 
@@ -19,11 +20,6 @@ const AboutSection = () => {
     const [content, setContent] = useState<AboutContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Efeitos para animação do scroll (mantidos do seu código original)
-    const [animate, setAnimate] = useState(false);
-    const [keyCol1, setKeyCol1] = useState(0);
-    const [keyCol2, setKeyCol2] = useState(0);
-
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -39,27 +35,27 @@ const AboutSection = () => {
             }
         };
         fetchContent();
-
-        const timer = setTimeout(() => {
-            setAnimate(true);
-            setKeyCol1((prev) => prev + 1);
-            setKeyCol2((prev) => prev + 1);
-        }, 50);
-        return () => clearTimeout(timer);
     }, []);
 
+    const allImages = content ? [...content.imagesColumn1, ...content.imagesColumn2] : [];
+
     return (
-        <section id="about" className="section-padding bg-background">
+        <section id="about" className="section-padding bg-background text-foreground">
             <div className="container mx-auto max-w-6xl">
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    {/* Coluna de Conteúdo */}
-                    <div className="animate-fade-in">
-                        <div className="flex items-center gap-4 mb-6">
-                            <h2 className="text-4xl md:text-5xl font-semibold text-foreground">
+                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+                    <div className="order-1 animate-fade-in">
+                        {/* --- CORREÇÃO: Combinação dos dois ícones --- */}
+                        <div className="flex flex-wrap items-center gap-4 mb-6">
+                            <h2 className="text-4xl md:text-5xl font-bold text-foreground">
                                 Sobre Mim
                             </h2>
-                            <Camera className="w-10 h-10 md:w-12 md:h-12 text-accent rotate-12" />
+                            <div className="flex items-center gap-3">
+                                <FaHeartbeat className="w-9 h-8 md:w-10 md:h-10 text-accent" />
+                                <Camera className="w-9 h-8 md:w-10 md:h-10 text-accent" />
+                            </div>
                         </div>
+
                         {isLoading || !content ? (
                             <div className="space-y-4">
                                 <Skeleton className="h-6 w-full" />
@@ -68,59 +64,46 @@ const AboutSection = () => {
                                 <Skeleton className="h-6 w-1/2" />
                             </div>
                         ) : (
-                            <>
-                                <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                                    {content.paragraph1}
-                                </p>
-                                <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                                    {content.paragraph2}
-                                </p>
-                            </>
+                            <div className="prose prose-lg dark:prose-invert max-w-none">
+                                <p className="text-muted-foreground">{content.paragraph1}</p>
+                                <p className="text-muted-foreground">{content.paragraph2}</p>
+                            </div>
                         )}
 
-                        <div className="flex justify-center gap-8 mt-8">
-                            <div className="text-center">
-                                <div className="flex justify-center mb-2"><Camera className="w-6 h-6 text-accent" /></div>
-                                <div className="text-2xl font-medium text-foreground">100+</div>
-                                <div className="text-sm text-muted-foreground">Sessões</div>
+                        <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-10 pt-8 border-t border-border">
+                            <div className="text-center p-2 sm:p-4 bg-card rounded-2xl border">
+                                <Camera className="w-7 h-7 md:w-8 md:h-8 text-orange-400 mx-auto mb-2" />
+                                <div className="text-xl md:text-2xl font-bold text-foreground">100+</div>
+                                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground">Sessões</div>
                             </div>
-                            <div className="text-center">
-                                <div className="flex justify-center mb-2"><Heart className="w-6 h-6 text-accent" /></div>
-                                <div className="text-2xl font-medium text-foreground">40+</div>
-                                <div className="text-sm text-muted-foreground">Casamentos</div>
+                            <div className="text-center p-2 sm:p-4 bg-card rounded-2xl border">
+                                <Heart className="w-7 h-7 md:w-8 md:h-8 text-orange-400 mx-auto mb-2" />
+                                <div className="text-xl md:text-2xl font-bold text-foreground">40+</div>
+                                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground">Casamentos</div>
                             </div>
-                            <div className="text-center">
-                                <div className="flex justify-center mb-2"><Users className="w-6 h-6 text-accent" /></div>
-                                <div className="text-2xl font-medium text-foreground">20+</div>
-                                <div className="text-sm text-muted-foreground">Famílias</div>
+                            <div className="text-center p-2 sm:p-4 bg-card rounded-2xl border">
+                                <Users className="w-7 h-7 md:w-8 md:h-8 text-orange-400 mx-auto mb-2" />
+                                <div className="text-xl md:text-2xl font-bold text-foreground">20+</div>
+                                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground">Famílias</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Coluna de Imagens */}
-                    <div className="flex gap-4">
+                    <div className="order-2 animate-fade-in">
                         {isLoading || !content ? (
-                            <>
-                                <Skeleton className="w-1/2 h-[600px]" />
-                                <Skeleton className="w-1/2 h-[600px]" />
-                            </>
+                            <Skeleton className="h-[500px] w-full rounded-3xl" />
                         ) : (
-                            <>
-                                <div className="w-1/2 h-[300px] md:h-[600px] overflow-hidden">
-                                    <div key={keyCol1} className={`flex flex-col space-y-4 ${animate ? "animate-teleportScroll" : ""}`}>
-                                        {[...content.imagesColumn1, ...content.imagesColumn1].map((img, index) => (
-                                            <div key={index} className="overflow-hidden rounded-lg"><img src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_400")} alt={img.alt} className="w-full h-full object-cover" /></div>
-                                        ))}
+                            <div className="grid grid-cols-2 gap-4">
+                                {allImages.slice(0, 4).map((img, index) => (
+                                    <div key={index} className="overflow-hidden rounded-2xl shadow-lg aspect-[3/4]">
+                                        <img
+                                            src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_400")}
+                                            alt={img.alt}
+                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                        />
                                     </div>
-                                </div>
-                                <div className="w-1/2 h-[300px] md:h-[600px] overflow-hidden">
-                                    <div key={keyCol2} className={`flex flex-col space-y-4 ${animate ? "animate-teleportScroll" : ""}`}>
-                                        {[...content.imagesColumn2, ...content.imagesColumn2].map((img, index) => (
-                                            <div key={index} className="overflow-hidden rounded-lg"><img src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_400")} alt={img.alt} className="w-full h-full object-cover" /></div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </>
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>
