@@ -39,8 +39,6 @@ const AdminLayout = () => {
         localStorage.setItem('theme', 'dark');
     }, []);
 
-    // --- CORREÇÃO: O REDIRECIONAMENTO PROBLEMÁTICO FOI REMOVIDO DAQUI ---
-
     const handleLogout = () => {
         localStorage.removeItem('authToken');
         navigate('/admin/login');
@@ -89,7 +87,6 @@ const AdminLayout = () => {
                 <header className="relative z-30 flex h-24 items-center justify-between px-4 sm:px-6 md:px-8 bg-black/30 backdrop-blur-md border-b border-white/10">
                     <div className="flex items-center gap-4">
                         {isMobile ? (<Sheet open={isSheetOpen} onOpenChange={setSheetOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10"><Menu className="h-6 w-6" />{hasUnreadMessages && (<span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-orange-500 animate-pulse" />)}</Button></SheetTrigger>
-                            {/* --- CORREÇÃO: ADICIONADO SCROLL AO CONTEÚDO DO MENU MOBILE --- */}
                             <SheetContent side="left" className="flex flex-col p-0 bg-black/80 backdrop-blur-lg border-r border-white/10">
                                 <div className="flex items-center gap-3 p-4 border-b border-white/10 shrink-0"><img src={Logo} alt="Hellô Borges" className="h-10 w-auto" /><span className="text-xl font-semibold text-white">Painel</span></div>
                                 <div className="flex-1 overflow-y-auto">
