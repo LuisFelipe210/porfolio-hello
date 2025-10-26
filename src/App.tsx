@@ -62,7 +62,7 @@ const App = () => {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
+            <ThemeProvider defaultTheme="default" storageKey="vite-ui-theme" attribute="class">
                 <TooltipProvider>
                     <Toaster />
                     {isLoading && window.location.pathname === '/' && <ShutterPreloader />}
