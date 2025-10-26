@@ -129,7 +129,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                     const isSelected = selectedImages.has(imageUrl);
                     return (
                         <div key={imageUrl + index} className="aspect-square bg-black/70 rounded-2xl cursor-pointer group relative overflow-hidden border border-transparent hover:border-white/50" onClick={() => setModalImageIndex(index)}>
-                            <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400,c_fill,ar_1:1,g_auto")} alt="Foto do ensaio" className={`w-full h-full object-cover transition-all duration-300 ${isSelected ? 'scale-105 opacity-60' : 'group-hover:scale-105'}`} />
+                            <img src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400,c_fill,ar_1:1,g_auto")} alt="Foto do ensaio" className={`w-full h-full object-cover transition-all duration-300 ${isSelected ? 'scale-105 opacity-40' : 'group-hover:scale-105'}`} />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             {!isSelectionComplete && (
                                 <div onClick={(e) => toggleSelection(imageUrl, e)} className={`absolute top-2.5 right-2.5 h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${isSelected ? 'bg-orange-500 border-orange-500 scale-110' : 'bg-black/50 border-white/50 group-hover:border-white'}`}>
