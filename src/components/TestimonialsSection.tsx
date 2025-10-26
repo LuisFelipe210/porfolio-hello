@@ -101,7 +101,7 @@ const TestimonialsSection = () => {
                                                 text={testimonial.text}
                                                 author={testimonial.author}
                                                 source={testimonial.source}
-                                                imageUrl={optimizeCloudinaryUrl(testimonial.imageUrl, "f_auto,q_auto,w_800")}
+                                                imageUrl={optimizeCloudinaryUrl(testimonial.imageUrl, "f_auto,q_auto,w_500")}
                                                 rotation={cardRotations[index % cardRotations.length]}
                                             />
                                         </div>
