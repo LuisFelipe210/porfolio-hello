@@ -18,33 +18,41 @@ interface PortfolioItem {
 const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenModal: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const startX = useRef<number>(0);
+    const startY = useRef<number>(0);
     const isSwiping = useRef<boolean>(false);
     const cardRef = useRef<HTMLDivElement>(null);
 
     const handleTouchStart = (e: React.TouchEvent) => {
-        const target = e.target as Element;
         startX.current = e.touches[0].clientX;
+        startY.current = e.touches[0].clientY;
         isSwiping.current = false;
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
         if (startX.current === 0) return;
         const currentX = e.touches[0].clientX;
-        const diff = Math.abs(startX.current - currentX);
-        if (diff > 10) {
+        const currentY = e.touches[0].clientY;
+        const diffX = Math.abs(startX.current - currentX);
+        const diffY = Math.abs(startY.current - currentY);
+
+        // Só considera swipe se movimento horizontal for maior que vertical
+        if (diffX > 20 && diffX > diffY) {
             isSwiping.current = true;
+            e.preventDefault(); // Previne scroll durante swipe horizontal
         }
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
         const endX = e.changedTouches[0].clientX;
-        const diff = startX.current - endX;
-        const absDiff = Math.abs(diff);
-        const tapThreshold = 15;
-        const swipeThreshold = 80;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = startX.current - endX;
+        const diffY = Math.abs(startY.current - endY);
+        const absDiffX = Math.abs(diffX);
+        const tapThreshold = 25; // Aumentado para evitar toques acidentais
+        const swipeThreshold = 100; // Aumentado para swipe mais intencional
 
-        // Não considerar tap se swipe detectado ou movimento horizontal maior que 15px
-        if (!isSwiping.current && absDiff < tapThreshold) {
+        // É um tap se: não está fazendo swipe E movimento é mínimo
+        if (!isSwiping.current && absDiffX < tapThreshold && diffY < tapThreshold) {
             e.preventDefault();
             if (!isOpen) {
                 onOpenModal();
@@ -52,19 +60,21 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
                 setIsOpen(false);
             }
             startX.current = 0;
+            startY.current = 0;
             return;
         }
-        // Se for swipe (movimento horizontal > 15px), não acionar clique
-        if (isSwiping.current || absDiff > tapThreshold) {
-            if (absDiff > swipeThreshold) {
-                if (diff > 0 && !isOpen) {
-                    setIsOpen(true);
-                } else if (diff < 0 && isOpen) {
-                    setIsOpen(false);
-                }
+
+        // É um swipe se: swipe detectado E movimento horizontal > vertical E passa do threshold
+        if (isSwiping.current && absDiffX > swipeThreshold && absDiffX > diffY) {
+            if (diffX > 0 && !isOpen) {
+                setIsOpen(true);
+            } else if (diffX < 0 && isOpen) {
+                setIsOpen(false);
             }
         }
+
         startX.current = 0;
+        startY.current = 0;
         isSwiping.current = false;
     };
 
@@ -79,8 +89,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
-            {/* Botão de compartilhamento REMOVIDO */}
-
             <img
                 src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")}
                 alt={item.title}
@@ -111,7 +119,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
                 <div className="absolute bottom-2 left-2 transform-none bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-2 animate-pulse z-20">
                     <FiArrowLeft className="text-white" />
                     <span>Deslize para ver a descrição</span>
-
                 </div>
             )}
         </div>
@@ -269,8 +276,11 @@ const PortfolioSection = () => {
         if (touchStartX.current === null || touchStartY.current === null) return;
         const diffX = Math.abs(e.touches[0].clientX - touchStartX.current);
         const diffY = Math.abs(e.touches[0].clientY - touchStartY.current);
-        if (diffX > 15 && diffX > diffY) {
+
+        // Só considera swipe se movimento horizontal for significativo e maior que vertical
+        if (diffX > 30 && diffX > diffY * 1.5) {
             isLightboxSwiping.current = true;
+            e.preventDefault(); // Previne scroll
         }
     };
 
@@ -281,7 +291,8 @@ const PortfolioSection = () => {
         const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
         const absDiffX = Math.abs(diffX);
 
-        if (isLightboxSwiping.current && absDiffX > 70 && absDiffX > diffY) {
+        // Só navega se for realmente um swipe intencional
+        if (isLightboxSwiping.current && absDiffX > 100 && absDiffX > diffY * 1.5) {
             if (diffX > 0 && selectedIndex !== null && selectedIndex > 0) {
                 setSelectedIndex(selectedIndex - 1);
             } else if (diffX < 0 && selectedIndex !== null && selectedIndex < filteredItems.length - 1) {
@@ -441,29 +452,58 @@ const PortfolioSection = () => {
 
                 {/* LIGHTBOX / MODAL DE VISUALIZAÇÃO */}
                 {selectedIndex !== null && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedIndex(null)}>
-                        <div className="relative w-full max-w-4xl h-full md:h-auto bg-transparent" onClick={(e) => e.stopPropagation()}>
-                            <button onClick={() => setSelectedIndex(null)} className="absolute top-2 right-2 text-white text-3xl z-10 hover:text-accent transition-colors" aria-label="Fechar visualização">×</button>
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 cursor-pointer"
+                        onClick={() => setSelectedIndex(null)}
+                        onTouchMove={(e) => {
+                            // Previne scroll do body quando lightbox está aberto
+                            if (isLightboxSwiping.current) {
+                                e.preventDefault();
+                            }
+                        }}
+                    >
+                        <div className="relative w-full max-w-4xl h-full md:h-auto bg-transparent">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setSelectedIndex(null); }}
+                                className="absolute top-2 right-2 text-white text-3xl z-10 hover:text-accent transition-colors"
+                                aria-label="Fechar visualização"
+                            >×</button>
                             <div className="flex items-center justify-between h-full">
                                 <button
-                                    onClick={() => selectedIndex !== null && setSelectedIndex(selectedIndex > 0 ? selectedIndex - 1 : 0)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedIndex !== null && selectedIndex > 0) {
+                                            setSelectedIndex(selectedIndex - 1);
+                                        }
+                                    }}
                                     disabled={selectedIndex === 0}
-                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30"
+                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30 touch-manipulation cursor-pointer"
                                 >❮</button>
-                                <div className="flex-1 flex items-center justify-center px-4" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+                                <div
+                                    className="flex-1 flex items-center justify-center px-4 cursor-pointer"
+                                    onTouchStart={handleTouchStart}
+                                    onTouchMove={handleTouchMove}
+                                    onTouchEnd={handleTouchEnd}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
                                     <img
                                         src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_720")}
                                         alt={filteredItems[selectedIndex].title}
-                                        className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300"
+                                        className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300 pointer-events-none select-none"
                                     />
                                 </div>
                                 <button
-                                    onClick={() => selectedIndex !== null && setSelectedIndex(selectedIndex < filteredItems.length - 1 ? selectedIndex + 1 : filteredItems.length - 1)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedIndex !== null && selectedIndex < filteredItems.length - 1) {
+                                            setSelectedIndex(selectedIndex + 1);
+                                        }
+                                    }}
                                     disabled={selectedIndex === filteredItems.length - 1}
-                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30"
+                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30 touch-manipulation cursor-pointer"
                                 >❯</button>
                             </div>
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded text-white text-sm opacity-80">
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded text-white text-sm opacity-80 pointer-events-none">
                                 <span>{selectedIndex + 1} / {filteredItems.length}</span>
                             </div>
                         </div>
