@@ -23,8 +23,7 @@ const BlogPostPage = () => {
     const { slug } = useParams<{ slug: string }>();
 
     useEffect(() => {
-        // Força o tema escuro e a rolagem para o topo ao carregar a página
-        document.documentElement.classList.add('dark');
+        // Rolagem para o topo ao carregar a página
         window.scrollTo(0, 0);
 
         if (!slug) return;
@@ -46,13 +45,13 @@ const BlogPostPage = () => {
     }, [slug]);
 
     return (
-        <div className="relative min-h-screen bg-black text-white overflow-hidden">
+        <div className="relative min-h-screen bg-white dark:bg-black text-black dark:text-white overflow-hidden">
             <Header />
 
             <main>
                 {isLoading ? (
                     <div className="container mx-auto max-w-3xl px-6 py-32">
-                        <Skeleton className="h-[400px] w-full bg-black/60 rounded-3xl" />
+                        <Skeleton className="h-[400px] w-full bg-black/60 dark:bg-white/20 rounded-3xl" />
                     </div>
                 ) : post ? (
                     <article>
