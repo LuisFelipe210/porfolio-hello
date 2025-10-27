@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Mail, CalendarDays } from "lucide-react"; // Importado CalendarDays
-import { FaWhatsapp } from "react-icons/fa";
+import { Mail, CalendarDays } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
 import {
     Dialog,
@@ -69,19 +68,7 @@ const FloatingContact = () => {
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-3">
-
-
-            {/* Botão do WhatsApp */}
-            <a
-                href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-green-600 transition-transform hover:scale-110"
-                aria-label="WhatsApp"
-            >
-                <FaWhatsapp size={24} />
-            </a>
+        <div className="fixed bottom-32 right-6 z-50 flex flex-col items-center gap-3">
 
             {/* Botão de Email que abre o diálogo */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -100,7 +87,6 @@ const FloatingContact = () => {
                             Preencha o formulário e vamos criar algo incrível juntos.
                         </DialogDescription>
                     </DialogHeader>
-                    {/* Renderiza o componente de formulário separado */}
                     <ContactForm
                         formData={formData}
                         isSubmitting={isSubmitting}
