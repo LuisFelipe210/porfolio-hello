@@ -1,6 +1,6 @@
 # Hellô Borges - Portfólio de Fotografia
 
-![Prévia do Projeto](https://imgur.com/G4IpUf5)
+![Prévia do Projeto](https://imgur.com/G4IpUf5.png)
 
 Este é um projeto full-stack completo para um portfólio de fotógrafa, desenvolvido com React, TypeScript, e Node.js. A plataforma oferece uma experiência de usuário elegante para visitantes e um painel de administração robusto para gerenciamento de conteúdo.
 
@@ -88,16 +88,25 @@ Este é um projeto full-stack completo para um portfólio de fotógrafa, desenvo
 ## 📸 Screenshots
 
 ### Página Inicial
-![Página Inicial](https://imgur.com/qA09RMi)
+![Página Inicial](https://imgur.com/qA09RMi.png)
 
 ### Portfólio
 ![Portfólio](https://imgur.com/HnSqn4c)
 
+### Serviços
+![Serviços](https://imgur.com/pIoAdoG.png)
+
+### Testemunhos
+![Testemunhos](https://imgur.com/444r7sZ.png)
+
+### Blog
+![Blog](https://imgur.com/z7r49sa.png)
+
 ### Painel de Administração
-![Painel de Administração](https://imgur.com/HnSqn4c)
+![Painel de Administração](https://imgur.com/HnSqn4c.png)
 
 ### Portal do Cliente
-![Portal do Cliente](https://imgur.com/NYkkAsT]
+![Portal do Cliente](https://imgur.com/NYkkAsT.png)
 
 ---
 
