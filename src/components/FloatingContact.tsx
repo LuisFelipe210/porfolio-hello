@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Mail } from "lucide-react"; // Removido CalendarDays, pois não estava a ser usado
-import { FaWhatsapp } from "react-icons/fa";
-import { useToast } from "../hooks/use-toast.ts"; // Corrigido caminho
+import { useLocation } from "react-router-dom"; // Importar useLocation
+import { Mail } from "lucide-react";
+// 1. Corrigido o import para react-icons (tentando 'fa6' que é mais comum)
+//    Se ainda der erro, verifique se 'react-icons' está instalado corretamente.
+import { FaWhatsapp } from "react-icons/fa6";
+import { useToast } from "../hooks/use-toast.ts"; // 2. Revertido para caminho relativo
 import {
     Dialog,
     DialogContent,
@@ -9,10 +12,13 @@ import {
     DialogTitle,
     DialogDescription,
     DialogTrigger,
-} from "./ui/dialog.tsx"; // Corrigido caminho
-import { ContactForm } from "./ContactForm.tsx"; // Corrigido caminho
+} from "./ui/dialog.tsx"; // 3. Revertido para caminho relativo
+import { ContactForm } from "./ContactForm.tsx"; // 4. Revertido para caminho relativo
 
 const FloatingContact = () => {
+    // Obter a localização atual
+    const location = useLocation();
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -45,7 +51,7 @@ const FloatingContact = () => {
             });
 
             setFormData({ name: "", email: "", phone: "", service: "", message: "" });
-            setIsDialogOpen(false); // Fecha o diálogo após o envio
+            setIsDialogOpen(false);
 
         } catch (error) {
             console.error(error);
@@ -63,16 +69,29 @@ const FloatingContact = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Função separada para o componente Select
     const handleServiceChange = (value: string) => {
         setFormData({ ...formData, service: value });
     };
 
-    return (
-        // --- ALTERAÇÃO AQUI: bottom-6 para bottom-20 ---
-        <div className="fixed bottom-32 right-6 z-50 flex flex-col items-center gap-3">
+    // Definir as rotas onde o componente NÃO deve aparecer
+    const excludedPrefixes = [
+        '/admin', // Exclui /admin/login e /admin/*
+        '/portal/login',
+        '/portal/forgot-password',
+        '/portal/reset-password', // Exclui /portal/reset-password e /portal/reset-password/:token
+    ];
 
-            {/*/!* Botão do WhatsApp *!/*/}
+    // Verificar se a rota atual começa com algum dos prefixos excluídos
+    const shouldHide = excludedPrefixes.some(prefix => location.pathname.startsWith(prefix));
+
+    // Se estiver numa rota excluída, não renderizar nada
+    if (shouldHide) {
+        return null;
+    }
+
+    // Renderizar o componente normalmente
+    return (
+        <div className="fixed bottom-32 right-6 z-50 flex flex-col items-center gap-3">
             {/*<a*/}
             {/*    href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento."*/}
             {/*    target="_blank"*/}
@@ -81,9 +100,7 @@ const FloatingContact = () => {
             {/*    aria-label="WhatsApp"*/}
             {/*>*/}
             {/*    <FaWhatsapp size={24} />*/}
-            {/*</a>*/}
-
-            {/* Botão de Email que abre o diálogo */}
+            {/*/!*</a>*!/*/}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                     <button
@@ -100,7 +117,6 @@ const FloatingContact = () => {
                             Preencha o formulário e vamos criar algo incrível juntos.
                         </DialogDescription>
                     </DialogHeader>
-                    {/* Renderiza o componente de formulário separado */}
                     <ContactForm
                         formData={formData}
                         isSubmitting={isSubmitting}
@@ -115,3 +131,4 @@ const FloatingContact = () => {
 };
 
 export default FloatingContact;
+
