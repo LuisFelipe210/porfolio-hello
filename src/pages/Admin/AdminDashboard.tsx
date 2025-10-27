@@ -41,6 +41,21 @@ const AdminDashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [greeting, setGreeting] = useState('Bem-vindo(a), Hellô');
 
+    // CORREÇÃO 1: Função para formatar a data, forçando o fuso horário local
+    const formatDate = (dateStr: string) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        // Cria a data com componentes (ano, mês-1, dia) para evitar o erro de fuso horário
+        const d = new Date(year, month - 1, day);
+        // Formato: 28 de Outubro
+        return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+    };
+
+    // Função auxiliar para criar data no fuso horário local (usada na ordenação)
+    const createLocalDate = (dateStr: string) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    }
+
     useEffect(() => {
         const hour = new Date().getHours();
         if (hour < 12) setGreeting(`Bom dia, Hellô`);
@@ -52,8 +67,24 @@ const AdminDashboard = () => {
                 const token = localStorage.getItem('authToken');
                 const response = await fetch('/api/admin/dashboard-stats', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!response.ok) throw new Error('Falha ao buscar dados do dashboard.');
-                setData(await response.json());
-            } catch (error) { console.error(error); }
+
+                const responseData: DashboardData = await response.json();
+
+                // CORREÇÃO 2: Aplicar ordenação usando a criação de Data local para evitar o bug de fuso horário
+                if (responseData.activity.reservedDates) {
+                    // Ordena por ordem CRESCENTE (mais próxima/futura primeiro)
+                    responseData.activity.reservedDates.sort((a, b) => {
+                        const dateA = createLocalDate(a).getTime();
+                        const dateB = createLocalDate(b).getTime();
+                        return dateA - dateB; // Crescente
+                    });
+                }
+
+                setData(responseData);
+
+            } catch (error) {
+                console.error(error);
+            }
             finally { setIsLoading(false); }
         };
         fetchDashboardData();
@@ -71,12 +102,6 @@ const AdminDashboard = () => {
 
     const COLORS = ['#FF8042', '#FFBB28', '#00C49F', '#0088FE', '#8884d8'];
 
-    // Função para formatar a data
-    const formatDate = (dateStr: string) => {
-        const d = new Date(dateStr);
-        // Formato: 27 de Outubro
-        return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
-    };
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
@@ -200,6 +225,7 @@ const AdminDashboard = () => {
                                     </div>
                                 ) : (
                                     <>
+                                        {/* Agora os dados já estão ordenados de forma crescente no useEffect */}
                                         {Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (
                                             data.activity.reservedDates.slice(0, 4).map((dateStr: string, idx: number) => ( // Limita a 4 itens
                                                 <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-xl"> {/* Reduzido p-3 para p-2 */}

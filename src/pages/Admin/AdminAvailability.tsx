@@ -54,11 +54,16 @@ const AdminAvailability = () => {
     const fetchDates = useCallback(async () => {
         setIsLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
-            // CORREÇÃO: Usando a rota combinada
-            const response = await fetch('/api/blog?api=availability', { headers: { 'Authorization': `Bearer ${token}` } });
+            // CORREÇÃO: REMOVIDO o cabeçalho de autorização. A rota GET é pública.
+            const response = await fetch('/api/blog?api=availability');
 
-            const data: string[] = await response.json();
+            if (!response.ok) {
+                throw new Error('Falha ao carregar as datas.');
+            }
+
+            // CORREÇÃO ANTERIOR MANTIDA: Acessa a propriedade reservedDates
+            const result: { reservedDates?: string[] } = await response.json();
+            const data: string[] = result.reservedDates || [];
 
             const dates = data.map((d: string) => {
                 const parts = d.split('-');
@@ -77,14 +82,14 @@ const AdminAvailability = () => {
         fetchDates();
     }, [fetchDates]);
 
-    // 2. SALVAR DATAS
+    // 2. SALVAR DATAS (MANTÉM O TOKEN)
     const handleSave = async () => {
         setIsSubmitting(true);
         try {
             const datesToSave = events.map(e => formatDateString(e.start));
             const token = localStorage.getItem('authToken');
 
-            // CORREÇÃO: Usando a rota combinada
+            // POST deve ter o token para autenticação
             const response = await fetch('/api/blog?api=availability', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

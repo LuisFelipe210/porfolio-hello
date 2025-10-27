@@ -44,7 +44,10 @@ const AvailableDatesModal = ({ children }: { children: React.ReactNode }) => {
             try {
                 // Rota pública para buscar as datas reservadas (API combinada)
                 const response = await fetch('/api/blog?api=availability');
-                const data: string[] = await response.json();
+
+                // CORREÇÃO 1: A API retorna um objeto { reservedDates: [...] }, então precisamos aceder à propriedade.
+                const result: { reservedDates?: string[] } = await response.json();
+                const data: string[] = result.reservedDates || [];
 
                 const events = data.map((d: string) => {
                     const [year, month, day] = d.split('-').map(Number);
@@ -76,10 +79,18 @@ const AvailableDatesModal = ({ children }: { children: React.ReactNode }) => {
         let style: React.CSSProperties = {};
         let className = '';
 
-        if (isReserved || isPast) {
-            // Se reservado ou passado, aplicamos a classe CSS para o design
-            style = { pointerEvents: 'none' }; // Desativa clique
-            className = 'rbc-past-day'; // Usa a classe para que o CSS mude a cor do texto/fundo
+        if (isPast) {
+            // Estilos para datas passadas (mantidos)
+            style = { pointerEvents: 'none' };
+            className = 'rbc-past-day';
+        } else if (isReserved) {
+            // CORREÇÃO 2: Estilo para "tampar" (cobrir) dias reservados
+            style = {
+                pointerEvents: 'none',
+                backgroundColor: 'rgba(220, 38, 38, 0.4)', // Fundo vermelho semi-transparente
+                borderRadius: '5px'
+            };
+            className = 'rbc-reserved-day'; // Nova classe para CSS personalizado, se necessário
         }
 
         return { style, className };
