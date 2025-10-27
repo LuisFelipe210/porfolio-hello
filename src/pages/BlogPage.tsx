@@ -48,7 +48,7 @@ const BlogPage = () => {
     };
 
     return (
-        <div className="relative min-h-screen bg-white dark:bg-black text-black dark:text-white overflow-hidden">
+        <div className="relative min-h-screen bg-black dark:bg-black text-white dark:text-white overflow-hidden">
             <div className="fixed top-0 left-0 right-0 z-30">
                 <Header />
             </div>
@@ -67,7 +67,7 @@ const BlogPage = () => {
                         <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent drop-shadow-md py-2">
                             Blog
                         </h1>
-                        <p className="text-lg sm:text-xl text-black/80 dark:text-white/80 max-w-xl mx-auto mt-4">
+                        <p className="text-lg sm:text-xl text-white/80 dark:text-white/80 max-w-xl mx-auto mt-4">
                             Histórias, dicas e bastidores do meu trabalho criativo.
                         </p>
                     </div>
@@ -99,10 +99,10 @@ const BlogPage = () => {
                                                 <CardDescription className="text-orange-400 font-semibold mb-2">
                                                     Artigo em Destaque
                                                 </CardDescription>
-                                                <CardTitle className="text-3xl lg:text-4xl font-bold leading-tight text-black dark:text-white group-hover:text-orange-400 transition-colors">
+                                                <CardTitle className="text-3xl lg:text-4xl font-bold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors">
                                                     {featuredPost.title}
                                                 </CardTitle>
-                                                <p className="mt-4 text-black/80 dark:text-white/80 line-clamp-3">
+                                                <p className="mt-4 text-white/80 dark:text-white/80 line-clamp-3">
                                                     {truncateText(featuredPost.content, 150)}
                                                 </p>
                                                 <div className="mt-6 flex items-center font-semibold text-orange-400">
@@ -127,10 +127,10 @@ const BlogPage = () => {
                                                 />
                                             </div>
                                             <CardHeader className="p-6">
-                                                <CardTitle className="text-xl font-semibold leading-tight text-black dark:text-white group-hover:text-orange-400 transition-colors">
+                                                <CardTitle className="text-xl font-semibold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors">
                                                     {post.title}
                                                 </CardTitle>
-                                                <CardDescription className="pt-2 text-black/70 dark:text-white/70">
+                                                <CardDescription className="pt-2 text-white/70 dark:text-white/70">
                                                     {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
                                                 </CardDescription>
                                             </CardHeader>
