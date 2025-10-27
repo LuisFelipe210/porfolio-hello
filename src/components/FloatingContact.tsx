@@ -11,7 +11,6 @@ import {
     DialogTrigger,
 } from "./ui/dialog";
 import { ContactForm } from "./ContactForm";
-import AvailableDatesModal from '../pages/AvailableDatesModal.tsx';
 
 const FloatingContact = () => {
     const [formData, setFormData] = useState({
@@ -71,17 +70,6 @@ const FloatingContact = () => {
 
     return (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-3">
-
-            {/* NOVO: Botão de Disponibilidade (usando o modal importado) */}
-            <AvailableDatesModal>
-                <button
-                    // Usando o mesmo estilo dos outros botões flutuantes para consistência
-                    className="w-12 h-12 md:w-14 md:h-14 bg-orange-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-orange-600 transition-transform hover:scale-110"
-                    aria-label="Verificar Disponibilidade"
-                >
-                    <CalendarDays size={24} />
-                </button>
-            </AvailableDatesModal>
 
 
             {/* Botão do WhatsApp */}
