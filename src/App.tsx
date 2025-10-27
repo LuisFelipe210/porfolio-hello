@@ -1,51 +1,51 @@
 // porfolio-hello/src/App.tsx
 
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// 1. Importar useLocation
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "./components/ui/tooltip";
-import { Toaster } from "./components/ui/toaster";
-import { ThemeProvider } from "./components/ThemeProvider";
-import { MessagesProvider } from "./context/MessagesContext";
+import { TooltipProvider } from "./components/ui/tooltip.tsx";
+import { Toaster } from "./components/ui/toaster.tsx";
+import { ThemeProvider } from "./components/ThemeProvider.tsx";
+import { MessagesProvider } from "./context/MessagesContext.tsx";
 
 // Componentes Globais e Utilitários
-import ShutterPreloader from "./components/ShutterPreloader";
-// FloatingContact pode ser removido se o chatbot o substituir, ou mantido se quiser ambos
-import FloatingContact from "./components/FloatingContact";
-import ScrollToTop from "./components/ScrollToTop";
+import ShutterPreloader from "./components/ShutterPreloader.tsx";
+import FloatingContact from "./components/FloatingContact.tsx";
+import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
 
 // --- Importação do Chatbot ---
-import Chatbot from './components/Chatbot'; // <<-- ADICIONADO
+import Chatbot from './components/Chatbot.tsx';
 
 // --- Páginas com Lazy Loading ---
-const Index = lazy(() => import("./pages/Index"));
-const BlogPage = lazy(() => import("./pages/BlogPage"));
-const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const Index = lazy(() => import("./pages/Index.tsx"));
+const BlogPage = lazy(() => import("./pages/BlogPage.tsx"));
+const BlogPostPage = lazy(() => import("./pages/BlogPostPage.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // --- Páginas do Admin ---
-const AdminAvailability = lazy(() => import("./pages/Admin/AdminAvailability"));
-const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
-const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin"));
-const AdminLayout = lazy(() => import("./pages/Admin/AdminLayout"));
-const AdminPortfolio = lazy(() => import("./pages/Admin/AdminPortfolio"));
-const AdminServices = lazy(() => import("./pages/Admin/AdminServices"));
-const AdminAbout = lazy(() => import("./pages/Admin/AdminAbout"));
-const AdminSettings = lazy(() => import("./pages/Admin/AdminSettings"));
-const AdminTestimonials = lazy(() => import("./pages/Admin/AdminTestimonials"));
-const AdminMessages = lazy(() => import("./pages/Admin/AdminMessages"));
-const AdminBlog = lazy(() => import("./pages/Admin/AdminBlog"));
-const AdminClients = lazy(() => import("./pages/Admin/AdminClients"));
-const AdminClientGalleries = lazy(() => import("./pages/Admin/AdminClientGalleries"));
+const AdminAvailability = lazy(() => import("./pages/Admin/AdminAvailability.tsx"));
+const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard.tsx"));
+const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin.tsx"));
+const AdminLayout = lazy(() => import("./pages/Admin/AdminLayout.tsx"));
+const AdminPortfolio = lazy(() => import("./pages/Admin/AdminPortfolio.tsx"));
+const AdminServices = lazy(() => import("./pages/Admin/AdminServices.tsx"));
+const AdminAbout = lazy(() => import("./pages/Admin/AdminAbout.tsx"));
+const AdminSettings = lazy(() => import("./pages/Admin/AdminSettings.tsx"));
+const AdminTestimonials = lazy(() => import("./pages/Admin/AdminTestimonials.tsx"));
+const AdminMessages = lazy(() => import("./pages/Admin/AdminMessages.tsx"));
+const AdminBlog = lazy(() => import("./pages/Admin/AdminBlog.tsx"));
+const AdminClients = lazy(() => import("./pages/Admin/AdminClients.tsx"));
+const AdminClientGalleries = lazy(() => import("./pages/Admin/AdminClientGalleries.tsx"));
 
 // --- Páginas do Portal do Cliente ---
-const ClientLoginPage = lazy(() => import("./pages/Portal/ClientLoginPage"));
-const ClientLayout = lazy(() => import("./pages/Portal/ClientLayout"));
-const ClientGalleryPage = lazy(() => import("./pages/Portal/ClientGalleryPage"));
-const ClientResetPasswordPage = lazy(() => import("./pages/Portal/ClientResetPasswordPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/Portal/ForgotPasswordPage"));
-const ResetPasswordWithTokenPage = lazy(() => import("./pages/Portal/ResetPasswordWithTokenPage"));
+const ClientLoginPage = lazy(() => import("./pages/Portal/ClientLoginPage.tsx"));
+const ClientLayout = lazy(() => import("./pages/Portal/ClientLayout.tsx"));
+const ClientGalleryPage = lazy(() => import("./pages/Portal/ClientGalleryPage.tsx"));
+const ClientResetPasswordPage = lazy(() => import("./pages/Portal/ClientResetPasswordPage.tsx"));
+const ForgotPasswordPage = lazy(() => import("./pages/Portal/ForgotPasswordPage.tsx"));
+const ResetPasswordWithTokenPage = lazy(() => import("./pages/Portal/ResetPasswordWithTokenPage.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +54,15 @@ const PageLoader = () => (
         <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
     </div>
 );
+
+// 2. Criar um componente interno para acessar useLocation
+const AppContent = () => {
+    const location = useLocation();
+    const isAdminRoute = location.pathname.startsWith('/admin');
+
+    // Renderizar FloatingContact apenas se NÃO for uma rota admin
+    return !isAdminRoute ? <FloatingContact /> : null;
+};
 
 const App = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -66,20 +75,19 @@ const App = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const location = window.location;
-    // Removi a variável isExcludedRoute pois o Chatbot será adicionado globalmente agora
+    const currentLocation = window.location; // Usado apenas para o ShutterPreloader
 
     return (
         <QueryClientProvider client={queryClient}>
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
                 <TooltipProvider>
                     <Toaster />
-                    {isLoading && location.pathname === '/' && <ShutterPreloader />}
+                    {isLoading && currentLocation.pathname === '/' && <ShutterPreloader />}
 
                     <div className="site-content">
                         <BrowserRouter>
                             {/* --- Renderiza o Chatbot globalmente --- */}
-                            <Chatbot /> {/* <<-- ADICIONADO */}
+                            <Chatbot />
 
                             <ScrollToTop />
                             <Suspense fallback={<PageLoader />}>
@@ -102,7 +110,7 @@ const App = () => {
 
                                         {/* --- Rotas Admin (agora dentro do MessagesProvider) --- */}
                                         <Route path="/admin/login" element={<AdminLogin />} />
-                                        <Route path="/admin" element={<AdminLayout />}> {/* MessagesProvider movido para envolver tudo */}
+                                        <Route path="/admin" element={<AdminLayout />}>
                                             <Route index element={<AdminDashboard />} />
                                             <Route path="portfolio" element={<AdminPortfolio />} />
                                             <Route path="services" element={<AdminServices />} />
@@ -121,9 +129,11 @@ const App = () => {
                                     </Routes>
                                 </MessagesProvider>
                             </Suspense>
+                            {/* 3. Renderizar AppContent que decide se mostra FloatingContact */}
+                            <AppContent />
                         </BrowserRouter>
                     </div>
-                    <FloatingContact />
+
                 </TooltipProvider>
             </ThemeProvider>
         </QueryClientProvider>
@@ -131,3 +141,4 @@ const App = () => {
 };
 
 export default App;
+
