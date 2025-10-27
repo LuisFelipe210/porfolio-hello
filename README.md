@@ -88,13 +88,13 @@ Este é um projeto full-stack completo para um portfólio de fotógrafa, desenvo
 ## 📸 Screenshots
 
 ### Página Inicial
-![Página Inicial](https://imgur.com/qA09RMi.png)
+![Página Inicial](https://imgur.com/9LxRrNd.png)
 
 ### Portfólio
-![Portfólio](https://imgur.com/HnSqn4c)
+![Portfólio](https://imgur.com/u8uMXRW.png)
 
 ### Serviços
-![Serviços](https://imgur.com/pIoAdoG.png)
+![Serviços](https://imgur.com/x2EC5XI.png)
 
 ### Testemunhos
 ![Testemunhos](https://imgur.com/444r7sZ.png)
@@ -110,4 +110,4 @@ Este é um projeto full-stack completo para um portfólio de fotógrafa, desenvo
 
 ---
 
-Este README foi gerado para fornecer uma visão completa do projeto. Sinta-se à vontade para adaptá-lo conforme necessário.
+* Imagens usadas apenas para fins de desenvolvimento *
