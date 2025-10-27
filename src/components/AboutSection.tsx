@@ -42,7 +42,7 @@ const AboutSection = () => {
     return (
         <section id="about" className="section-padding bg-background text-foreground">
             <div className="container mx-auto max-w-6xl">
-                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                <div className="flex flex-col lg:grid lg:grid-cols-[3fr_2fr] gap-12 lg:gap-16 items-center">
 
                     <div className="order-1 animate-fade-in">
                         {/* --- CORREÇÃO: Combinação dos dois ícones --- */}
@@ -57,14 +57,14 @@ const AboutSection = () => {
                         </div>
 
                         {isLoading || !content ? (
-                            <div className="space-y-4">
+                            <div className="space-y-4 max-w-3xl">
                                 <Skeleton className="h-6 w-full" />
                                 <Skeleton className="h-6 w-3/4" />
                                 <Skeleton className="h-6 w-full mt-4" />
                                 <Skeleton className="h-6 w-1/2" />
                             </div>
                         ) : (
-                            <div className="prose prose-lg dark:prose-invert max-w-none">
+                            <div className="prose prose-lg dark:prose-invert max-w-none max-w-3xl">
                                 <p className="text-muted-foreground">{content.paragraph1}</p>
                                 <p className="text-muted-foreground">{content.paragraph2}</p>
                             </div>
@@ -91,11 +91,11 @@ const AboutSection = () => {
 
                     <div className="order-2 animate-fade-in">
                         {isLoading || !content ? (
-                            <Skeleton className="h-[500px] w-full rounded-3xl" />
+                            <Skeleton className="h-[400px] w-full rounded-3xl" />
                         ) : (
                             <div className="grid grid-cols-2 gap-4">
                                 {allImages.slice(0, 4).map((img, index) => (
-                                    <div key={index} className="overflow-hidden rounded-2xl shadow-lg aspect-[3/4]">
+                                    <div key={index} className="overflow-hidden rounded-2xl shadow-lg aspect-[2/3] max-h-[400px]">
                                         <img
                                             src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_400")}
                                             alt={img.alt}

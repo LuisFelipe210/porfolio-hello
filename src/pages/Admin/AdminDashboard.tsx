@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { useMessages } from '@/context/MessagesContext';
 import { ArrowRight, PlusCircle, ImageIcon, Users, FileText, MessageSquare, UserPlus, Inbox, Clock, CheckCircle, MessageSquareQuote } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-// ▼▼▼ CORREÇÃO: Importar 'Label' para o Tooltip customizado ▼▼▼
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Label } from 'recharts';
 import QuickNotes from './components/QuickNotes';
 
@@ -19,10 +18,11 @@ interface DashboardData {
         lastMessage: { name: string, createdAt: string } | null;
         lastSelection: { clientInfo: { name: string }, selectionDate: string } | null;
         latestClients: { _id: string, name: string }[];
+        reservedDates: string[];
     };
 }
 
-// ▼▼▼ CORREÇÃO: Componente customizado para o Tooltip ▼▼▼
+// Componente customizado para o Tooltip
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
@@ -70,6 +70,13 @@ const AdminDashboard = () => {
     })) || [];
 
     const COLORS = ['#FF8042', '#FFBB28', '#00C49F', '#0088FE', '#8884d8'];
+
+    // Função para formatar a data
+    const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        // Formato: 27 de Outubro
+        return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+    };
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
@@ -120,6 +127,7 @@ const AdminDashboard = () => {
                 {/* --- LINHA 2 --- */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
+                        {/* Altura fixa (h-64) mantida para o gráfico */}
                         <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
                             <CardHeader><CardTitle className="text-white">Distribuição do Portfólio</CardTitle></CardHeader>
                             <CardContent className="h-64">
@@ -136,7 +144,6 @@ const AdminDashboard = () => {
                                                 axisLine={false}
                                                 width={100}
                                             />
-                                            {/* ▼▼▼ CORREÇÃO: Aplicar o Tooltip customizado ▼▼▼ */}
                                             <Tooltip
                                                 cursor={{ fill: 'rgba(255, 255, 255, 0.08)' }}
                                                 content={<CustomTooltip />}
@@ -149,27 +156,74 @@ const AdminDashboard = () => {
                             </CardContent>
                         </Card>
                     </div>
+
+                    {/* Card Estatísticas Gerais (AJUSTADO: menor padding, menor fonte do número) */}
                     <div>
                         <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
                             <CardHeader><CardTitle className="text-white">Estatísticas Gerais</CardTitle></CardHeader>
-                            <CardContent className="space-y-4">
-                                {isLoading ? (<> <Skeleton className="h-8 w-full bg-white/10" /> <Skeleton className="h-8 w-full bg-white/10" /> <Skeleton className="h-8 w-full bg-white/10" /> </>) : (
+                            <CardContent className="space-y-3"> {/* Alterado de space-y-4 para space-y-3 */}
+                                {isLoading ? (<> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> </>) : (
                                     <>
-                                        <div className="flex justify-between items-center text-white"><span className="flex items-center gap-2"><Users className="h-5 w-5 text-white/70"/>Clientes</span> <span className="font-bold text-xl">{data?.stats.clients}</span></div>
-                                        <div className="flex justify-between items-center text-white"><span className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-white/70"/>Itens no Portfólio</span> <span className="font-bold text-xl">{data?.stats.portfolio}</span></div>
-                                        <div className="flex justify-between items-center text-white"><span className="flex items-center gap-2"><MessageSquareQuote className="h-5 w-5 text-white/70"/>Testemunhos</span> <span className="font-bold text-xl">{data?.stats.testimonials}</span></div>
-                                        <div className="flex justify-between items-center text-white"><span className="flex items-center gap-2"><FileText className="h-5 w-5 text-white/70"/>Artigos no Blog</span> <span className="font-bold text-xl">{data?.stats.posts}</span></div>
+                                        {/* Reduzido p-3 para p-2 e text-2xl para text-xl */}
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white">
+                                            <span className="flex items-center gap-2"><Users className="h-5 w-5 text-white/70"/>Clientes</span>
+                                            <span className="font-bold text-xl">{data?.stats.clients}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white">
+                                            <span className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-white/70"/>Itens no Portfólio</span>
+                                            <span className="font-bold text-xl">{data?.stats.portfolio}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white">
+                                            <span className="flex items-center gap-2"><MessageSquareQuote className="h-5 w-5 text-white/70"/>Testemunhos</span>
+                                            <span className="font-bold text-xl">{data?.stats.testimonials}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white">
+                                            <span className="flex items-center gap-2"><FileText className="h-5 w-5 text-white/70"/>Artigos no Blog</span>
+                                            <span className="font-bold text-xl">{data?.stats.posts}</span>
+                                        </div>
                                     </>
                                 )}
                             </CardContent>
                         </Card>
                     </div>
-                    <div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Últimos Clientes</CardTitle></CardHeader><CardContent className="space-y-3">{isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (data?.activity.latestClients.length > 0 ? data.activity.latestClients.map(client => <div key={client._id} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl"><UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white truncate">{client.name}</p></div>) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>)}</CardContent></Card></div>
+
+                    {/* Card Próximas Sessões (AJUSTADO: menor padding) */}
+                    <div>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader><CardTitle className="text-white">Próximas Sessões</CardTitle></CardHeader>
+                            <CardContent className="space-y-3"> {/* Alterado de space-y-4 para space-y-3 */}
+                                {isLoading ? (
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-9 w-full bg-white/10" />
+                                        <Skeleton className="h-9 w-full bg-white/10" />
+                                        <Skeleton className="h-9 w-full bg-white/10" />
+                                    </div>
+                                ) : (
+                                    <>
+                                        {Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (
+                                            data.activity.reservedDates.slice(0, 4).map((dateStr: string, idx: number) => ( // Limita a 4 itens
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-xl"> {/* Reduzido p-3 para p-2 */}
+                                                    <div className="flex items-center gap-2"> {/* Reduzido gap-3 para gap-2 */}
+                                                        <Clock className="h-5 w-5 text-indigo-400" />
+                                                        <span className="text-white font-semibold">{formatDate(dateStr)}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-2 bg-white/5 rounded-xl">
+                                                <span className="text-white/70 text-sm">Nenhuma sessão próxima</span>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
                 {/* --- LINHA 3 --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2"><QuickNotes /></div>
+                    <div className="lg:col-span-1"><QuickNotes /></div>
                     <div>
                         <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
                             <CardHeader><CardTitle className="text-white">Última Atividade Não Lida</CardTitle></CardHeader>
@@ -184,6 +238,7 @@ const AdminDashboard = () => {
                             </CardContent>
                         </Card>
                     </div>
+                    <div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Últimos Clientes</CardTitle></CardHeader><CardContent className="space-y-3">{isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (data?.activity.latestClients.length > 0 ? data.activity.latestClients.map(client => <div key={client._id} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl"><UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white truncate">{client.name}</p></div>) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>)}</CardContent></Card></div>
                 </div>
             </div>
         </div>

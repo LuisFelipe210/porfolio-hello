@@ -42,17 +42,18 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
     return (
         <>
             <header
-                className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 bg-white/50 dark:bg-zinc-900/20 backdrop-blur-md shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl h-[70px]
-                    w-[95%] md:w-[60%] lg:w-[50%] xl:w-[40%]`}
+                className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500
+                    bg-white/50 dark:bg-zinc-900/20 backdrop-blur-md shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl
+                    h-[70px] w-[95%] sm:w-[90%] md:w-[70%]`}
             >
-                <nav className="px-3 md:px-5 py-4 md:py-3 flex items-center justify-between">
+                <nav className="px-3 sm:px-4 md:px-5 py-4 sm:py-3 md:py-3 flex flex-nowrap items-center justify-between">
                     <div className="flex items-center shrink-0">
                         <Link to="/" onClick={() => scrollToSection("home")} className="focus:outline-none">
-                            <img src={Logo} alt="Logo da Hellô Borges" className="h-7 md:h-10 w-auto cursor-pointer" />
+                            <img src={Logo} alt="Logo da Hellô Borges" className="h-7 sm:h-8 md:h-10 w-auto cursor-pointer" />
                         </Link>
                     </div>
 
-                    <div className="hidden md:flex items-center space-x-6">
+                    <div className="hidden lg:flex items-center sm:space-x-2 md:space-x-6 flex-nowrap">
                         {visibleNavLinks.map(({ id, label, isPage }) => isPage ? (
                             <Link key={id} to={`/${id}`} className={linkClasses}>{label}</Link>
                         ) : (
@@ -60,7 +61,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                         ))}
                     </div>
 
-                    <div className="hidden md:flex items-center gap-1 shrink-0">
+                    <div className="hidden lg:flex items-center gap-1 sm:gap-2 shrink-0">
                         <Button variant="ghost" size="icon" className={buttonIconClasses}>
                             <ThemeToggle />
                         </Button>
@@ -72,7 +73,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                     </div>
 
                     {/* Mobile Menu Toggle */}
-                    <div className="flex items-center gap-1 md:hidden shrink-0">
+                    <div className="flex items-center gap-1 lg:hidden shrink-0">
                         <ThemeToggle />
                         <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} className={`${buttonIconClasses} relative z-[60] h-8 w-8`}>
                             {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -82,7 +83,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
             </header>
 
             {/* Menu Mobile Full Screen */}
-            <div className={`fixed inset-0 z-40 md:hidden transition-all duration-300 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)}>
+            <div className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)}>
                 <div className={`h-full w-full flex flex-col items-center justify-center transition-all duration-300 ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col items-center space-y-8 px-6 w-full">
                         {visibleNavLinks.map(({ id, label, isPage }, index) => {

@@ -24,26 +24,24 @@ export default async function handler(req, res) {
 
         const db = await connectToDatabase(process.env.MONGODB_URI);
 
-        // ▼▼▼ CORREÇÃO APLICADA AQUI ▼▼▼
         const [
             clientCount,
             portfolioCount,
             postCount,
-            testimonialsCount, // 1. Adicionada a nova contagem
+            testimonialsCount,
             portfolioByCategory,
             latestClients
         ] = await Promise.all([
             db.collection('clients').countDocuments(),
             db.collection('portfolioItems').countDocuments(),
             db.collection('posts').countDocuments(),
-            db.collection('testimonials').countDocuments(), // 2. Contagem dos testemunhos
+            db.collection('testimonials').countDocuments(),
             db.collection('portfolioItems').aggregate([
                 { $group: { _id: "$category", count: { $sum: 1 } } },
                 { $sort: { _id: 1 } }
             ]).toArray(),
             db.collection('clients').find({}).sort({ createdAt: -1 }).limit(3).toArray(),
         ]);
-        // ▲▲▲ FIM DA CORREÇÃO ▲▲▲
 
         const [pendingGalleries, unreadSelections] = await Promise.all([
             db.collection('galleries').countDocuments({ status: 'selection_pending' }),
@@ -54,11 +52,21 @@ export default async function handler(req, res) {
             db.collection('messages').find({ read: false }).sort({ createdAt: -1 }).limit(1).toArray(),
             db.collection('galleries').aggregate([
                 { $match: { status: 'selection_complete', read: { $ne: true } } },
-                { $sort: { selectionDate: -1 } }, { $limit: 1 },
+                { $sort: { selectionDate: -1 } },
+                { $limit: 1 },
                 { $lookup: { from: 'clients', localField: 'clientId', foreignField: '_id', as: 'clientInfo' } },
                 { $unwind: { path: '$clientInfo', preserveNullAndEmptyArrays: true } }
             ]).toArray()
         ]);
+
+        // Correção: pegar reservedDates do objeto retornado pela API
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(`${baseUrl}/api/blog?api=availability`);
+        let reservedDates = [];
+        if (response.ok) {
+            const data = await response.json();
+            reservedDates = Array.isArray(data?.reservedDates) ? data.reservedDates : [];
+        }
 
         return res.status(200).json({
             admin: { name: adminUsername },
@@ -66,7 +74,7 @@ export default async function handler(req, res) {
                 clients: clientCount,
                 portfolio: portfolioCount,
                 posts: postCount,
-                testimonials: testimonialsCount, // 3. Adicionado ao objeto de resposta
+                testimonials: testimonialsCount,
                 portfolioByCategory,
                 galleryStatus: {
                     pending: pendingGalleries,
@@ -77,6 +85,7 @@ export default async function handler(req, res) {
                 lastMessage: lastMessage[0] || null,
                 lastSelection: lastSelection[0] || null,
                 latestClients,
+                reservedDates,
             }
         });
 

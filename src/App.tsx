@@ -18,7 +18,8 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// --- 1. IMPORTAR O NOVO DASHBOARD ---
+// Admin Rotas
+const AdminAvailability = lazy(() => import("./pages/Admin/AdminAvailability")); // <-- NOVO LAZY IMPORT
 const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
 const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./pages/Admin/AdminLayout"));
@@ -32,6 +33,7 @@ const AdminBlog = lazy(() => import("./pages/Admin/AdminBlog"));
 const AdminClients = lazy(() => import("./pages/Admin/AdminClients"));
 const AdminClientGalleries = lazy(() => import("./pages/Admin/AdminClientGalleries"));
 
+// Clientes Rotas
 const ClientLoginPage = lazy(() => import("./pages/Portal/ClientLoginPage"));
 const ClientLayout = lazy(() => import("./pages/Portal/ClientLayout"));
 const ClientGalleryPage = lazy(() => import("./pages/Portal/ClientGalleryPage"));
@@ -74,6 +76,7 @@ const App = () => {
                                     <Route path="/blog" element={<BlogPage />} />
                                     <Route path="/blog/:slug" element={<BlogPostPage />} />
 
+
                                     <Route path="/portal/login" element={<ClientLoginPage />} />
                                     <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
                                     <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
@@ -89,7 +92,6 @@ const App = () => {
                                             <AdminLayout />
                                         </MessagesProvider>
                                     }>
-                                        {/* --- 2. ADICIONAR A NOVA ROTA DO DASHBOARD --- */}
                                         <Route index element={<AdminDashboard />} />
                                         <Route path="portfolio" element={<AdminPortfolio />} />
                                         <Route path="services" element={<AdminServices />} />
@@ -100,6 +102,7 @@ const App = () => {
                                         <Route path="blog" element={<AdminBlog />} />
                                         <Route path="clients" element={<AdminClients />} />
                                         <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
+                                        <Route path="availability" element={<AdminAvailability />} />
                                     </Route>
 
                                     <Route path="*" element={<NotFound />} />

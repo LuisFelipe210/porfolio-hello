@@ -14,14 +14,14 @@ interface TestimonialFromAPI {
     imageUrl: string;
 }
 
-const cardRotations = [-3, 4, -1, 5, -2, 2];
+const cardRotations = [3, -1, 2, -3, 2, -3, 3];
 
 const TestimonialsSection = () => {
     const [testimonials, setTestimonials] = useState<TestimonialFromAPI[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'center' });
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
@@ -82,19 +82,19 @@ const TestimonialsSection = () => {
 
                     {/* MUDANÇA: Margem negativa menor (-ml-3) */}
                     <div className="overflow-hidden -mx-2" ref={emblaRef}>
-                        <div className="flex -ml-3">
+                        <div className="flex -ml-3 -space-x-4">
                             {isLoading ? (
                                 Array.from({ length: 3 }).map((_, index) => (
-                                    // MUDANÇA: Largura do item menor (85%) e padding menor (pl-3)
-                                    <div key={index} className="flex-[0_0_85%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] pl-3 sm:pl-6">
+                                    // MUDANÇA: Largura do item maior (80%) e padding menor (pl-3)
+                                    <div key={index} className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6">
                                         {/* MUDANÇA: Padding vertical menor (py-6) */}
                                         <div className="py-6"><Skeleton className="h-[26rem] sm:h-[28rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" /></div>
                                     </div>
                                 ))
                             ) : (
                                 testimonials.map((testimonial, index) => (
-                                    // MUDANÇA: Largura do item menor (85%) e padding menor (pl-3)
-                                    <div key={testimonial._id} className="flex-[0_0_85%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] pl-3 sm:pl-6">
+                                    // MUDANÇA: Largura do item maior (80%) e padding menor (pl-3)
+                                    <div key={testimonial._id} className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6">
                                         {/* MUDANÇA: Padding vertical menor (py-6) */}
                                         <div className="h-full py-6">
                                             <TestimonialCard
@@ -128,4 +128,3 @@ const TestimonialsSection = () => {
 };
 
 export default TestimonialsSection;
-

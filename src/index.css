@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat&family=Libre+Baskerville:ital@1&display=swap');
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -212,5 +213,148 @@
     .my-masonry-grid_column {
         padding-left: 1rem;
         background-clip: padding-box;
+    }
+
+    /* ====================================================================== */
+    /* CORREÇÃO E ESTILOS PERSONALIZADOS PARA REACT-BIG-CALENDAR (TEMA ESCURO) */
+    /* ====================================================================== */
+
+    .custom-calendar-styles.rbc-calendar {
+        font-family: inherit;
+        background-color: transparent !important;
+        border-radius: 1rem;
+    }
+
+    /* ToolBar (Navegação do Calendário) */
+    .custom-calendar-styles .rbc-toolbar {
+        margin-bottom: 20px;
+        background-color: #1a1a1a; /* Fundo mais escuro para o cabeçalho */
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .custom-calendar-styles .rbc-toolbar button {
+        color: #f97316; /* Laranja para os botões */
+        border: 1px solid #f97316;
+        background-color: transparent;
+        transition: all 0.2s;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 6px 12px;
+    }
+
+    .custom-calendar-styles .rbc-toolbar button:hover {
+        color: #ffffff;
+        background-color: #f97316;
+        border-color: #f97316;
+    }
+
+    /* Botão ativo */
+    .custom-calendar-styles .rbc-toolbar .rbc-btn-group button.rbc-active {
+        background-color: #f97316;
+        color: white;
+        box-shadow: none;
+        border-color: #f97316;
+    }
+
+    .custom-calendar-styles .rbc-toolbar .rbc-toolbar-label {
+        color: #ffffff; /* Título do mês/ano em branco */
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    /* Nomes dos Dias (Dom, Seg, Ter...) */
+    .custom-calendar-styles .rbc-month-view .rbc-header {
+        background-color: #1a1a1a;
+        color: #f97316; /* Laranja para os nomes dos dias */
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        font-weight: 700;
+        padding: 10px 0;
+    }
+
+    /* Células da Grade (Corpo do Mês) */
+    .custom-calendar-styles .rbc-month-view {
+        border: none;
+        background-color: #1a1a1a; /* Fundo do grid */
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Linhas e Células */
+    .custom-calendar-styles .rbc-day-bg {
+        background-color: #1a1a1a; /* Fundo da célula padrão */
+        border-left: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Linhas de separação entre semanas */
+    .custom-calendar-styles .rbc-month-view .rbc-row {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Números dos dias (Padrão) */
+    .custom-calendar-styles .rbc-date-cell {
+        color: #ffffff;
+        font-weight: 600;
+        padding: 10px;
+        opacity: 0.9;
+    }
+
+    /* CORREÇÃO PRINCIPAL: Estilo para o NÚMERO dos DIAS PASSADOS (Texto fica cinza) */
+    /* O rbc-past-day é aplicado ao fundo (rbc-day-bg), então selecionamos o filho rbc-date-cell */
+    .custom-calendar-styles .rbc-past-day .rbc-date-cell {
+        color: #6b7280 !important; /* Tailwind gray-500 (Cinza apagado) */
+        opacity: 1 !important; /* Garante que o número não herde opacidade baixa do pai, se existir */
+    }
+
+    /* Estilo visual para a CÉLULA de DIAS PASSADOS/Reservados (Fundo) */
+    .custom-calendar-styles .rbc-month-view .rbc-past-day {
+        background-color: #6b728066 !important; /* Fundo cinza médio (#6b7280/40) para datas passadas */
+        opacity: 0.7; /* Suaviza o fundo da célula */
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* Destaque para o Dia Atual */
+    .custom-calendar-styles .rbc-month-view .rbc-current-day-bg {
+        background-color: #262626 !important; /* Cinza escuro para hoje */
+    }
+
+    /* Dias Fora do Mês */
+    .custom-calendar-styles .rbc-off-range-bg {
+        background-color: #111111; /* Fundo muito escuro */
+    }
+
+    .custom-calendar-styles .rbc-off-range .rbc-date-cell {
+        color: #525252; /* Texto apagado */
+    }
+
+    /* Célula selecionada (apenas Admin) */
+    .custom-calendar-styles .rbc-day-bg.rbc-selected {
+        background-color: rgba(249, 115, 22, 0.2) !important; /* Laranja semi-transparente */
+    }
+
+    /* Eventos (Datas Ocupadas/Reservadas) */
+    .custom-calendar-styles .rbc-event {
+        background-color: #DC2626 !important; /* Vermelho padrão para ocupado */
+        color: #fff !important; /* Texto branco para legibilidade */
+        opacity: 0.95;
+        font-weight: 600;
+        border: none;
+        border-radius: 4px;
+        padding: 2px 5px;
+    }
+
+    /* Célula de dia ocupado: TODO O FUNDO VERMELHO */
+    .custom-calendar-styles .rbc-day-occupied {
+        background-color: #DC2626 !important;
+        color: white !important;
+        opacity: 0.95;
+        border-radius: 0.5rem;
+        border: none !important;
+        padding: 0.25rem !important;
+        box-sizing: border-box;
     }
 }

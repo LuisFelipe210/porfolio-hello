@@ -43,7 +43,8 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         const tapThreshold = 15;
         const swipeThreshold = 80;
 
-        if (absDiff < tapThreshold && !isSwiping.current) {
+        // Não considerar tap se swipe detectado ou movimento horizontal maior que 15px
+        if (!isSwiping.current && absDiff < tapThreshold) {
             e.preventDefault();
             if (!isOpen) {
                 onOpenModal();
@@ -53,15 +54,16 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
             startX.current = 0;
             return;
         }
-
-        if (isSwiping.current && absDiff > swipeThreshold) {
-            if (diff > 0 && !isOpen) {
-                setIsOpen(true);
-            } else if (diff < 0 && isOpen) {
-                setIsOpen(false);
+        // Se for swipe (movimento horizontal > 15px), não acionar clique
+        if (isSwiping.current || absDiff > tapThreshold) {
+            if (absDiff > swipeThreshold) {
+                if (diff > 0 && !isOpen) {
+                    setIsOpen(true);
+                } else if (diff < 0 && isOpen) {
+                    setIsOpen(false);
+                }
             }
         }
-
         startX.current = 0;
         isSwiping.current = false;
     };

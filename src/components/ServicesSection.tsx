@@ -39,7 +39,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
         <div
             onClick={handleCardClick}
             className={`
-                group relative flex-shrink-0 w-full h-[50vh] md:h-[65vh] max-h-[550px]
+                group relative flex-shrink-0 w-full h-[45vh] md:h-[55vh] max-h-[480px]
                 rounded-2xl overflow-hidden shadow-2xl transform-gpu snap-center
                 cursor-pointer transition-all duration-300
             `}
@@ -200,7 +200,7 @@ const ServicesSection = () => {
                         {isLoading ? (
                             Array.from({ length: 4 }).map((_, idx) => (
                                 <div key={idx} className="flex-shrink-0 basis-[90%] sm:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto">
-                                    <Skeleton className="h-[50vh] md:h-[65vh] max-h-[550px] w-full rounded-2xl bg-zinc-800" />
+                                    <Skeleton className="h-[45vh] md:h-[55vh] max-h-[480px] w-full rounded-2xl bg-zinc-800" />
                                 </div>
                             ))
                         ) : (
@@ -223,10 +223,10 @@ const ServicesSection = () => {
                                 <button
                                     key={idx}
                                     className={
-                                        `h-2.5 rounded-full transition-all duration-300 ` +
+                                        `w-2.5 h-2.5 rounded-full transition-transform duration-300 ` +
                                         (idx === activeIndex
-                                            ? "bg-black dark:bg-white w-6"
-                                            : "bg-gray-400 w-2.5")
+                                            ? "bg-black dark:bg-white scale-150"
+                                            : "bg-gray-400 scale-100")
                                     }
                                     onClick={() => scrollToIndex(idx)}
                                     aria-label={`Ir para o serviço ${services[idx]?.title || ''}`}
