@@ -18,9 +18,6 @@ import { Loader2 } from "lucide-react";
 // --- Importação do Chatbot ---
 import Chatbot from './components/Chatbot.tsx';
 
-// 1. Importar Header
-import Header from './components/Header';
-
 // --- Páginas com Lazy Loading ---
 const Index = lazy(() => import("./pages/Index.tsx"));
 const BlogPage = lazy(() => import("./pages/BlogPage.tsx"));
@@ -89,59 +86,49 @@ const App = () => {
 
                     <div className="site-content">
                         <BrowserRouter>
-                            {/* 2. Mover o Header para cima das rotas */}
-                            <div className="fixed top-0 left-0 right-0 z-30">
-                                <Header />
-                            </div>
-
                             {/* --- Renderiza o Chatbot globalmente --- */}
                             <Chatbot />
 
                             <ScrollToTop />
+                            <Suspense fallback={<PageLoader />}>
+                                {/* Envolve as rotas com MessagesProvider para o contexto */}
+                                <MessagesProvider>
+                                    <Routes>
+                                        {/* --- Rotas Públicas --- */}
+                                        <Route path="/" element={<Index />} />
+                                        <Route path="/blog" element={<BlogPage />} />
+                                        <Route path="/blog/:slug" element={<BlogPostPage />} />
 
-                            {/* 3. Adicionar main com padding top para o header */}
-                            <main className="pt-[var(--header-height)]">
-                                <Suspense fallback={<PageLoader />}>
-                                    {/* Envolve as rotas com MessagesProvider para o contexto */}
-                                    <MessagesProvider>
-                                        <Routes>
-                                            {/* --- Rotas Públicas --- */}
-                                            <Route path="/" element={<Index />} />
-                                            <Route path="/blog" element={<BlogPage />} />
-                                            <Route path="/blog/:slug" element={<BlogPostPage />} />
+                                        {/* --- Rotas Clientes --- */}
+                                        <Route path="/portal/login" element={<ClientLoginPage />} />
+                                        <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
+                                        <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
+                                        <Route path="/portal" element={<ClientLayout />}>
+                                            <Route path="gallery/:galleryId?" element={<ClientGalleryPage />} />
+                                            <Route path="reset-password" element={<ClientResetPasswordPage />} />
+                                        </Route>
 
-                                            {/* --- Rotas Clientes --- */}
-                                            <Route path="/portal/login" element={<ClientLoginPage />} />
-                                            <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
-                                            <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
-                                            <Route path="/portal" element={<ClientLayout />}>
-                                                <Route path="gallery/:galleryId?" element={<ClientGalleryPage />} />
-                                                <Route path="reset-password" element={<ClientResetPasswordPage />} />
-                                            </Route>
+                                        {/* --- Rotas Admin (agora dentro do MessagesProvider) --- */}
+                                        <Route path="/admin/login" element={<AdminLogin />} />
+                                        <Route path="/admin" element={<AdminLayout />}>
+                                            <Route index element={<AdminDashboard />} />
+                                            <Route path="portfolio" element={<AdminPortfolio />} />
+                                            <Route path="services" element={<AdminServices />} />
+                                            <Route path="about" element={<AdminAbout />} />
+                                            <Route path="settings" element={<AdminSettings />} />
+                                            <Route path="testimonials" element={<AdminTestimonials />} />
+                                            <Route path="messages" element={<AdminMessages />} />
+                                            <Route path="blog" element={<AdminBlog />} />
+                                            <Route path="clients" element={<AdminClients />} />
+                                            <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
+                                            <Route path="availability" element={<AdminAvailability />} />
+                                        </Route>
 
-                                            {/* --- Rotas Admin (agora dentro do MessagesProvider) --- */}
-                                            <Route path="/admin/login" element={<AdminLogin />} />
-                                            <Route path="/admin" element={<AdminLayout />}>
-                                                <Route index element={<AdminDashboard />} />
-                                                <Route path="portfolio" element={<AdminPortfolio />} />
-                                                <Route path="services" element={<AdminServices />} />
-                                                <Route path="about" element={<AdminAbout />} />
-                                                <Route path="settings" element={<AdminSettings />} />
-                                                <Route path="testimonials" element={<AdminTestimonials />} />
-                                                <Route path="messages" element={<AdminMessages />} />
-                                                <Route path="blog" element={<AdminBlog />} />
-                                                <Route path="clients" element={<AdminClients />} />
-                                                <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
-                                                <Route path="availability" element={<AdminAvailability />} />
-                                            </Route>
-
-                                            {/* --- Rota Not Found --- */}
-                                            <Route path="*" element={<NotFound />} />
-                                        </Routes>
-                                    </MessagesProvider>
-                                </Suspense>
-                            </main>
-
+                                        {/* --- Rota Not Found --- */}
+                                        <Route path="*" element={<NotFound />} />
+                                    </Routes>
+                                </MessagesProvider>
+                            </Suspense>
                             {/* 3. Renderizar AppContent que decide se mostra FloatingContact */}
                             <AppContent />
                         </BrowserRouter>
@@ -154,3 +141,4 @@ const App = () => {
 };
 
 export default App;
+
