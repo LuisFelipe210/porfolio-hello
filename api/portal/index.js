@@ -1,9 +1,17 @@
-// porfolio-hello/api/portal/index.js (UNIFICADO E CORRIGIDO)
+// porfolio-hello/api/portal/index.js (MIGRADO PARA BREVO)
 
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
+import * as Brevo from '@getbrevo/brevo'; // ADICIONAR BREVO
+// REMOVER: import nodemailer from 'nodemailer';
+
+// Configuração do Cliente Brevo (Inicia o cliente API)
+const defaultClient = Brevo.ApiClient.instance;
+const apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+const apiInstance = new Brevo.TransactionalEmailsApi();
+
 
 // --- Variável para Cache da Conexão com o Banco de Dados ---
 let cachedDb = null;
@@ -16,59 +24,47 @@ async function connectToDatabase(uri) {
     }
     console.log('[LOG: DB] Estabelecendo nova conexão com o MongoDB.');
     const client = await MongoClient.connect(uri);
-    const db = client.db('helloborges_portfolio'); // O nome do seu banco de dados
+    const db = client.db('helloborges_portfolio');
     cachedDb = db;
     return db;
 }
 
-// --- Função para Enviar E-mail de Redefinição de Senha ---
+// --- Função para Enviar E-mail de Redefinição de Senha (AGORA COM BREVO) ---
 async function sendPasswordResetEmail(email, token) {
-    // CONFIGURAÇÃO UNIFICADA E ROBUSTA: PORTA 465 e secure: true
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: Number(process.env.EMAIL_PORT) || 465,
-        secure: true, // DEVE SER TRUE PARA PORTA 465
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS, // Senha de App do Google
-        },
-    });
 
     const resetLink = `${process.env.BASE_URL || 'http://localhost:3000'}/portal/reset-password/${token}`;
 
     console.log(`[LOG: EMAIL_SEND] Preparando para enviar e-mail de redefinição para: ${email}`);
     console.log(`[LOG: EMAIL_SEND] Link de redefinição gerado: ${resetLink}`);
 
+    let sendSmtpEmail = new Brevo.SendSmtpEmail();
 
-    const mailOptions = {
-        from: `"${process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'}" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Redefinição de Senha',
-        html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2 style="color: #333;">Redefinição de Senha</h2>
-                <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para criar uma nova senha:</p>
-                <p>
-                    <a href="${resetLink}" target="_blank" style="display:inline-block;background-color:#f97316;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;font-weight:bold;">
-                        Redefinir minha senha
-                    </a>
-                </p>
-                <p>Se você não solicitou esta alteração, por favor ignore este e-mail.</p>
-                <p>Este link é válido por <strong>1 hora</strong>.</p>
-                <hr>
-                <p style="font-size: 0.8em; color: #777;">Com os melhores cumprimentos,<br>Equipa Hellô Borges Fotografia</p>
-            </div>
-        `,
-    };
+    sendSmtpEmail.subject = "Redefinição de Senha";
+    // Usa o EMAIL_FROM verificado na Brevo
+    sendSmtpEmail.sender = { "email": process.env.EMAIL_FROM || "no-reply@dominio-nao-configurado.com" };
+    sendSmtpEmail.to = [{ "email": email }];
+    sendSmtpEmail.htmlContent = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2 style="color: #333;">Redefinição de Senha</h2>
+            <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para criar uma nova senha:</p>
+            <p>
+                <a href="${resetLink}" target="_blank" style="display:inline-block;background-color:#f97316;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;font-weight:bold;">
+                    Redefinir minha senha
+                </a>
+            </p>
+            <p>Se você não solicitou esta alteração, por favor ignore este e-mail.</p>
+            <p>Este link é válido por <strong>1 hora</strong>.</p>
+            <hr>
+            <p style="font-size: 0.8em; color: #777;">Com os melhores cumprimentos,<br>Equipa Hellô Borges Fotografia</p>
+        </div>
+    `;
 
     try {
-        console.log('[LOG: EMAIL_SEND] Tentando transporter.sendMail...');
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`[LOG: EMAIL_SENT] E-mail enviado com sucesso! MessageId: ${info.messageId}`);
-        return info;
+        console.log('[LOG: EMAIL_SEND] Tentando Brevo API sendTransacEmail...');
+        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+        console.log(`[LOG: EMAIL_SENT] E-mail enviado com sucesso via Brevo! Response: ${JSON.stringify(data)}`);
     } catch (error) {
-        // Se este erro ocorrer, o problema é a Senha de Aplicação ou o limite de taxa.
-        console.error('[LOG: EMAIL_ERROR] Falha ao enviar e-mail. ERRO:', error);
+        console.error('[LOG: EMAIL_ERROR] Falha ao enviar e-mail Brevo:', error.response?.text || error.message);
     }
 }
 
@@ -91,7 +87,7 @@ export default async function handler(req, res) {
             const { email, password } = req.body;
             if (!email || !password) return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
 
-            // Busca case-insensitive para o login
+            // Busca case-insensitive
             const client = await clientsCollection.findOne({ email: new RegExp(email, 'i') });
             if (!client) return res.status(401).json({ error: 'Credenciais inválidas.' });
 
@@ -115,15 +111,17 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'E-mail é obrigatório.' });
             }
 
+            // BUSCA ROBUSTA: Procura no campo 'email' OU no campo 'recoveryEmail', case-insensitive
             const client = await clientsCollection.findOne({
                 $or: [
                     { email: new RegExp(email, 'i') },
+                    { recoveryEmail: new RegExp(email, 'i') }
                 ]
             });
 
             if (client) {
                 console.log(`[LOG: RESET_REQUEST] Cliente encontrado. ID: ${client._id}`);
-                const targetEmail = client.email;
+                const targetEmail = client.recoveryEmail || client.email;
 
                 if (targetEmail) {
                     console.log(`[LOG: RESET_REQUEST] E-mail de destino: ${targetEmail}`);
@@ -293,18 +291,17 @@ export default async function handler(req, res) {
             const client = await clientsCollection.findOne({ _id: new ObjectId(clientId) });
             const gallery = await galleriesCollection.findOne({ _id: new ObjectId(galleryId) });
 
-            const adminTransporter = nodemailer.createTransport({
-                host: process.env.EMAIL_HOST,
-                port: Number(process.env.EMAIL_PORT) || 465,
-                secure: true,
-                auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+            // MUDANÇA: Notificação de Admin via Brevo API
+            let adminSendSmtpEmail = new Brevo.SendSmtpEmail();
+            adminSendSmtpEmail.sender = { "email": process.env.EMAIL_FROM || "no-reply@dominio-nao-configurado.com" };
+            adminSendSmtpEmail.to = [{ "email": process.env.EMAIL_TO }];
+            adminSendSmtpEmail.subject = `Seleção de Fotos Recebida: ${client.name}`;
+            adminSendSmtpEmail.htmlContent = `<h2>O cliente ${client.name} finalizou a seleção de fotos!</h2><p><strong>Galeria:</strong> ${gallery.name}</p><p><strong>Total de fotos selecionadas:</strong> ${selectedImages.length}</p><p>Aceda ao seu painel de administração para ver as escolhas.</p>`;
+
+            apiInstance.sendTransacEmail(adminSendSmtpEmail).catch(err => {
+                console.error("Erro ao enviar e-mail de notificação para o admin (Brevo):", err.response?.text || err.message);
             });
-            adminTransporter.sendMail({
-                from: `"${process.env.EMAIL_FROM_NAME || 'Sistema'}" <${process.env.EMAIL_USER}>`,
-                to: process.env.EMAIL_TO,
-                subject: `Seleção de Fotos Recebida: ${client.name}`,
-                html: `<h2>O cliente ${client.name} finalizou a seleção de fotos!</h2><p><strong>Galeria:</strong> ${gallery.name}</p><p><strong>Total de fotos selecionadas:</strong> ${selectedImages.length}</p><p>Aceda ao seu painel de administração para ver as escolhas.</p>`,
-            }).catch(err => console.error("Erro ao enviar e-mail de notificação para o admin:", err));
+
 
             return res.status(200).json({ message: 'Seleção enviada com sucesso!' });
         }

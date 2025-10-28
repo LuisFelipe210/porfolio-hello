@@ -1,6 +1,12 @@
-import nodemailer from 'nodemailer';
+import * as Brevo from '@getbrevo/brevo';
 import { MongoClient } from 'mongodb';
 import cors from 'cors';
+
+// Configuração do Cliente Brevo
+const defaultClient = Brevo.ApiClient.instance;
+const apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+const apiInstance = new Brevo.TransactionalEmailsApi();
 
 // Helper de conexão com o MongoDB
 let cachedDb = null;
@@ -44,40 +50,32 @@ export default async function handler(req, res) {
             service,
             message,
             createdAt: new Date(),
-            read: false, // Adicionamos um campo para marcar como lida no futuro
+            read: false,
         });
 
-        // 2. Enviar o e-mail
-        const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_HOST,
-            port: Number(process.env.EMAIL_PORT) || 465,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
+        // 2. Enviar o e-mail (AGORA COM BREVO)
+        let sendSmtpEmail = new Brevo.SendSmtpEmail();
 
-        await transporter.sendMail({
-            from: `"${name}" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_TO,
-            replyTo: email,
-            subject: `Novo contato do site - ${service}`,
-            html: `
-                <h2>Nova mensagem recebida:</h2>
-                <p><strong>Nome:</strong> ${name}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Telefone:</strong> ${phone || 'Não informado'}</p>
-                <p><strong>Serviço:</strong> ${service}</p>
-                <hr />
-                <p><strong>Mensagem:</strong></p>
-                <p>${message}</p>
-            `,
-        });
+        sendSmtpEmail.subject = `Novo contato do site - ${service}`;
+        sendSmtpEmail.sender = { "email": process.env.EMAIL_FROM || "no-reply@dominio-nao-configurado.com" };
+        sendSmtpEmail.to = [{ "email": process.env.EMAIL_TO }];
+        sendSmtpEmail.replyTo = { "email": email }; // Definir o 'replyTo' para o e-mail do cliente
+        sendSmtpEmail.htmlContent = `
+            <h2>Nova mensagem recebida:</h2>
+            <p><strong>Nome:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Telefone:</strong> ${phone || 'Não informado'}</p>
+            <p><strong>Serviço:</strong> ${service}</p>
+            <hr />
+            <p><strong>Mensagem:</strong></p>
+            <p>${message}</p>
+        `;
+
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
 
         return res.status(200).json({ success: true, message: 'Mensagem enviada e guardada com sucesso!' });
     } catch (error) {
-        console.error('Erro ao processar mensagem:', error);
+        console.error('Erro ao processar mensagem (Brevo):', error.response?.text || error.message);
         return res.status(500).json({ error: 'Falha ao processar a mensagem.' });
     }
 }
