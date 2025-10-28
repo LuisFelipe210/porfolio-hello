@@ -11,7 +11,7 @@ const ClientLayout = () => {
     const [headerBackAction, setHeaderBackAction] = useState<(() => void) | null>(null);
 
     useEffect(() => {
-        document.documentElement.classList.add('dark');
+        // Remove o dark mode forçado
         const token = localStorage.getItem('clientAuthToken');
         if (!token) {
             navigate('/portal/login');
@@ -24,27 +24,29 @@ const ClientLayout = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-black">
-            {/* --- FUNDO --- */}
+        <div className="flex flex-col h-screen bg-black dark:bg-black">
             <div className="fixed inset-0 z-0">
                 <img
-                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")}
+                    src={optimizeCloudinaryUrl(
+                        "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg",
+                        "f_auto,q_auto,w_1080,e_blur:100"
+                    )}
                     alt="Background"
                     className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+                <div className="absolute inset-0 bg-black/70 dark:bg-black/70 backdrop-blur-md"></div>
             </div>
 
             {/* --- HEADER --- */}
-            <header className="relative z-50 flex h-24 items-center justify-between bg-black/30 text-white border-b border-white/10 px-4 md:px-8 shrink-0">
+            <header className="relative z-50 flex h-24 items-center justify-between bg-white/30 dark:bg-black/30 text-black dark:text-white border-b border-black/10 dark:border-white/10 px-4 md:px-8 shrink-0">
                 <div className="w-28">
                     {headerBackAction && (
                         <Button
                             variant="ghost"
                             onClick={headerBackAction}
-                            className="text-white/80 hover:bg-white/10 hover:text-white rounded-xl flex items-center transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-orange-500 dark:bg-orange-500 text-white dark:text-black rounded-xl hover:bg-orange-600 dark:hover:bg-orange-600 transition-colors shadow-sm hover:shadow-md"
                         >
-                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            <ArrowLeft className="h-5 w-5" />
                             Voltar
                         </Button>
                     )}
@@ -58,9 +60,9 @@ const ClientLayout = () => {
                     <Button
                         variant="ghost"
                         onClick={handleLogout}
-                        className="text-white/80 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-orange-500 dark:bg-orange-500 text-white dark:text-black rounded-xl hover:bg-orange-600 dark:hover:bg-orange-600 transition-colors shadow-sm hover:shadow-md"
                     >
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut className="h-5 w-5" />
                         Sair
                     </Button>
                 </div>
