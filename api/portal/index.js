@@ -1,3 +1,5 @@
+// porfolio-hello/api/portal/index.js (UNIFICADO E CORRIGIDO)
+
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
@@ -9,8 +11,10 @@ let cachedDb = null;
 // --- Função para Conectar ao Banco de Dados (com cache) ---
 async function connectToDatabase(uri) {
     if (cachedDb) {
+        console.log('[LOG: DB] Utilizando conexão em cache.');
         return cachedDb;
     }
+    console.log('[LOG: DB] Estabelecendo nova conexão com o MongoDB.');
     const client = await MongoClient.connect(uri);
     const db = client.db('helloborges_portfolio'); // O nome do seu banco de dados
     cachedDb = db;
@@ -19,20 +23,21 @@ async function connectToDatabase(uri) {
 
 // --- Função para Enviar E-mail de Redefinição de Senha ---
 async function sendPasswordResetEmail(email, token) {
+    // CONFIGURAÇÃO UNIFICADA E ROBUSTA: PORTA 465 e secure: true
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: Number(process.env.EMAIL_PORT) || 587,
-        secure: false, // false para a porta 587 (TLS)
+        port: Number(process.env.EMAIL_PORT) || 465,
+        secure: true, // DEVE SER TRUE PARA PORTA 465
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS, // Garanta que esta é uma "Senha de App" se usar o Gmail
+            pass: process.env.EMAIL_PASS, // Senha de App do Google
         },
     });
 
     const resetLink = `${process.env.BASE_URL || 'http://localhost:3000'}/portal/reset-password/${token}`;
 
-    console.log(`[EMAIL] Preparando para enviar e-mail de redefinição para: ${email}`);
-    console.log(`[EMAIL] Link de redefinição gerado: ${resetLink}`);
+    console.log(`[LOG: EMAIL_SEND] Preparando para enviar e-mail de redefinição para: ${email}`);
+    console.log(`[LOG: EMAIL_SEND] Link de redefinição gerado: ${resetLink}`);
 
 
     const mailOptions = {
@@ -57,18 +62,20 @@ async function sendPasswordResetEmail(email, token) {
     };
 
     try {
+        console.log('[LOG: EMAIL_SEND] Tentando transporter.sendMail...');
         const info = await transporter.sendMail(mailOptions);
-        console.log(`[EMAIL] E-mail enviado com sucesso! MessageId: ${info.messageId}`);
+        console.log(`[LOG: EMAIL_SENT] E-mail enviado com sucesso! MessageId: ${info.messageId}`);
         return info;
     } catch (error) {
-        console.error('[EMAIL_ERROR] Falha ao enviar e-mail:', error);
-        // Não lançamos o erro para a frente para não expor detalhes ao cliente
+        // Se este erro ocorrer, o problema é a Senha de Aplicação ou o limite de taxa.
+        console.error('[LOG: EMAIL_ERROR] Falha ao enviar e-mail. ERRO:', error);
     }
 }
 
 
 // --- Handler Principal da API (Função Serverless) ---
 export default async function handler(req, res) {
+    console.log(`[LOG: API_CALL] Método: ${req.method}, Ação: ${req.query.action}`);
     try {
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const { action } = req.query;
@@ -84,7 +91,8 @@ export default async function handler(req, res) {
             const { email, password } = req.body;
             if (!email || !password) return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
 
-            const client = await clientsCollection.findOne({ email });
+            // Busca case-insensitive para o login
+            const client = await clientsCollection.findOne({ email: new RegExp(email, 'i') });
             if (!client) return res.status(401).json({ error: 'Credenciais inválidas.' });
 
             const isPasswordValid = await bcrypt.compare(password, client.password);
@@ -101,27 +109,48 @@ export default async function handler(req, res) {
         // --- AÇÃO: SOLICITAR REDEFINIÇÃO DE SENHA ---
         if (action === 'requestPasswordReset' && req.method === 'POST') {
             const { email } = req.body;
+            console.log(`[LOG: RESET_REQUEST] E-mail recebido: ${email}`);
+
             if (!email) {
                 return res.status(400).json({ error: 'E-mail é obrigatório.' });
             }
 
-            const client = await clientsCollection.findOne({ email });
+            const client = await clientsCollection.findOne({
+                $or: [
+                    { email: new RegExp(email, 'i') },
+                ]
+            });
 
             if (client) {
+                console.log(`[LOG: RESET_REQUEST] Cliente encontrado. ID: ${client._id}`);
                 const targetEmail = client.email;
+
                 if (targetEmail) {
-                    console.log(`[DEBUG] Cliente ${client.name} encontrado. E-mail de destino para redefinição: ${targetEmail}`);
+                    console.log(`[LOG: RESET_REQUEST] E-mail de destino: ${targetEmail}`);
+
                     const resetToken = jwt.sign(
                         { clientId: client._id, purpose: 'password-reset' },
                         process.env.CLIENT_JWT_SECRET,
                         { expiresIn: '1h' }
                     );
+
+                    const resetTokenExpiry = Date.now() + 60 * 60 * 1000;
+
+                    const updateResult = await clientsCollection.updateOne(
+                        { _id: client._id },
+                        { $set: { resetToken, resetTokenExpiry } }
+                    );
+
+                    console.log(`[LOG: RESET_DB] Token salvo no DB. Matched: ${updateResult.matchedCount}, Modified: ${updateResult.modifiedCount}`);
+
                     sendPasswordResetEmail(targetEmail, resetToken).catch(err => {
-                        console.error("Erro assíncrono no envio de e-mail:", err);
+                        console.error("[LOG: ERROR_ASYNC] Erro assíncrono no envio de e-mail:", err);
                     });
+                } else {
+                    console.log("[LOG: RESET_REQUEST] Cliente encontrado, mas sem email de login ou recuperação.");
                 }
             } else {
-                console.log(`[DEBUG] Nenhum cliente encontrado para o e-mail de login: ${email}`);
+                console.log(`[LOG: RESET_REQUEST] Nenhum cliente encontrado para o e-mail: ${email}`);
             }
 
             return res.status(200).json({ message: 'Se o e-mail estiver registado, um link de redefinição foi enviado.' });
@@ -133,6 +162,7 @@ export default async function handler(req, res) {
         // =================================================================
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            console.log('[LOG: AUTH] Falha: Header de Autorização ausente.');
             return res.status(401).json({ error: 'Acesso não autorizado.' });
         }
         const token = authHeader.split(' ')[1];
@@ -140,7 +170,9 @@ export default async function handler(req, res) {
         let decoded;
         try {
             decoded = jwt.verify(token, process.env.CLIENT_JWT_SECRET);
+            console.log(`[LOG: AUTH] Token JWT verificado com sucesso. Client ID: ${decoded.clientId}`);
         } catch (error) {
+            console.log(`[LOG: AUTH_ERROR] Falha na verificação JWT: ${error.message}`);
             return res.status(401).json({ error: 'Token inválido ou expirado.' });
         }
 
@@ -149,31 +181,47 @@ export default async function handler(req, res) {
         // AÇÕES PRIVADAS (PRECISAM DE TOKEN)
         // =================================================================
 
-        // --- AÇÃO: VERIFICAR TOKEN DE REDEFINIÇÃO (GET) ---
-        if (action === 'verifyResetToken' && req.method === 'GET') {
-            if (decoded.purpose === 'password-reset') {
-                return res.status(200).json({ message: 'Token válido.' });
-            }
-            return res.status(401).json({ error: 'Token inválido para esta ação.' });
-        }
-
         // --- AÇÃO: ATUALIZAR SENHA COM TOKEN (POST) ---
         if (action === 'updatePasswordWithToken' && req.method === 'POST') {
+            console.log('[LOG: UPDATE_TOKEN] Tentativa de atualização de senha via link de redefinição.');
             if (decoded.purpose !== 'password-reset') {
+                console.log('[LOG: UPDATE_TOKEN] Falha: Token não tem purpose="password-reset".');
                 return res.status(401).json({ error: 'Token inválido para esta ação.' });
             }
             const { newPassword } = req.body;
-            if (!newPassword || newPassword.length < 6) {
-                return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+
+            // 1. Verificar se o token JWT ainda é válido e corresponde ao DB
+            const client = await clientsCollection.findOne({
+                _id: new ObjectId(decoded.clientId),
+                resetToken: token,
+                resetTokenExpiry: { $gt: Date.now() }
+            });
+
+            if (!client) {
+                console.log('[LOG: UPDATE_TOKEN] Falha na validação DB: Token expirado, usado ou inválido no MongoDB.');
+                return res.status(401).json({ error: 'Link de redefinição inválido, expirado ou já utilizado.' });
             }
 
+            console.log('[LOG: UPDATE_TOKEN] Validação de uso único no DB OK.');
+
+            // 2. Hash da nova senha
             const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            // 3. Atualizar a senha e LIMPAR o token do DB (Garante uso único)
             const result = await clientsCollection.updateOne(
                 { _id: new ObjectId(decoded.clientId) },
-                { $set: { password: hashedPassword, mustResetPassword: false } }
+                {
+                    $set: { password: hashedPassword, mustResetPassword: false },
+                    $unset: { resetToken: "", resetTokenExpiry: "" } // Limpa após o uso
+                }
             );
 
-            if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
+            if (result.matchedCount === 0) {
+                console.log('[LOG: UPDATE_TOKEN] Falha crítica: Cliente não encontrado para atualização (ID de token).');
+                return res.status(500).json({ error: 'Falha na atualização da senha.' });
+            }
+
+            console.log('[LOG: UPDATE_TOKEN] Sucesso! Senha atualizada e token de uso único removido.');
             return res.status(200).json({ message: 'Senha atualizada com sucesso!' });
         }
 
@@ -247,7 +295,7 @@ export default async function handler(req, res) {
 
             const adminTransporter = nodemailer.createTransport({
                 host: process.env.EMAIL_HOST,
-                port: Number(process.env.EMAIL_PORT) || 587,
+                port: Number(process.env.EMAIL_PORT) || 465,
                 secure: true,
                 auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
             });
