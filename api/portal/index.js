@@ -108,7 +108,6 @@ export default async function handler(req, res) {
             const client = await clientsCollection.findOne({ email });
 
             if (client) {
-                // Lógica principal: usa o e-mail de recuperação se existir, senão, o e-mail de login.
                 const targetEmail = client.email;
                 if (targetEmail) {
                     console.log(`[DEBUG] Cliente ${client.name} encontrado. E-mail de destino para redefinição: ${targetEmail}`);
