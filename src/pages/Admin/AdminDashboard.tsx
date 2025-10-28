@@ -199,7 +199,7 @@ const AdminDashboard = () => {
                                             <span className="font-bold text-xl">{data?.stats.portfolio}</span>
                                         </div>
                                         <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white">
-                                            <span className="flex items-center gap-2"><MessageSquareQuote className="h-5 w-5 text-white/70"/>Testemunhos</span>
+                                            <span className="flex items-center gap-2"><MessageSquareQuote className="h-5 w-5 text-white/70"/>Depoimentos</span>
                                             <span className="font-bold text-xl">{data?.stats.testimonials}</span>
                                         </div>
                                         <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white">
