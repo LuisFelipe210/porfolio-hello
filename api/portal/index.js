@@ -1,17 +1,7 @@
-// porfolio-hello/api/portal/index.js (MIGRADO PARA BREVO)
-
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import * as Brevo from '@getbrevo/brevo'; // ADICIONAR BREVO
-// REMOVER: import nodemailer from 'nodemailer';
-
-// Configuração do Cliente Brevo (Inicia o cliente API)
-const defaultClient = Brevo.ApiClient.instance;
-const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
-const apiInstance = new Brevo.TransactionalEmailsApi();
-
+import nodemailer from 'nodemailer';
 
 // --- Variável para Cache da Conexão com o Banco de Dados ---
 let cachedDb = null;
@@ -19,59 +9,66 @@ let cachedDb = null;
 // --- Função para Conectar ao Banco de Dados (com cache) ---
 async function connectToDatabase(uri) {
     if (cachedDb) {
-        console.log('[LOG: DB] Utilizando conexão em cache.');
         return cachedDb;
     }
-    console.log('[LOG: DB] Estabelecendo nova conexão com o MongoDB.');
     const client = await MongoClient.connect(uri);
-    const db = client.db('helloborges_portfolio');
+    const db = client.db('helloborges_portfolio'); // O nome do seu banco de dados
     cachedDb = db;
     return db;
 }
 
-// --- Função para Enviar E-mail de Redefinição de Senha (AGORA COM BREVO) ---
+// --- Função para Enviar E-mail de Redefinição de Senha ---
 async function sendPasswordResetEmail(email, token) {
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        port: Number(process.env.EMAIL_PORT) || 587,
+        secure: false, // false para a porta 587 (TLS)
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS, // Garanta que esta é uma "Senha de App" se usar o Gmail
+        },
+    });
 
     const resetLink = `${process.env.BASE_URL || 'http://localhost:3000'}/portal/reset-password/${token}`;
 
-    console.log(`[LOG: EMAIL_SEND] Preparando para enviar e-mail de redefinição para: ${email}`);
-    console.log(`[LOG: EMAIL_SEND] Link de redefinição gerado: ${resetLink}`);
+    console.log(`[EMAIL] Preparando para enviar e-mail de redefinição para: ${email}`);
+    console.log(`[EMAIL] Link de redefinição gerado: ${resetLink}`);
 
-    let sendSmtpEmail = new Brevo.SendSmtpEmail();
 
-    sendSmtpEmail.subject = "Redefinição de Senha";
-    // Usa o EMAIL_FROM verificado na Brevo
-    sendSmtpEmail.sender = { "email": process.env.EMAIL_FROM || "no-reply@dominio-nao-configurado.com" };
-    sendSmtpEmail.to = [{ "email": email }];
-    sendSmtpEmail.htmlContent = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2 style="color: #333;">Redefinição de Senha</h2>
-            <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para criar uma nova senha:</p>
-            <p>
-                <a href="${resetLink}" target="_blank" style="display:inline-block;background-color:#f97316;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;font-weight:bold;">
-                    Redefinir minha senha
-                </a>
-            </p>
-            <p>Se você não solicitou esta alteração, por favor ignore este e-mail.</p>
-            <p>Este link é válido por <strong>1 hora</strong>.</p>
-            <hr>
-            <p style="font-size: 0.8em; color: #777;">Com os melhores cumprimentos,<br>Equipa Hellô Borges Fotografia</p>
-        </div>
-    `;
+    const mailOptions = {
+        from: `"${process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'}" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Redefinição de Senha',
+        html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2 style="color: #333;">Redefinição de Senha</h2>
+                <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para criar uma nova senha:</p>
+                <p>
+                    <a href="${resetLink}" target="_blank" style="display:inline-block;background-color:#f97316;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;font-weight:bold;">
+                        Redefinir minha senha
+                    </a>
+                </p>
+                <p>Se você não solicitou esta alteração, por favor ignore este e-mail.</p>
+                <p>Este link é válido por <strong>1 hora</strong>.</p>
+                <hr>
+                <p style="font-size: 0.8em; color: #777;">Com os melhores cumprimentos,<br>Equipa Hellô Borges Fotografia</p>
+            </div>
+        `,
+    };
 
     try {
-        console.log('[LOG: EMAIL_SEND] Tentando Brevo API sendTransacEmail...');
-        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log(`[LOG: EMAIL_SENT] E-mail enviado com sucesso via Brevo! Response: ${JSON.stringify(data)}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[EMAIL] E-mail enviado com sucesso! MessageId: ${info.messageId}`);
+        return info;
     } catch (error) {
-        console.error('[LOG: EMAIL_ERROR] Falha ao enviar e-mail Brevo:', error.response?.text || error.message);
+        console.error('[EMAIL_ERROR] Falha ao enviar e-mail:', error);
+        // Não lançamos o erro para a frente para não expor detalhes ao cliente
     }
 }
 
 
 // --- Handler Principal da API (Função Serverless) ---
 export default async function handler(req, res) {
-    console.log(`[LOG: API_CALL] Método: ${req.method}, Ação: ${req.query.action}`);
     try {
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const { action } = req.query;
@@ -87,8 +84,7 @@ export default async function handler(req, res) {
             const { email, password } = req.body;
             if (!email || !password) return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
 
-            // Busca case-insensitive
-            const client = await clientsCollection.findOne({ email: new RegExp(email, 'i') });
+            const client = await clientsCollection.findOne({ email });
             if (!client) return res.status(401).json({ error: 'Credenciais inválidas.' });
 
             const isPasswordValid = await bcrypt.compare(password, client.password);
@@ -105,50 +101,28 @@ export default async function handler(req, res) {
         // --- AÇÃO: SOLICITAR REDEFINIÇÃO DE SENHA ---
         if (action === 'requestPasswordReset' && req.method === 'POST') {
             const { email } = req.body;
-            console.log(`[LOG: RESET_REQUEST] E-mail recebido: ${email}`);
-
             if (!email) {
                 return res.status(400).json({ error: 'E-mail é obrigatório.' });
             }
 
-            // BUSCA ROBUSTA: Procura no campo 'email' OU no campo 'recoveryEmail', case-insensitive
-            const client = await clientsCollection.findOne({
-                $or: [
-                    { email: new RegExp(email, 'i') },
-                    { recoveryEmail: new RegExp(email, 'i') }
-                ]
-            });
+            const client = await clientsCollection.findOne({ email });
 
             if (client) {
-                console.log(`[LOG: RESET_REQUEST] Cliente encontrado. ID: ${client._id}`);
+                // Lógica principal: usa o e-mail de recuperação se existir, senão, o e-mail de login.
                 const targetEmail = client.recoveryEmail || client.email;
-
                 if (targetEmail) {
-                    console.log(`[LOG: RESET_REQUEST] E-mail de destino: ${targetEmail}`);
-
+                    console.log(`[DEBUG] Cliente ${client.name} encontrado. E-mail de destino para redefinição: ${targetEmail}`);
                     const resetToken = jwt.sign(
                         { clientId: client._id, purpose: 'password-reset' },
                         process.env.CLIENT_JWT_SECRET,
                         { expiresIn: '1h' }
                     );
-
-                    const resetTokenExpiry = Date.now() + 60 * 60 * 1000;
-
-                    const updateResult = await clientsCollection.updateOne(
-                        { _id: client._id },
-                        { $set: { resetToken, resetTokenExpiry } }
-                    );
-
-                    console.log(`[LOG: RESET_DB] Token salvo no DB. Matched: ${updateResult.matchedCount}, Modified: ${updateResult.modifiedCount}`);
-
                     sendPasswordResetEmail(targetEmail, resetToken).catch(err => {
-                        console.error("[LOG: ERROR_ASYNC] Erro assíncrono no envio de e-mail:", err);
+                        console.error("Erro assíncrono no envio de e-mail:", err);
                     });
-                } else {
-                    console.log("[LOG: RESET_REQUEST] Cliente encontrado, mas sem email de login ou recuperação.");
                 }
             } else {
-                console.log(`[LOG: RESET_REQUEST] Nenhum cliente encontrado para o e-mail: ${email}`);
+                console.log(`[DEBUG] Nenhum cliente encontrado para o e-mail de login: ${email}`);
             }
 
             return res.status(200).json({ message: 'Se o e-mail estiver registado, um link de redefinição foi enviado.' });
@@ -160,7 +134,6 @@ export default async function handler(req, res) {
         // =================================================================
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            console.log('[LOG: AUTH] Falha: Header de Autorização ausente.');
             return res.status(401).json({ error: 'Acesso não autorizado.' });
         }
         const token = authHeader.split(' ')[1];
@@ -168,9 +141,7 @@ export default async function handler(req, res) {
         let decoded;
         try {
             decoded = jwt.verify(token, process.env.CLIENT_JWT_SECRET);
-            console.log(`[LOG: AUTH] Token JWT verificado com sucesso. Client ID: ${decoded.clientId}`);
         } catch (error) {
-            console.log(`[LOG: AUTH_ERROR] Falha na verificação JWT: ${error.message}`);
             return res.status(401).json({ error: 'Token inválido ou expirado.' });
         }
 
@@ -179,47 +150,31 @@ export default async function handler(req, res) {
         // AÇÕES PRIVADAS (PRECISAM DE TOKEN)
         // =================================================================
 
+        // --- AÇÃO: VERIFICAR TOKEN DE REDEFINIÇÃO (GET) ---
+        if (action === 'verifyResetToken' && req.method === 'GET') {
+            if (decoded.purpose === 'password-reset') {
+                return res.status(200).json({ message: 'Token válido.' });
+            }
+            return res.status(401).json({ error: 'Token inválido para esta ação.' });
+        }
+
         // --- AÇÃO: ATUALIZAR SENHA COM TOKEN (POST) ---
         if (action === 'updatePasswordWithToken' && req.method === 'POST') {
-            console.log('[LOG: UPDATE_TOKEN] Tentativa de atualização de senha via link de redefinição.');
             if (decoded.purpose !== 'password-reset') {
-                console.log('[LOG: UPDATE_TOKEN] Falha: Token não tem purpose="password-reset".');
                 return res.status(401).json({ error: 'Token inválido para esta ação.' });
             }
             const { newPassword } = req.body;
-
-            // 1. Verificar se o token JWT ainda é válido e corresponde ao DB
-            const client = await clientsCollection.findOne({
-                _id: new ObjectId(decoded.clientId),
-                resetToken: token,
-                resetTokenExpiry: { $gt: Date.now() }
-            });
-
-            if (!client) {
-                console.log('[LOG: UPDATE_TOKEN] Falha na validação DB: Token expirado, usado ou inválido no MongoDB.');
-                return res.status(401).json({ error: 'Link de redefinição inválido, expirado ou já utilizado.' });
+            if (!newPassword || newPassword.length < 6) {
+                return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
             }
 
-            console.log('[LOG: UPDATE_TOKEN] Validação de uso único no DB OK.');
-
-            // 2. Hash da nova senha
             const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-            // 3. Atualizar a senha e LIMPAR o token do DB (Garante uso único)
             const result = await clientsCollection.updateOne(
                 { _id: new ObjectId(decoded.clientId) },
-                {
-                    $set: { password: hashedPassword, mustResetPassword: false },
-                    $unset: { resetToken: "", resetTokenExpiry: "" } // Limpa após o uso
-                }
+                { $set: { password: hashedPassword, mustResetPassword: false } }
             );
 
-            if (result.matchedCount === 0) {
-                console.log('[LOG: UPDATE_TOKEN] Falha crítica: Cliente não encontrado para atualização (ID de token).');
-                return res.status(500).json({ error: 'Falha na atualização da senha.' });
-            }
-
-            console.log('[LOG: UPDATE_TOKEN] Sucesso! Senha atualizada e token de uso único removido.');
+            if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
             return res.status(200).json({ message: 'Senha atualizada com sucesso!' });
         }
 
@@ -291,17 +246,18 @@ export default async function handler(req, res) {
             const client = await clientsCollection.findOne({ _id: new ObjectId(clientId) });
             const gallery = await galleriesCollection.findOne({ _id: new ObjectId(galleryId) });
 
-            // MUDANÇA: Notificação de Admin via Brevo API
-            let adminSendSmtpEmail = new Brevo.SendSmtpEmail();
-            adminSendSmtpEmail.sender = { "email": process.env.EMAIL_FROM || "no-reply@dominio-nao-configurado.com" };
-            adminSendSmtpEmail.to = [{ "email": process.env.EMAIL_TO }];
-            adminSendSmtpEmail.subject = `Seleção de Fotos Recebida: ${client.name}`;
-            adminSendSmtpEmail.htmlContent = `<h2>O cliente ${client.name} finalizou a seleção de fotos!</h2><p><strong>Galeria:</strong> ${gallery.name}</p><p><strong>Total de fotos selecionadas:</strong> ${selectedImages.length}</p><p>Aceda ao seu painel de administração para ver as escolhas.</p>`;
-
-            apiInstance.sendTransacEmail(adminSendSmtpEmail).catch(err => {
-                console.error("Erro ao enviar e-mail de notificação para o admin (Brevo):", err.response?.text || err.message);
+            const adminTransporter = nodemailer.createTransport({
+                host: process.env.EMAIL_HOST,
+                port: Number(process.env.EMAIL_PORT) || 465,
+                secure: true,
+                auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
             });
-
+            adminTransporter.sendMail({
+                from: `"${process.env.EMAIL_FROM_NAME || 'Sistema'}" <${process.env.EMAIL_USER}>`,
+                to: process.env.EMAIL_TO,
+                subject: `Seleção de Fotos Recebida: ${client.name}`,
+                html: `<h2>O cliente ${client.name} finalizou a seleção de fotos!</h2><p><strong>Galeria:</strong> ${gallery.name}</p><p><strong>Total de fotos selecionadas:</strong> ${selectedImages.length}</p><p>Aceda ao seu painel de administração para ver as escolhas.</p>`,
+            }).catch(err => console.error("Erro ao enviar e-mail de notificação para o admin:", err));
 
             return res.status(200).json({ message: 'Seleção enviada com sucesso!' });
         }
