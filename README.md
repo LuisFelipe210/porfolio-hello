@@ -21,7 +21,6 @@ Este é um projeto full-stack completo para um portfólio de fotógrafa, desenvo
 ### 🔐 Portal do Cliente
 
 -   **Login Seguro:** Área de login para clientes acessarem suas galerias privadas.
--   **Redefinição de Senha:** Clientes podem solicitar a redefinição de senha por e-mail.
 -   **Seleção de Fotos:** Os clientes podem visualizar suas galerias e selecionar suas fotos favoritas.
 -   **Envio de Seleção:** Após a seleção, o cliente pode enviar a lista de fotos escolhidas para a fotógrafa.
 
