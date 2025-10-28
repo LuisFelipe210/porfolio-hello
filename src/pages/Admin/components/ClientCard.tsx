@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GalleryHorizontal, Edit, Copy } from 'lucide-react';
+import { GalleryHorizontal, Edit, Copy, Phone } from 'lucide-react';
 
 interface Client {
     _id: string;
     name: string;
     email: string;
+    phone?: string;
 }
 
 interface ClientCardProps {
@@ -19,7 +20,6 @@ interface ClientCardProps {
 
 const ClientCard = React.memo(({ client, isSelected, onSelectionChange, onEdit, onCopy }: ClientCardProps) => {
     return (
-        // --- CORREÇÃO: Animação removida daqui ---
         <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 flex flex-col p-6 gap-4 relative transition-all duration-300 hover:border-orange-500/50">
             <div className="absolute top-4 left-4">
                 <input
@@ -36,6 +36,13 @@ const ClientCard = React.memo(({ client, isSelected, onSelectionChange, onEdit, 
                     <span className="truncate" title={client.email}>{client.email}</span>
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => onCopy(client.email, "Email")}><Copy className="h-4 w-4" /></Button>
                 </div>
+                {client.phone && (
+                    <div className="flex items-center gap-2 text-white/80">
+                        <Phone className="h-4 w-4" />
+                        <span className="truncate" title={client.phone}>{client.phone}</span>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => onCopy(client.phone || '', "Telefone")}><Copy className="h-4 w-4" /></Button>
+                    </div>
+                )}
             </div>
             <div className="flex gap-2 w-full">
                 <Button asChild className="w-full bg-white/10 rounded-xl hover:bg-white/20 transition-all text-white">

@@ -18,7 +18,10 @@ export default async function handler(req, res) {
         }
 
         const token = req.headers.authorization?.split(' ')[1];
-        if (!token) return res.status(401).json({ error: 'Acesso não autorizado.' });
+        if (!token || token === 'null' || token === 'undefined') {
+            return res.status(401).json({ error: 'Token de admin inválido ou não fornecido.' });
+        }
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const adminUsername = decoded.username || 'Admin';
 

@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import ClientCard from './components/ClientCard'; // Verifique se o caminho está correto
+import ClientCard from './components/ClientCard';
 
 interface Client {
     _id: string;
     name: string;
     email: string;
+    phone?: string; // Adicionado
     password?: string;
     phrase?: string;
     createdAt: string;
@@ -29,6 +30,7 @@ const AdminClients = () => {
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState(''); // Adicionado
     const [password, setPassword] = useState('');
     const [phrase, setPhrase] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +58,7 @@ const AdminClients = () => {
     }, [toast]);
 
     const resetForm = () => {
-        setName(''); setEmail(''); setPassword(''); setPhrase(''); setCurrentClient(null);
+        setName(''); setEmail(''); setPhone(''); setPassword(''); setPhrase(''); setCurrentClient(null);
     };
 
     const handleOpenDialog = useCallback((client: Client | null) => {
@@ -64,6 +66,7 @@ const AdminClients = () => {
             setCurrentClient(client);
             setName(client.name);
             setEmail(client.email);
+            setPhone(client.phone || '');
             setPhrase(client.phrase || '');
         } else {
             resetForm();
@@ -109,7 +112,7 @@ const AdminClients = () => {
             const isEditing = !!currentClient;
             const url = isEditing ? `/api/admin/portal?action=updateClient&clientId=${currentClient._id}` : '/api/admin/portal?action=createClient';
             const method = isEditing ? 'PUT' : 'POST';
-            const body: any = { name, email, phrase: phrase || null };
+            const body: any = { name, email, phone, phrase: phrase || null }; // Adicionado phone
             if (!isEditing && password) body.password = password;
             else if (!isEditing && !password) {
                 toast({ variant: 'destructive', title: 'Erro', description: 'A senha é obrigatória para novos clientes.' });
@@ -183,6 +186,7 @@ const AdminClients = () => {
                                         <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
                                     </div>
                                 </div>
+                                <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
                                 {!currentClient && (
                                     <div>
                                         <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>

@@ -68,22 +68,22 @@ export default async function handler(req, res) {
         }
 
         if (action === 'createClient' && req.method === 'POST') {
-            const { name, email, password, recoveryEmail, phrase } = req.body;
+            const { name, email, password, phone, recoveryEmail, phrase } = req.body;
             if (!name || !email || !password) return res.status(400).json({ error: 'Dados incompletos.' });
             const hashedPassword = await bcrypt.hash(password, 10);
             const encryptedPhrase = encrypt(phrase);
-            const result = await clientsCollection.insertOne({ name, email, password: hashedPassword, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase, mustResetPassword: true });
-            return res.status(201).json({ name, email, _id: result.insertedId });
+            const result = await clientsCollection.insertOne({ name, email, phone, password: hashedPassword, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase, mustResetPassword: true });
+            return res.status(201).json({ name, email, phone, _id: result.insertedId });
         }
 
         if (action === 'updateClient' && req.method === 'PUT') {
             if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });
-            const { name, email, recoveryEmail, phrase } = req.body;
+            const { name, email, phone, recoveryEmail, phrase } = req.body;
             if (!name || !email) return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
             const existingClient = await clientsCollection.findOne({ email: email, _id: { $ne: new ObjectId(clientId) } });
             if (existingClient) return res.status(409).json({ error: 'Este email de login já está a ser utilizado.' });
             const encryptedPhrase = encrypt(phrase);
-            const result = await clientsCollection.updateOne({ _id: new ObjectId(clientId) }, { $set: { name, email, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase } });
+            const result = await clientsCollection.updateOne({ _id: new ObjectId(clientId) }, { $set: { name, email, phone, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase } });
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
             return res.status(200).json({ message: 'Cliente atualizado.' });
         }
@@ -110,18 +110,16 @@ export default async function handler(req, res) {
             const { name } = req.body;
             if (!name || !clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'Dados incompletos.' });
 
-            // ▼▼▼ CORREÇÃO APLICADA AQUI ▼▼▼
             const newGallery = {
                 clientId: new ObjectId(clientId),
                 name,
                 images: [],
                 selections: [],
-                status: 'selection_pending', // Define o status correto para contar no dashboard
+                status: 'selection_pending',
                 read: false,
                 createdAt: new Date(),
                 selectionDate: null
             };
-            // ▲▲▲ FIM DA CORREÇÃO ▲▲▲
 
             const result = await galleriesCollection.insertOne(newGallery);
             return res.status(201).json({ ...newGallery, _id: result.insertedId });
