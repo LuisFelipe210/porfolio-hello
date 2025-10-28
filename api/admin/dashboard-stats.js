@@ -43,7 +43,10 @@ export default async function handler(req, res) {
                 { $group: { _id: "$category", count: { $sum: 1 } } },
                 { $sort: { _id: 1 } }
             ]).toArray(),
-            db.collection('clients').find({}).sort({ createdAt: -1 }).limit(3).toArray(),
+            // ▼▼▼ CORREÇÃO APLICADA AQUI ▼▼▼
+            // Alterado de 'createdAt' para '_id' para garantir a ordem de criação correta
+            db.collection('clients').find({}).sort({ _id: -1 }).limit(5).toArray(),
+            // ▲▲▲ FIM DA CORREÇÃO ▲▲▲
         ]);
 
         const [pendingGalleries, unreadSelections] = await Promise.all([

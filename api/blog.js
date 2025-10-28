@@ -10,21 +10,25 @@ async function connectToDatabase(uri) {
     return db;
 }
 
+// Função para criar um "slug" amigável para o URL a partir do título
 const createSlug = (title) => {
-    return title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+    return title
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^\w-]+/g, '');
 };
 
+// --- IDs de Documento Único ---
 const AVAILABILITY_DOC_ID = 'availability_config';
-const NOTES_DOC_ID = 'dashboard_notes';
+const NOTES_DOC_ID = 'dashboard_notes'; // ID para o documento de notas
 
 export default async function handler(req, res) {
     try {
         const db = await connectToDatabase(process.env.MONGODB_URI);
-        const feature = req.query.api || 'blog';
+        const feature = req.query.api || 'blog'; // Usa 'blog' como padrão
 
-        // --- ROTA DE DISPONIBILIDADE ---
+        // --- ROTA DE DISPONIBILIDADE: /api/blog?api=availability ---
         if (feature === 'availability') {
-            // (A sua lógica de disponibilidade permanece inalterada)
             const collection = db.collection('availability');
 
             if (req.method === 'GET') {
@@ -41,7 +45,7 @@ export default async function handler(req, res) {
 
                 const { dates } = req.body;
                 if (!Array.isArray(dates)) {
-                    return res.status(400).json({ error: 'Formato de dados inválido.' });
+                    return res.status(400).json({ error: 'Formato de dados inválido. Esperado array de datas.' });
                 }
 
                 const uniqueDates = Array.from(new Set(dates)).filter(d => typeof d === 'string');
@@ -50,66 +54,50 @@ export default async function handler(req, res) {
                     { $set: { reservedDates: uniqueDates, updatedAt: new Date() } },
                     { upsert: true }
                 );
-                return res.status(200).json({ message: 'Disponibilidade atualizada.' });
+                return res.status(200).json({ message: 'Disponibilidade atualizada com sucesso.' });
             }
 
             res.setHeader('Allow', ['GET', 'POST']);
-            return res.status(405).json({ error: `Método ${req.method} não permitido.` });
+            return res.status(405).json({ error: `Método ${req.method} não permitido para Disponibilidade.` });
         }
 
-        // --- ROTA DE NOTAS COM DIAGNÓSTICO ---
+        // --- ROTA DE NOTAS: /api/blog?api=notes ---
         if (feature === 'notes') {
-            console.log(`[API /api/blog?api=notes] Recebido pedido com método: ${req.method}`);
             const collection = db.collection('notes');
 
             const token = req.headers.authorization?.split(' ')[1];
             if (!token || token === 'null' || token === 'undefined') {
-                console.error('[API Notes] ERRO: Autenticação falhou. Token ausente ou malformado.');
                 return res.status(401).json({ error: 'Token inválido ou não fornecido.' });
             }
-
-            try {
-                jwt.verify(token, process.env.JWT_SECRET);
-                console.log('[API Notes] SUCESSO: Token verificado com sucesso.');
-            } catch (jwtError) {
-                console.error('[API Notes] ERRO: Falha na verificação do JWT.', jwtError);
-                // O erro já é capturado pelo catch principal, mas logamos aqui para ser específico.
-                throw jwtError;
-            }
+            jwt.verify(token, process.env.JWT_SECRET);
 
             if (req.method === 'GET') {
-                console.log('[API Notes] A tentar buscar notas da base de dados...');
                 const notesDoc = await collection.findOne({ _id: NOTES_DOC_ID });
-                console.log('[API Notes] Documento encontrado:', notesDoc);
-                return res.status(200).json(notesDoc || { notes: 'Escreva aqui as suas notas ou lista de tarefas...' });
+                // Garante que o retorno é sempre um objeto com a propriedade 'notes' sendo um array
+                return res.status(200).json({ notes: notesDoc?.notes || [] });
             }
 
             if (req.method === 'POST') {
                 const { notes } = req.body;
-                console.log('[API Notes] A tentar guardar notas. Conteúdo recebido:', { notes });
-
-                if (typeof notes === 'undefined') {
-                    console.error('[API Notes] ERRO: O corpo do pedido não continha a propriedade "notes".');
-                    return res.status(400).json({ error: 'Dados das notas em falta no pedido.' });
+                // Valida se as 'notes' recebidas são um array
+                if (!Array.isArray(notes)) {
+                    return res.status(400).json({ error: 'Formato de dados inválido. Esperado um array de notas.' });
                 }
 
-                const result = await collection.updateOne(
+                await collection.updateOne(
                     { _id: NOTES_DOC_ID },
                     { $set: { notes: notes } },
                     { upsert: true }
                 );
-
-                console.log('[API Notes] Resultado da operação de escrita na base de dados:', result);
-                return res.status(200).json({ message: 'Notas salvas com sucesso.', dbResult: result });
+                return res.status(200).json({ message: 'Notas salvas com sucesso.' });
             }
 
             res.setHeader('Allow', ['GET', 'POST']);
-            return res.status(405).json({ error: `Método ${req.method} não permitido.` });
+            return res.status(405).json({ error: `Método ${req.method} não permitido para Notas.` });
         }
 
-        // --- ROTA DE BLOG (Padrão) ---
+        // --- ROTA DE BLOG (Padrão): /api/blog ---
         if (feature === 'blog') {
-            // (A sua lógica de blog permanece inalterada)
             const collection = db.collection('posts');
 
             if (req.method === 'GET') {
@@ -124,15 +112,23 @@ export default async function handler(req, res) {
 
             const token = req.headers.authorization?.split(' ')[1];
             if (!token || token === 'null' || token === 'undefined') {
-                return res.status(401).json({ error: 'Token inválido ou não fornecido.' });
+                return res.status(401).json({ error: 'Token não fornecido.' });
             }
             jwt.verify(token, process.env.JWT_SECRET);
 
             if (req.method === 'POST') {
                 const { title, content, coverImage } = req.body;
-                const newPost = { title, content, coverImage, slug: createSlug(title), createdAt: new Date(), updatedAt: new Date() };
+                const newPost = {
+                    title,
+                    content,
+                    coverImage,
+                    slug: createSlug(title),
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                };
                 const result = await collection.insertOne(newPost);
-                return res.status(201).json({ ...newPost, _id: result.insertedId });
+                const inserted = { ...newPost, _id: result.insertedId };
+                return res.status(201).json(inserted);
             }
 
             if (req.method === 'PUT') {
@@ -140,7 +136,9 @@ export default async function handler(req, res) {
                 const { _id, ...updatedData } = req.body;
                 if (!id || !ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido.' });
 
-                if (updatedData.title) updatedData.slug = createSlug(updatedData.title);
+                if (updatedData.title) {
+                    updatedData.slug = createSlug(updatedData.title);
+                }
                 updatedData.updatedAt = new Date();
 
                 const result = await collection.updateOne({ _id: new ObjectId(id) }, { $set: updatedData });
@@ -153,16 +151,22 @@ export default async function handler(req, res) {
                 const { postIds } = req.body;
 
                 if (postIds && Array.isArray(postIds)) {
-                    const objectIds = postIds.map(pid => new ObjectId(pid));
+                    if (postIds.length === 0) {
+                        return res.status(400).json({ error: 'Nenhum ID de artigo foi fornecido.' });
+                    }
+                    const objectIds = postIds.map(id => new ObjectId(id));
                     const result = await collection.deleteMany({ _id: { $in: objectIds } });
-                    return res.status(200).json({ message: `${result.deletedCount} artigos excluídos.` });
+                    return res.status(200).json({ message: `${result.deletedCount} artigos excluídos com sucesso.` });
                 }
 
                 if (id && ObjectId.isValid(id)) {
                     const result = await collection.deleteOne({ _id: new ObjectId(id) });
-                    if (result.deletedCount === 0) return res.status(404).json({ error: 'Artigo não encontrado.' });
+                    if (result.deletedCount === 0) {
+                        return res.status(404).json({ error: 'Artigo não encontrado.' });
+                    }
                     return res.status(200).json({ message: 'Artigo excluído.' });
                 }
+
                 return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
             }
 
@@ -173,7 +177,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Rota de API desconhecida.' });
 
     } catch (error) {
-        console.error('ERRO GERAL na API (/api/blog):', error);
+        console.error('API Error (/api/blog):', error);
         if (error.name === 'JsonWebTokenError') return res.status(401).json({ error: 'Token inválido.' });
         return res.status(500).json({ error: 'Erro interno do servidor.' });
     }

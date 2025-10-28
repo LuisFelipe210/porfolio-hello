@@ -186,7 +186,7 @@ const AdminClients = () => {
                                         <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
                                     </div>
                                 </div>
-                                <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                                <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone (opcional)</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
                                 {!currentClient && (
                                     <div>
                                         <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>

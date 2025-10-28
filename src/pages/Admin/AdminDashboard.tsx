@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useMessages } from '@/context/MessagesContext';
 import { ArrowRight, PlusCircle, ImageIcon, Users, FileText, MessageSquare, UserPlus, Inbox, Clock, CheckCircle, MessageSquareQuote } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Label } from 'recharts';
-
-import { Trash2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import QuickNotes from './components/QuickNotes'; // IMPORTAÇÃO CORRETA
 
 interface DashboardData {
     stats: {
@@ -251,7 +250,7 @@ const AdminDashboard = () => {
                 {/* --- LINHA 3 --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">
-                        {/* QuickNotes inline implementation */}
+                        {/* CHAMADA AO COMPONENTE EXTERNO */}
                         <QuickNotes />
                     </div>
                     <div>
@@ -276,150 +275,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-// Inline QuickNotes component
-function QuickNotes() {
-    const STORAGE_KEY = 'admin-dashboard-quick-notes';
-    const [notes, setNotes] = useState<{ id: string; text: string; checked: boolean }[]>([]);
-    const [focusedIdx, setFocusedIdx] = useState<number | null>(null);
-
-    // Load from localStorage
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                setNotes(JSON.parse(saved));
-            } else {
-                setNotes([{ id: crypto.randomUUID(), text: '', checked: false }]);
-            }
-        } catch {
-            setNotes([{ id: crypto.randomUUID(), text: '', checked: false }]);
-        }
-    }, []);
-
-    // Save to localStorage
-    useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-    }, [notes]);
-
-    // Handlers
-    const handleChange = (idx: number, value: string) => {
-        setNotes(notes =>
-            notes.map((n, i) =>
-                i === idx ? { ...n, text: value } : n
-            )
-        );
-    };
-
-    const handleCheck = (idx: number, checked: boolean) => {
-        setNotes(notes =>
-            notes.map((n, i) =>
-                i === idx ? { ...n, checked } : n
-            )
-        );
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, idx: number) => {
-        if (e.key === 'Enter') {
-            // Only create new note if not last or if last and not empty
-            if (notes[idx].text.trim() !== '') {
-                const newNotes = [
-                    ...notes.slice(0, idx + 1),
-                    { id: crypto.randomUUID(), text: '', checked: false },
-                    ...notes.slice(idx + 1)
-                ];
-                setNotes(newNotes);
-                setTimeout(() => {
-                    setFocusedIdx(idx + 1);
-                }, 0);
-            }
-        } else if (e.key === 'Backspace' && notes[idx].text === '') {
-            if (notes.length > 1) {
-                e.preventDefault();
-                const newNotes = notes.filter((_, i) => i !== idx);
-                setNotes(newNotes);
-                setTimeout(() => {
-                    setFocusedIdx(Math.max(0, idx - 1));
-                }, 0);
-            }
-        }
-    };
-
-    // Clean completed notes
-    const handleClearCompleted = () => {
-        setNotes(notes => {
-            const filtered = notes.filter(n => !n.checked);
-            // Always keep at least one empty note
-            return filtered.length > 0 ? filtered : [{ id: crypto.randomUUID(), text: '', checked: false }];
-        });
-    };
-
-    // Focus management
-    useEffect(() => {
-        if (focusedIdx !== null) {
-            const el = document.getElementById(`quick-note-input-${focusedIdx}`);
-            if (el) (el as HTMLInputElement).focus();
-            setFocusedIdx(null);
-        }
-    }, [focusedIdx]);
-
-    // Remove trailing empty notes except the last one
-    useEffect(() => {
-        if (notes.length > 1) {
-            const trimmed = [...notes];
-            for (let i = trimmed.length - 2; i >= 0; i--) {
-                if (trimmed[i].text === '' && !trimmed[i].checked) {
-                    trimmed.splice(i, 1);
-                }
-            }
-            if (trimmed.length !== notes.length) setNotes(trimmed);
-        }
-    }, [notes]);
-
-    return (
-        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full flex flex-col">
-            <CardHeader>
-                <div className="flex justify-between items-center">
-                    <CardTitle className="text-white">Notas Rápidas</CardTitle>
-                    <button
-                        type="button"
-                        onClick={handleClearCompleted}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-orange-500/80 text-orange-400 hover:text-white text-sm font-semibold transition border border-white/10 shadow group"
-                        title="Limpar concluídas"
-                    >
-                        <Trash2 className="w-4 h-4 mr-1 group-hover:animate-shake" />
-                        Limpar concluídas
-                    </button>
-                </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-                <div className="flex flex-col gap-2 mb-6">
-                    {notes.map((note, idx) => (
-                        <div key={note.id} className="flex items-center gap-3 group">
-                            <input
-                                type="checkbox"
-                                checked={note.checked}
-                                onChange={e => handleCheck(idx, e.target.checked)}
-                                className="accent-orange-500 w-5 h-5 rounded border border-white/30 bg-white/10 focus:ring-2 focus:ring-orange-400 transition"
-                                tabIndex={0}
-                                aria-label="Concluir nota"
-                            />
-                            <input
-                                id={`quick-note-input-${idx}`}
-                                type="text"
-                                value={note.text}
-                                onChange={e => handleChange(idx, e.target.value)}
-                                onKeyDown={e => handleKeyDown(e, idx)}
-                                className={`flex-1 bg-transparent border-0 outline-none text-white/90 placeholder:text-white/40 py-2 px-1 rounded text-base transition ${
-                                    note.checked ? 'line-through text-white/40' : ''
-                                }`}
-                                placeholder="Digite uma nota e pressione Enter..."
-                                autoComplete="off"
-                                spellCheck={false}
-                            />
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
