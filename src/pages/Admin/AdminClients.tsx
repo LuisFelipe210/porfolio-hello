@@ -12,7 +12,6 @@ interface Client {
     _id: string;
     name: string;
     email: string;
-    recoveryEmail?: string;
     password?: string;
     phrase?: string;
     createdAt: string;
@@ -30,7 +29,6 @@ const AdminClients = () => {
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [recoveryEmail, setRecoveryEmail] = useState('');
     const [password, setPassword] = useState('');
     const [phrase, setPhrase] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,7 +56,7 @@ const AdminClients = () => {
     }, [toast]);
 
     const resetForm = () => {
-        setName(''); setEmail(''); setRecoveryEmail(''); setPassword(''); setPhrase(''); setCurrentClient(null);
+        setName(''); setEmail(''); setPassword(''); setPhrase(''); setCurrentClient(null);
     };
 
     const handleOpenDialog = useCallback((client: Client | null) => {
@@ -66,7 +64,6 @@ const AdminClients = () => {
             setCurrentClient(client);
             setName(client.name);
             setEmail(client.email);
-            setRecoveryEmail(client.recoveryEmail || '');
             setPhrase(client.phrase || '');
         } else {
             resetForm();
@@ -112,7 +109,7 @@ const AdminClients = () => {
             const isEditing = !!currentClient;
             const url = isEditing ? `/api/admin/portal?action=updateClient&clientId=${currentClient._id}` : '/api/admin/portal?action=createClient';
             const method = isEditing ? 'PUT' : 'POST';
-            const body: any = { name, email, recoveryEmail: recoveryEmail || null, phrase: phrase || null };
+            const body: any = { name, email, phrase: phrase || null };
             if (!isEditing && password) body.password = password;
             else if (!isEditing && !password) {
                 toast({ variant: 'destructive', title: 'Erro', description: 'A senha é obrigatória para novos clientes.' });
@@ -186,7 +183,6 @@ const AdminClients = () => {
                                         <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
                                     </div>
                                 </div>
-                                <div><Label htmlFor="recoveryEmail" className="text-white mb-1 font-semibold">Email de Recuperação (Opcional)</Label><Input id="recoveryEmail" type="email" placeholder="O e-mail real do cliente" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
                                 {!currentClient && (
                                     <div>
                                         <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>

@@ -27,7 +27,7 @@ const ClientResetPasswordPage = () => {
             return;
         }
         if (password.length < 6) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'A palavra-passe deve ter pelo menos 6 caracteres.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'A senha deve ter pelo menos 6 caracteres.' });
             return;
         }
 
@@ -41,16 +41,16 @@ const ClientResetPasswordPage = () => {
                 body: JSON.stringify({ newPassword: password }),
             });
 
-            if (!response.ok) throw new Error('Falha ao redefinir a palavra-passe.');
+            if (!response.ok) throw new Error('Falha ao redefinir a senha.');
 
             const { token: newToken } = await response.json();
             localStorage.setItem('clientAuthToken', newToken);
 
-            toast({ title: 'Sucesso!', description: 'A sua palavra-passe foi atualizada. A aceder à sua galeria...' });
+            toast({ title: 'Sucesso!', description: 'A sua senha foi atualizada. A aceder à sua galeria...' });
             navigate('/portal/gallery');
 
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível redefinir a sua palavra-passe. Tente novamente.' });
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível redefinir a sua senha. Tente novamente.' });
         } finally {
             setIsLoading(false);
         }
@@ -72,15 +72,15 @@ const ClientResetPasswordPage = () => {
             <Card className="w-full max-w-sm z-10 animate-fade-in-up bg-black/50 backdrop-blur-lg border border-white/10 text-white rounded-3xl">
                 <CardHeader className="text-center">
                     <img src={Logo} alt="Hellô Borges Logo" className="h-16 w-auto mx-auto mb-4" />
-                    <CardTitle className="text-2xl font-bold">Redefinir Palavra-passe</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Redefinir Senha</CardTitle>
                     <CardDescription className="text-white/80">
-                        Por segurança, por favor, crie uma nova palavra-passe para o seu primeiro acesso.
+                        Por segurança, por favor, crie uma nova senha para o seu primeiro acesso.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Nova Palavra-passe</Label>
+                            <Label htmlFor="password">Nova Senha</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -91,7 +91,7 @@ const ClientResetPasswordPage = () => {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="confirmPassword">Confirmar Nova Palavra-passe</Label>
+                            <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
                             <Input
                                 id="confirmPassword"
                                 type="password"
@@ -104,7 +104,7 @@ const ClientResetPasswordPage = () => {
                     </CardContent>
                     <CardFooter>
                         <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={isLoading}>
-                            {isLoading ? 'A guardar...' : 'Guardar Nova Palavra-passe'}
+                            {isLoading ? 'A guardar...' : 'Guardar Nova Senha'}
                         </Button>
                     </CardFooter>
                 </form>

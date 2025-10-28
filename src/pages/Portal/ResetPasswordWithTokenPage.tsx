@@ -40,7 +40,7 @@ const ResetPasswordWithTokenPage = () => {
                 toast({
                     variant: 'destructive',
                     title: 'Link Inválido ou Expirado',
-                    description: 'Este link para redefinição de palavra-passe não é válido. Por favor, solicite um novo.',
+                    description: 'Este link para redefinição de senha não é válido. Por favor, solicite um novo.',
                 });
             }
         };
@@ -54,7 +54,7 @@ const ResetPasswordWithTokenPage = () => {
             return;
         }
         if (password.length < 6) {
-            toast({ variant: 'destructive', title: 'Palavra-passe muito curta', description: 'A palavra-passe deve ter pelo menos 6 caracteres.' });
+            toast({ variant: 'destructive', title: 'senha muito curta', description: 'A senha deve ter pelo menos 6 caracteres.' });
             return;
         }
         setIsLoading(true);
@@ -69,11 +69,11 @@ const ResetPasswordWithTokenPage = () => {
             });
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Não foi possível redefinir a palavra-passe.');
+                throw new Error(errorData.error || 'Não foi possível redefinir a senha.');
             }
             toast({
-                title: 'Palavra-passe redefinida com sucesso!',
-                description: 'Pode agora fazer login com a sua nova palavra-passe.',
+                title: 'senha redefinida com sucesso!',
+                description: 'Pode agora fazer login com a sua nova senha.',
                 className: 'bg-black/80 text-white border-green-500',
             });
             navigate('/portal/login');
@@ -112,17 +112,17 @@ const ResetPasswordWithTokenPage = () => {
             <form onSubmit={handleSubmit}>
                 <CardContent className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Nova Palavra-passe</Label>
+                        <Label htmlFor="password">Nova senha</Label>
                         <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="confirmPassword">Confirmar Palavra-passe</Label>
+                        <Label htmlFor="confirmPassword">Confirmar senha</Label>
                         <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={isLoading}>
-                        {isLoading ? 'A guardar...' : 'Redefinir Palavra-passe'}
+                        {isLoading ? 'A guardar...' : 'Redefinir senha'}
                     </Button>
                 </CardFooter>
             </form>
@@ -141,9 +141,9 @@ const ResetPasswordWithTokenPage = () => {
             <Card className="w-full max-w-sm z-10 animate-fade-in-up bg-black/50 backdrop-blur-lg border border-white/10 text-white rounded-3xl">
                 <CardHeader className="text-center">
                     <img src={Logo} alt="Hellô Borges Logo" className="h-16 w-auto mx-auto mb-4" />
-                    <CardTitle className="text-2xl font-bold">Criar Nova Palavra-passe</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Criar Nova senha</CardTitle>
                     <CardDescription className="text-white/80">
-                        {isTokenValid ? 'Insira a sua nova palavra-passe abaixo.' : (isTokenValid === false ? 'Este link é inválido ou expirou.' : 'A verificar...')}
+                        {isTokenValid ? 'Insira a sua nova senha abaixo.' : (isTokenValid === false ? 'Este link é inválido ou expirou.' : 'A verificar...')}
                     </CardDescription>
                 </CardHeader>
                 {renderCardContent()}
