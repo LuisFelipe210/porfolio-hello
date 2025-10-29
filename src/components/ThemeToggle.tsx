@@ -1,39 +1,45 @@
-import { Moon, Sun } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
-    // Não precisamos de usar 'theme' ou 'resolvedTheme' aqui, apenas o 'setTheme'
-    const { setTheme } = useTheme();
+    const { resolvedTheme, setTheme } = useTheme();
+    const [currentTheme, setCurrentTheme] = useState(resolvedTheme || "light");
+
+    // Sincroniza com resolvedTheme (incluindo preferência do sistema)
+    useEffect(() => {
+        setCurrentTheme(resolvedTheme || "light");
+    }, [resolvedTheme]);
+
+    const handleToggle = () => {
+        const nextTheme = currentTheme === "light" ? "dark" : "light";
+        setTheme(nextTheme);
+        setCurrentTheme(nextTheme);
+    };
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                    <span className="sr-only">Toggle theme</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                {/* --- CORREÇÃO: TROCADO onClick POR onSelect --- */}
-                <DropdownMenuItem onSelect={() => setTheme("light")}>
-                    Claro
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setTheme("dark")}>
-                    Escuro
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setTheme("system")}>
-                    Sistema
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+            onClick={handleToggle}
+            title="Alternar tema claro/escuro"
+            aria-label={currentTheme === "light" ? "Tema claro ativado" : "Tema escuro ativado"}
+            aria-live="polite"
+            className="relative flex items-center justify-center w-8 h-8
+                 hover:bg-orange-500 dark:hover:bg-orange-500 transition-colors
+                 active:scale-95 transition-transform
+                 focus:outline-none focus:ring-2 focus:ring-orange-500"
+        >
+            <Sun
+                aria-hidden="true"
+                className={`absolute h-5 w-5 transition-all duration-200
+                    ${currentTheme === "light" ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-0"}`}
+            />
+            <Moon
+                aria-hidden="true"
+                className={`absolute h-5 w-5 transition-all duration-200
+                    ${currentTheme === "dark" ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-0"}`}
+            />
+        </Button>
     );
 }
