@@ -243,13 +243,17 @@ const AdminDashboard = () => {
     useEffect(() => {
         const hour = new Date().getHours();
 
-        // Lógica de saudação atualizada
+        // Lógica de saudação atualizada para:
+        // Bom dia: 5h até 11:59:59
+        // Boa tarde: 12h até 17:59:59
+        // Boa noite: 18h até 4:59:59 (18-23 e 0-4)
+
         if (hour >= 5 && hour < 12) {
             setGreeting(`Bom dia, Hellô`); // 5h até 11:59:59
         } else if (hour >= 12 && hour < 18) {
             setGreeting(`Boa tarde, Hellô`); // 12h até 17:59:59
-        } else {
-            setGreeting(`Boa noite, Hellô`); // 18h até 4:59:59 (e o resto da noite/madrugada)
+        } else { // Cobre as horas 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4
+            setGreeting(`Boa noite, Hellô`);
         }
 
         fetchDashboardData();
