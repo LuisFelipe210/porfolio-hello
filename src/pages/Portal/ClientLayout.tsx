@@ -43,13 +43,13 @@ const ClientLayout = () => {
             </div>
 
             {/* --- HEADER --- */}
-            <header className="relative z-50 flex h-24 items-center justify-between bg-white/30 dark:bg-black/30 text-black dark:text-white border-b border-black/10 dark:border-white/10 px-4 md:px-8 shrink-0">
+            <header className="relative z-50 flex h-24 items-center justify-between bg-black/30 dark:bg-black/30 text-black dark:text-white border-b border-black/10 dark:border-white/10 px-4 md:px-8 shrink-0">
                 <div className="w-28">
                     {headerBackAction && (
                         <Button
                             variant="ghost"
                             onClick={headerBackAction}
-                            className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-orange-500 dark:bg-orange-500 text-white dark:text-black rounded-xl hover:bg-orange-600 dark:hover:bg-orange-600 transition-colors shadow-sm hover:shadow-md"
+                            className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-black dark:bg-black text-orange-500 rounded-xl hover:bg-black/80 transition-colors shadow-sm hover:shadow-md border border-orange-500"
                         >
                             <ArrowLeft className="h-5 w-5" />
                             Voltar
@@ -65,14 +65,16 @@ const ClientLayout = () => {
                 </div>
 
                 <div className="w-28 flex justify-end">
-                    <Button
-                        variant="ghost"
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-orange-500 dark:bg-orange-500 text-white dark:text-black rounded-xl hover:bg-orange-600 dark:hover:bg-orange-600 transition-colors shadow-sm hover:shadow-md"
-                    >
-                        <LogOut className="h-5 w-5" />
-                        Sair
-                    </Button>
+                    {!headerBackAction && (
+                        <Button
+                            variant="ghost"
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-black dark:bg-black text-orange-500 rounded-xl hover:bg-black/80 transition-colors shadow-sm hover:shadow-md border border-orange-500"
+                        >
+                            <LogOut className="h-5 w-5" />
+                            Sair
+                        </Button>
+                    )}
                 </div>
             </header>
 

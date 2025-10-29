@@ -151,7 +151,15 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                     <div className="flex items-center gap-4 px-3 py-3 sm:px-6 sm:py-4 bg-black/70 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl">
                         <p className="font-bold text-lg text-white tabular-nums">{selectedImages.size} <span className="hidden sm:inline">fotos selecionadas</span></p>
                         <AlertDialog>
-                            <AlertDialogTrigger asChild><Button size="lg" disabled={selectedImages.size === 0} className="bg-orange-500 hover:bg-orange-600 text-white dark:text-black font-semibold rounded-full disabled:opacity-50 h-12 text-base"><Send className="mr-2 h-4 w-4" /> Finalizar</Button></AlertDialogTrigger>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    size="lg"
+                                    disabled={selectedImages.size === 0}
+                                    className="w-full sm:w-auto bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-bold rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 h-10 text-sm flex items-center justify-center gap-2"
+                                >
+                                    <Send className="mr-2 h-4 w-4" /> Finalizar
+                                </Button>
+                            </AlertDialogTrigger>
                             <AlertDialogContent className="bg-black/80 border-white/10 text-white backdrop-blur-lg rounded-3xl">
                                 <AlertDialogHeader><AlertDialogTitle>Confirmar Envio</AlertDialogTitle><AlertDialogDescription className="text-white/80">Tem a certeza que deseja finalizar a sua seleção de {selectedImages.size} fotos? Não poderá fazer alterações após o envio.</AlertDialogDescription></AlertDialogHeader>
                                 <AlertDialogFooter><AlertDialogCancel className="rounded-xl h-12">Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleSubmitSelection} disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12">{isSubmitting ? 'A enviar...' : 'Sim, enviar'}</AlertDialogAction></AlertDialogFooter>
