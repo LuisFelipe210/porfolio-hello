@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     const { hasUnreadMessages } = useMessages();
     const [data, setData] = useState<DashboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [greeting, setGreeting] = useState('Bem-vindo(a), Hellô');
+    const [greeting, setGreeting] = useState('Bem-vindo(a), <span class="text-orange-500">Hellô</span>');
     const { toast } = useToast();
 
     // REMOVIDO: Mobile modals control (openShortcuts, openStats, openSessions, etc.)
@@ -244,16 +244,14 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         const hour = new Date().getHours();
-
         // Lógica de saudação atualizada
         if (hour >= 5 && hour < 12) {
-            setGreeting(`Bom dia, Hellô`); // 5h até 11:59:59
+            setGreeting(`Bom dia, <span class="text-orange-500">Hellô</span>`);
         } else if (hour >= 12 && hour < 18) {
-            setGreeting(`Boa tarde, Hellô`); // 12h até 17:59:59
+            setGreeting(`Boa tarde, <span class="text-orange-500">Hellô</span>`);
         } else {
-            setGreeting(`Boa noite, Hellô`); // 18h até 4:59:59 (e o resto da noite/madrugada)
+            setGreeting(`Boa noite, <span class="text-orange-500">Hellô</span>`);
         }
-
         fetchDashboardData();
     }, [fetchDashboardData]);
 
@@ -277,7 +275,10 @@ const AdminDashboard = () => {
             <div className="flex flex-col h-full animate-fade-in p-4">
                 {/* Cabeçalho no estilo do AdminClients */}
                 <div className="shrink-0 mb-6">
-                    <h1 className="text-3xl font-bold text-white">{greeting}</h1>
+                    <h1
+                        className="text-3xl font-bold text-white"
+                        dangerouslySetInnerHTML={{ __html: greeting }}
+                    />
                     <p className="text-white/80">
                         Aqui tem uma visão geral da atividade recente no seu site.
                     </p>
@@ -505,7 +506,10 @@ const AdminDashboard = () => {
     return (
         <div className="flex flex-col h-full animate-fade-in">
             <div className="shrink-0 mb-8">
-                <h1 className="text-3xl font-bold text-white">{greeting}</h1>
+                <h1
+                    className="text-3xl font-bold text-white"
+                    dangerouslySetInnerHTML={{ __html: greeting }}
+                />
                 <p className="text-white/80">Aqui tem uma visão geral da atividade recente no seu site.</p>
             </div>
 
