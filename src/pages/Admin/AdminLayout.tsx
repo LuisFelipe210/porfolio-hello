@@ -14,7 +14,7 @@ import {
     Rss,
     Users,
     Home,
-    CalendarDays // <-- NOVO: ÍCONE PARA DISPONIBILIDADE
+    CalendarDays // <-- ÍCONE PARA DISPONIBILIDADE
 } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import { FaReact } from 'react-icons/fa';
@@ -22,6 +22,9 @@ import { MdDashboard } from 'react-icons/md';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMessages } from '@/context/MessagesContext';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
+
+// Seu URL de imagem do Cloudinary:
+const HAMSTER_URL = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1761709820/Fundo_de_Gemini_Generated_Image_ats4g5ats4g5ats4_Removido_yynaov.png";
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -91,6 +94,8 @@ const AdminLayout = () => {
 
     const sidebarWidth = '280px';
 
+    const optimizedHamsterUrl = optimizeCloudinaryUrl(HAMSTER_URL, "f_auto,q_auto,w_80");
+
     return (
         <div className="flex h-screen overflow-hidden bg-black text-white">
             <div className="fixed inset-0 z-0"><img src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")} alt="Background" className="w-full h-full object-cover" /><div className="absolute inset-0 bg-black/70 backdrop-blur-sm" /></div>
@@ -127,6 +132,15 @@ const AdminLayout = () => {
             {/* CONTEÚDO PRINCIPAL E HEADER */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="relative z-30 flex h-24 items-center justify-between px-4 sm:px-6 md:px-8 bg-black/30 backdrop-blur-md border-b border-white/10">
+
+                    {/* IMAGEM DO HAMSTER CORRENDO */}
+                    <img
+                        src={optimizedHamsterUrl}
+                        alt="Hamster Correndo"
+                        className="animated-runner"
+                    />
+                    {/* FIM DA IMAGEM DO HAMSTER */}
+
                     <div className="flex items-center gap-4">
                         {isMobile ? (
                             <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
@@ -164,6 +178,24 @@ const AdminLayout = () => {
                     <Outlet />
                 </main>
             </div>
+            {/* CSS PARA ANIMAÇÃO DA IMAGEM */}
+            <style>{`
+                @keyframes run {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(calc(100vw + 100px)); }
+                }
+
+                .animated-runner {
+                    position: absolute;
+                    bottom: 0; /* Colado na base */
+                    left: -100px; /* Começa fora da tela à esquerda */
+                    height: 60px; 
+                    width: auto;
+                    z-index: 100;
+                    animation: run 30s linear infinite; /* 15s, velocidade constante, infinito */
+                }
+            `}</style>
+            {/* FIM DO CSS */}
         </div>
     );
 };

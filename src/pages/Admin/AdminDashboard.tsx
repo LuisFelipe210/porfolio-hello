@@ -1,12 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMessages } from '@/context/MessagesContext';
-import { ArrowRight, PlusCircle, ImageIcon, Users, FileText, MessageSquare, UserPlus, Inbox, Clock, CheckCircle, MessageSquareQuote } from 'lucide-react';
+import { ArrowRight, PlusCircle, ImageIcon, Users, FileText, MessageSquare, UserPlus, Inbox, Clock, CheckCircle, MessageSquareQuote, RefreshCw, Copy } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import QuickNotes from './components/QuickNotes'; // IMPORTAÇÃO CORRETA
+import QuickNotes from './components/QuickNotes';
+// IMPORTAÇÕES ADICIONADAS PARA OS DIÁLOGOS
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface DashboardData {
     stats: {
@@ -35,13 +43,162 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
+// CONSTANTES DO CLOUDINARY (EXTRAÍDAS DE AdminPortfolio.tsx)
+const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
+const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
+
+
 const AdminDashboard = () => {
     const { hasUnreadMessages } = useMessages();
     const [data, setData] = useState<DashboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [greeting, setGreeting] = useState('Bem-vindo(a), Hellô');
+    const { toast } = useToast();
 
-    // CORREÇÃO 1: Função para formatar a data, forçando o fuso horário local
+    // ***********************************************
+    // LÓGICA DO DIÁLOGO DE NOVO CLIENTE (Extraída de AdminClients.tsx)
+    // ***********************************************
+    const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [password, setPassword] = useState('');
+    const [phrase, setPhrase] = useState('');
+    const [isClientSubmitting, setIsClientSubmitting] = useState(false);
+
+    const resetClientForm = () => {
+        setName(''); setEmail(''); setPhone(''); setPassword(''); setPhrase('');
+    };
+
+    const generateRandomEmail = useCallback(() => {
+        const randomString = Math.random().toString(36).substring(2, 10);
+        const newEmail = `${randomString}@hello.com`;
+        setEmail(newEmail);
+        toast({ title: 'Email gerado', variant: "success", description: `Email aleatório gerado: ${newEmail}` });
+    }, [toast]);
+
+    const generateRandomPassword = useCallback(() => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%.&*_';
+        let result = '';
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setPassword(result);
+        toast({ title: 'Senha gerada', variant: "success", description: 'Senha aleatória gerada com sucesso.' });
+    }, [toast]);
+
+    const copyToClipboard = useCallback((text: string, label: string) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            toast({ title: 'Copiado!', variant: "success", description: `${label} copiado para a área de transferência.` });
+        }).catch(() => {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível copiar.' });
+        });
+    }, [toast]);
+
+    const handleClientSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsClientSubmitting(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const url = '/api/admin/portal?action=createClient';
+            const method = 'POST';
+            const body: any = { name, email, phone, phrase: phrase || null, password };
+
+            if (!password) {
+                toast({ variant: 'destructive', title: 'Erro', description: 'A senha é obrigatória para novos clientes.' });
+                setIsClientSubmitting(false);
+                return;
+            }
+            const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+            if (!response.ok) throw new Error('Falha ao criar o cliente.');
+
+            toast({ title: 'Sucesso!', variant: "success", description: `Cliente ${name} adicionado.` });
+            resetClientForm();
+            setIsClientDialogOpen(false);
+            fetchDashboardData(); // Atualiza contagem de clientes
+        } catch (error: unknown) {
+            toast({ variant: 'destructive', title: 'Erro', description: error instanceof Error ? error.message : 'Ocorreu um erro.' });
+        } finally {
+            setIsClientSubmitting(false);
+        }
+    };
+
+
+    // ***********************************************
+    // LÓGICA DO DIÁLOGO DE NOVO ITEM DO PORTFÓLIO (Extraída de AdminPortfolio.tsx)
+    // ***********************************************
+    const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
+    const [pTitle, setPTitle] = useState('');
+    const [pCategory, setPCategory] = useState('');
+    const [pDescription, setPDescription] = useState('');
+    const [pFile, setPFile] = useState<File | null>(null);
+    const [isPortfolioSubmitting, setIsPortfolioSubmitting] = useState(false);
+
+    const resetPortfolioForm = () => {
+        setPTitle(''); setPCategory(''); setPDescription(''); setPFile(null);
+    };
+
+    const handleCloudinaryUpload = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', 'borges-captures/portfolio');
+
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+        const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
+
+        if (!uploadResponse.ok) {
+            console.error("Erro no Cloudinary:", await uploadResponse.json());
+            throw new Error('Falha no upload para Cloudinary.');
+        }
+        const uploadData = await uploadResponse.json();
+        return uploadData.secure_url;
+    };
+
+    const handlePortfolioSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!pFile) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem para um novo item.' });
+            return;
+        }
+        if (!pCategory) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma categoria.' });
+            return;
+        }
+
+        setIsPortfolioSubmitting(true);
+        try {
+            const imageUrl = await handleCloudinaryUpload(pFile);
+
+            const token = localStorage.getItem('authToken');
+            const url = '/api/portfolio';
+            const method = 'POST';
+            const body = { title: pTitle, category: pCategory, description: pDescription, image: imageUrl };
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) throw new Error('Falha ao salvar o item.');
+            toast({ title: 'Sucesso!', variant: "success", description: `Item ${pTitle} adicionado.` });
+
+            resetPortfolioForm();
+            setIsPortfolioDialogOpen(false);
+            fetchDashboardData(); // Re-fetch para atualizar a contagem do portfólio
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
+            toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
+        } finally {
+            setIsPortfolioSubmitting(false);
+        }
+    };
+    // ***********************************************
+
+
+    // Função para formatar a data, forçando o fuso horário local
     const formatDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split('-').map(Number);
         // Cria a data com componentes (ano, mês-1, dia) para evitar o erro de fuso horário
@@ -56,39 +213,41 @@ const AdminDashboard = () => {
         return new Date(year, month - 1, day);
     }
 
+    const fetchDashboardData = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/admin/dashboard-stats', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao buscar dados do dashboard.');
+
+            const responseData: DashboardData = await response.json();
+
+            // Aplica ordenação usando a criação de Data local para evitar o bug de fuso horário
+            if (responseData.activity.reservedDates) {
+                // Ordena por ordem CRESCENTE (mais próxima/futura primeiro)
+                responseData.activity.reservedDates.sort((a, b) => {
+                    const dateA = createLocalDate(a).getTime();
+                    const dateB = createLocalDate(b).getTime();
+                    return dateA - dateB; // Crescente
+                });
+            }
+
+            setData(responseData);
+
+        } catch (error) {
+            console.error(error);
+        }
+        finally { setIsLoading(false); }
+    }, []);
+
     useEffect(() => {
         const hour = new Date().getHours();
         if (hour < 12) setGreeting(`Bom dia, Hellô`);
         else if (hour < 18) setGreeting(`Boa tarde, Hellô`);
         else setGreeting(`Boa noite, Hellô`);
 
-        const fetchDashboardData = async () => {
-            try {
-                const token = localStorage.getItem('authToken');
-                const response = await fetch('/api/admin/dashboard-stats', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!response.ok) throw new Error('Falha ao buscar dados do dashboard.');
-
-                const responseData: DashboardData = await response.json();
-
-                // CORREÇÃO 2: Aplicar ordenação usando a criação de Data local para evitar o bug de fuso horário
-                if (responseData.activity.reservedDates) {
-                    // Ordena por ordem CRESCENTE (mais próxima/futura primeiro)
-                    responseData.activity.reservedDates.sort((a, b) => {
-                        const dateA = createLocalDate(a).getTime();
-                        const dateB = createLocalDate(b).getTime();
-                        return dateA - dateB; // Crescente
-                    });
-                }
-
-                setData(responseData);
-
-            } catch (error) {
-                console.error(error);
-            }
-            finally { setIsLoading(false); }
-        };
         fetchDashboardData();
-    }, []);
+    }, [fetchDashboardData]);
 
     const categoryTranslations: { [key: string]: string } = {
         portrait: 'Retratos', wedding: 'Casamentos', maternity: 'Maternidade',
@@ -117,14 +276,31 @@ const AdminDashboard = () => {
                         <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
                             <CardHeader><CardTitle className="text-white">Atalhos Rápidos</CardTitle></CardHeader>
                             <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {/* Mensagens (mantém navegação) */}
                                 <Button asChild size="lg" className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left relative">
                                     <Link to="/admin/messages">
                                         {hasUnreadMessages && <span className="absolute top-3 right-3 flex h-3 w-3"><span className="animate-ping absolute h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}
                                         <Inbox className="h-6 w-6 mb-2" /><span className="font-semibold">Mensagens</span>
                                     </Link>
                                 </Button>
-                                <Button asChild size="lg" className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left"><Link to="/admin/clients"><PlusCircle className="h-6 w-6 mb-2" /><span className="font-semibold">Novo Cliente</span></Link></Button>
-                                <Button asChild size="lg" className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left"><Link to="/admin/portfolio"><ImageIcon className="h-6 w-6 mb-2" /><span className="font-semibold">Adicionar ao Portfólio</span></Link></Button>
+
+                                {/* Novo Cliente (ABRIR DIÁLOGO) */}
+                                <Button
+                                    size="lg"
+                                    onClick={() => { resetClientForm(); setIsClientDialogOpen(true); }}
+                                    className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left"
+                                >
+                                    <PlusCircle className="h-6 w-6 mb-2" /><span className="font-semibold">Novo Cliente</span>
+                                </Button>
+
+                                {/* Adicionar ao Portfólio (ABRIR DIÁLOGO) */}
+                                <Button
+                                    size="lg"
+                                    onClick={() => { resetPortfolioForm(); setIsPortfolioDialogOpen(true); }}
+                                    className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left"
+                                >
+                                    <ImageIcon className="h-6 w-6 mb-2" /><span className="font-semibold">Adicionar ao Portfólio</span>
+                                </Button>
                             </CardContent>
                         </Card>
                     </div>
@@ -186,10 +362,9 @@ const AdminDashboard = () => {
                     <div>
                         <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
                             <CardHeader><CardTitle className="text-white">Estatísticas Gerais</CardTitle></CardHeader>
-                            <CardContent className="space-y-3"> {/* Alterado de space-y-4 para space-y-3 */}
+                            <CardContent className="space-y-3">
                                 {isLoading ? (<> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> </>) : (
                                     <>
-                                        {/* Reduzido p-3 para p-2 e text-2xl para text-xl */}
                                         <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white">
                                             <span className="flex items-center gap-2"><Users className="h-5 w-5 text-white/70"/>Clientes</span>
                                             <span className="font-bold text-xl">{data?.stats.clients}</span>
@@ -216,7 +391,7 @@ const AdminDashboard = () => {
                     <div>
                         <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
                             <CardHeader><CardTitle className="text-white">Próximas Sessões</CardTitle></CardHeader>
-                            <CardContent className="space-y-3"> {/* Alterado de space-y-4 para space-y-3 */}
+                            <CardContent className="space-y-3">
                                 {isLoading ? (
                                     <div className="space-y-2">
                                         <Skeleton className="h-9 w-full bg-white/10" />
@@ -225,11 +400,10 @@ const AdminDashboard = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Agora os dados já estão ordenados de forma crescente no useEffect */}
                                         {Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (
                                             data.activity.reservedDates.slice(0, 4).map((dateStr: string, idx: number) => ( // Limita a 4 itens
-                                                <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-xl"> {/* Reduzido p-3 para p-2 */}
-                                                    <div className="flex items-center gap-2"> {/* Reduzido gap-3 para gap-2 */}
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-xl">
+                                                    <div className="flex items-center gap-2">
                                                         <Clock className="h-5 w-5 text-indigo-400" />
                                                         <span className="text-white font-semibold">{formatDate(dateStr)}</span>
                                                     </div>
@@ -250,7 +424,6 @@ const AdminDashboard = () => {
                 {/* --- LINHA 3 --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">
-                        {/* CHAMADA AO COMPONENTE EXTERNO */}
                         <QuickNotes />
                     </div>
                     <div>
@@ -270,6 +443,67 @@ const AdminDashboard = () => {
                     <div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Últimos 5 Clientes</CardTitle></CardHeader><CardContent className="space-y-3">{isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (data?.activity.latestClients.length > 0 ? data.activity.latestClients.map(client => <div key={client._id} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl"><UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white truncate">{client.name}</p></div>) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>)}</CardContent></Card></div>
                 </div>
             </div>
+
+            {/* DIÁLOGO: NOVO CLIENTE */}
+            <Dialog open={isClientDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetClientForm(); setIsClientDialogOpen(isOpen); }}>
+                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                    <DialogHeader><DialogTitle className="text-xl font-semibold text-white">Adicionar Novo Cliente</DialogTitle></DialogHeader>
+                    <form onSubmit={handleClientSubmit} className="space-y-4">
+                        <div><Label htmlFor="name" className="text-white mb-1 font-semibold">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                        <div>
+                            <Label htmlFor="email" className="text-white mb-1 font-semibold">Email de Login</Label>
+                            <div className="flex items-center gap-2">
+                                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                                <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
+                                <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                            </div>
+                        </div>
+                        <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone (opcional)</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                        <div>
+                            <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>
+                            <div className="flex items-center gap-2">
+                                <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                                <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
+                                <Button type="button" size="icon" onClick={() => copyToClipboard(password, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                            </div>
+                        </div>
+                        <div><Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar Senha (opcional)</Label><Input id="phrase" value={phrase} onChange={(e) => setPhrase(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                        <DialogFooter className="!mt-6"><DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose><Button type="submit" disabled={isClientSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isClientSubmitting ? 'A guardar...' : 'Guardar'}</Button></DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* DIÁLOGO: NOVO ITEM DO PORTFÓLIO */}
+            <Dialog open={isPortfolioDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetPortfolioForm(); setIsPortfolioDialogOpen(isOpen); }}>
+                <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-white">Adicionar Novo Item</DialogTitle>
+                        <DialogDescription className="text-white/80">Preencha os detalhes e faça o upload da imagem.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePortfolioSubmit} className="space-y-4">
+                        <div><Label htmlFor="title" className="text-white mb-1 font-semibold">Título</Label><Input id="title" value={pTitle} onChange={(e) => setPTitle(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                        <div>
+                            <Label htmlFor="category" className="text-white mb-1 font-semibold">Categoria</Label>
+                            <Select onValueChange={setPCategory} value={pCategory} required>
+                                <SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                <SelectContent position="popper" className="bg-black/90 text-white border-white/20 z-[9999]">
+                                    <SelectItem value="portrait">Retratos</SelectItem>
+                                    <SelectItem value="wedding">Casamentos</SelectItem>
+                                    <SelectItem value="maternity">Maternidade</SelectItem>
+                                    <SelectItem value="family">Família</SelectItem>
+                                    <SelectItem value="events">Eventos</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div><Label htmlFor="description" className="text-white mb-1 font-semibold">Descrição</Label><Textarea id="description" value={pDescription} onChange={(e) => setPDescription(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" /></div>
+                        <div><Label htmlFor="file" className="text-white mb-1 font-semibold">Imagem</Label><Input id="file" type="file" onChange={(e) => setPFile(e.target.files?.[0] || null)} required className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" /></div>
+                        <DialogFooter className="!mt-6">
+                            <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
+                            <Button type="submit" disabled={isPortfolioSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isPortfolioSubmitting ? 'A guardar...' : 'Guardar'}</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
