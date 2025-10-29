@@ -49,7 +49,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                 <nav className="px-3 sm:px-4 md:px-5 py-4 sm:py-3 md:py-3 flex flex-nowrap items-center justify-between">
                     <div className="flex items-center shrink-0">
                         <Link to="/" onClick={() => scrollToSection("home")} className="focus:outline-none">
-                            <img src={Logo} alt="Logo da Hellô Borges" className="h-7 sm:h-8 md:h-12 w-auto cursor-pointer" />
+                            <img src={Logo} alt="Logo da Hellô Borges" className="h-10 sm:h-10 md:h-12 w-auto cursor-pointer" />
                         </Link>
                     </div>
 
