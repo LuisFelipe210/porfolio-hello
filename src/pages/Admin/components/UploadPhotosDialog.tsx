@@ -80,7 +80,7 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
 
             if (!response.ok) throw new Error('Falha ao atualizar a galeria na base de dados.');
 
-            toast({ title: 'Sucesso!', description: `${files.length} fotos adicionadas.` });
+            toast({ title: 'Sucesso!', variant: "success", description: `${files.length} fotos adicionadas.` });
             onUploadComplete();
             setFiles([]);
             onOpenChange(false);

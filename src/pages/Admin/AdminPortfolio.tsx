@@ -137,7 +137,7 @@ const AdminPortfolio = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao salvar o item.');
-            toast({ title: 'Sucesso!', description: `Item ${editingId ? 'atualizado' : 'adicionado'}.` });
+            toast({ title: 'Sucesso!', variant: "success", description: `Item ${editingId ? 'atualizado' : 'adicionado'}.` });
 
             resetForm();
             setIsDialogOpen(false);
@@ -165,7 +165,7 @@ const AdminPortfolio = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao excluir.');
-            toast({ title: 'Sucesso', description: `${ids.length} item(ns) excluído(s).` });
+            toast({ title: 'Sucesso', variant: "success", description: `${ids.length} item(ns) excluído(s).` });
             fetchItems();
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o(s) item(ns).' });

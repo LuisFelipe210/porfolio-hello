@@ -70,7 +70,7 @@ const AdminSettings = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao salvar as configurações.');
-            toast({ title: 'Sucesso!', description: 'As configurações foram atualizadas.' });
+            toast({ title: 'Sucesso!', variant: "success", description: 'As configurações foram atualizadas.' });
             setInitialSettings(settings);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });

@@ -78,7 +78,7 @@ const AdminAvailability = () => {
 
             if (!response.ok) throw new Error('Falha ao salvar as datas.');
 
-            toast({ title: 'Sucesso!', description: 'Disponibilidade atualizada.' });
+            toast({ title: 'Sucesso!', variant: "success", description: 'Disponibilidade atualizada.' });
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar.' });
         } finally {
@@ -91,7 +91,7 @@ const AdminAvailability = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (date < today) {
-            toast({ title: 'Aviso', description: 'Não pode marcar datas passadas.', variant: 'default' });
+            toast({ title: 'Aviso', description: 'Não pode marcar datas passadas.', variant: 'warning' });
             return;
         }
 
@@ -100,10 +100,10 @@ const AdminAvailability = () => {
 
         if (eventIndex !== -1) {
             setEvents(prev => prev.filter((_, index) => index !== eventIndex));
-            toast({ title: 'Data Liberada', description: `A data ${format(date, 'dd/MM/yyyy')} foi marcada como disponível.`, duration: 2000 });
+            toast({ title: 'Data Liberada', variant: "info", description: `A data ${format(date, 'dd/MM/yyyy')} foi marcada como disponível.`, duration: 2000 });
         } else {
             setEvents(prev => [...prev, { title: 'OCUPADO', start: date, end: date, allDay: true }]);
-            toast({ title: 'Data Reservada', description: `A data ${format(date, 'dd/MM/yyyy')} foi marcada como ocupada.`, variant: 'default', duration: 2000 });
+            toast({ title: 'Data Reservada', variant: "warning", description: `A data ${format(date, 'dd/MM/yyyy')} foi marcada como ocupada.`, duration: 2000 });
         }
     };
 

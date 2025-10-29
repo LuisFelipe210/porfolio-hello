@@ -106,7 +106,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
             const token = localStorage.getItem('clientAuthToken');
             const response = await fetch('/api/portal?action=submitSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }) });
             if (!response.ok) throw new Error('Falha ao enviar a seleção.');
-            toast({ title: 'Seleção Enviada!', description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
+            toast({ title: 'Seleção Enviada!', variant: 'success' ,description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
             onSelectionSubmit();
         } catch (error) { toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar a sua seleção.' }); } finally { setIsSubmitting(false); }
     };

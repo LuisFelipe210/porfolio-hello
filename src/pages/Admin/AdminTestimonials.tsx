@@ -109,7 +109,7 @@ const AdminTestimonials = () => {
                 body: JSON.stringify(bodyPayload),
             });
             if (!response.ok) throw new Error('Falha ao salvar o depoimento.');
-            toast({ title: 'Sucesso!', description: `Depoimento ${editingId ? 'atualizado' : 'adicionado'}.` });
+            toast({ title: 'Sucesso!', variant: "success", description: `Depoimento ${editingId ? 'atualizado' : 'adicionado'}.` });
             resetForm();
             setIsDialogOpen(false);
             fetchTestimonials();
@@ -138,7 +138,7 @@ const AdminTestimonials = () => {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Falha ao excluir os depoimentos.');
             }
-            toast({ title: 'Sucesso!', description: `${ids.length} depoimento(s) excluído(s).` });
+            toast({ title: 'Sucesso!', variant: "success", description: `${ids.length} depoimento(s) excluído(s).` });
             setSelectedTestimonials(new Set());
             setIsBulkDeleteDialogOpen(false);
             fetchTestimonials();

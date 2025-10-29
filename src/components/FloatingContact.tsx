@@ -41,6 +41,7 @@ const FloatingContact = () => {
 
             toast({
                 title: "Mensagem enviada!",
+                variant: "success",
                 description: "Obrigada pelo seu interesse. Retornarei o contato em breve.",
             });
 

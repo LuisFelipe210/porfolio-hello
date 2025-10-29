@@ -17,6 +17,8 @@ import {
     CalendarDays // <-- NOVO: ÍCONE PARA DISPONIBILIDADE
 } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
+import { FaReact } from 'react-icons/fa';
+import { MdDashboard } from 'react-icons/md';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMessages } from '@/context/MessagesContext';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
@@ -106,7 +108,7 @@ const AdminLayout = () => {
                     }}
                 >
                     <div className="flex items-center gap-3 p-4 border-b border-white/10 mb-4">
-                        <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
+                        <MdDashboard className="text-orange-500 text-2xl" />
                         <span className="text-xl font-semibold text-white">Painel</span>
                     </div>
                     <NavLinks className="flex-1" />
@@ -136,7 +138,7 @@ const AdminLayout = () => {
                                 </SheetTrigger>
                                 <SheetContent side="left" className="flex flex-col p-0 bg-black/80 backdrop-blur-lg border-r border-white/10">
                                     <div className="flex items-center gap-3 p-4 border-b border-white/10 shrink-0">
-                                        <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
+                                        <MdDashboard className="text-orange-500 text-2xl" />
                                         <span className="text-xl font-semibold text-white">Painel</span>
                                     </div>
                                     <div className="flex-1 overflow-y-auto">
@@ -154,9 +156,8 @@ const AdminLayout = () => {
                                 <Menu className="h-6 w-6" />
                             </Button>
                         )}
-                        {!isMobile && <img src={Logo} alt="Hellô Borges" className="h-8 w-auto" />}
+                        <img src={Logo} alt="Hellô Borges" className="h-8 w-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
-                    {isMobile && <img src={Logo} alt="Hellô Borges" className="h-8 w-auto absolute left-1/2 -translate-x-1/2" />}
                     <div className="w-10"></div>
                 </header>
                 <main className="relative z-10 flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">

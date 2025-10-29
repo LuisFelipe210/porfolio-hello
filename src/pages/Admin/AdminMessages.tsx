@@ -82,7 +82,7 @@ const AdminMessages = () => {
             // Futuramente, adicionar rota para apagar seleções se necessário
             if (itemToDelete.type === 'message') {
                 await fetch(`/api/messages?id=${itemToDelete.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                toast({ title: 'Sucesso', description: 'Mensagem excluída.' });
+                toast({ title: 'Sucesso', variant: "success", description: 'Mensagem excluída.' });
                 setMessages(prev => prev.filter(msg => msg._id !== itemToDelete.id));
             }
             await refreshMessages();

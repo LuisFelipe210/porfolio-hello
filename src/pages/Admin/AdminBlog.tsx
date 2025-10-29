@@ -121,7 +121,7 @@ const AdminBlog = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao salvar o artigo.');
-            toast({ title: 'Sucesso!', description: `Artigo ${editingId ? 'atualizado' : 'publicado'}.` });
+            toast({ title: 'Sucesso!', variant: "success", description: `Artigo ${editingId ? 'atualizado' : 'publicado'}.` });
 
             resetForm();
             setIsDialogOpen(false);
@@ -147,7 +147,7 @@ const AdminBlog = () => {
                 body: JSON.stringify({ postIds: ids }),
             });
             if (!response.ok) throw new Error('Falha ao excluir o(s) artigo(s).');
-            toast({ title: 'Sucesso', description: `${ids.length} artigo(s) excluído(s).` });
+            toast({ title: 'Sucesso', variant: "success", description: `${ids.length} artigo(s) excluído(s).` });
             fetchPosts();
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o(s) artigo(s).' });

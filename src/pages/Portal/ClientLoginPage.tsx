@@ -13,6 +13,7 @@ const ClientLoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [loginError, setLoginError] = useState('');
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -37,6 +38,7 @@ const ClientLoginPage = () => {
             toast({
                 title: 'Login bem-sucedido!',
                 description: 'A redirecionar para o seu portal...',
+                variant: "success"
             });
 
             if (mustResetPassword) {
@@ -45,7 +47,7 @@ const ClientLoginPage = () => {
                 navigate('/portal/gallery');
             }
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro de login', description: 'Email ou palavra-passe incorretos.' });
+            setLoginError('Email ou senha incorretos.');
         } finally {
             setIsLoading(false);
         }
@@ -100,6 +102,11 @@ const ClientLoginPage = () => {
                                 placeholder="••••••••"
                                 className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
                             />
+                            {loginError && (
+                                <div className="text-sm text-red-600 mt-1">
+                                    {loginError}
+                                </div>
+                            )}
                             {/*<div className="text-right -mt-1">*/}
                             {/*    <Link to="/portal/forgot-password" className="text-sm text-gray-900 dark:text-muted-foreground hover:text-foreground hover:underline transition-colors px-1">*/}
                             {/*        Esqueceu a senha?*/}

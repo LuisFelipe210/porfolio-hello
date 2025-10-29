@@ -70,7 +70,7 @@ const AdminClientGalleries = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao criar a galeria.');
-            toast({ title: 'Sucesso!', description: `Galeria "${galleryName}" criada.` });
+            toast({ title: 'Sucesso!', variant: "success", description: `Galeria "${galleryName}" criada.` });
 
             setGalleryName('');
             setIsCreateDialogOpen(false);
@@ -93,7 +93,7 @@ const AdminClientGalleries = () => {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Falha ao excluir.');
-            toast({ title: 'Sucesso', description: 'Galeria excluída.' });
+            toast({ title: 'Sucesso', variant: "success", description: 'Galeria excluída.' });
             fetchGalleries();
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir a galeria.' });

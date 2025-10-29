@@ -129,7 +129,7 @@ const AdminAbout = () => {
             const uploadedUrl = await handleCloudinaryUpload(file);
             const newImage: Image = { src: uploadedUrl, alt: 'Nova imagem da seção sobre' };
             setContent(prev => prev ? { ...prev, [column]: [...prev[column], newImage] } : null);
-            toast({ title: 'Upload concluído!', description: 'Imagem adicionada com sucesso.' });
+            toast({ title: 'Upload concluído!', variant: "success" ,description: 'Imagem adicionada com sucesso.' });
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro de Upload', description: 'Não foi possível enviar a imagem.' });
         } finally {
@@ -162,7 +162,7 @@ const AdminAbout = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao salvar as alterações.');
-            toast({ title: 'Sucesso!', description: 'A sua secção "Sobre Mim" foi atualizada.' });
+            toast({ title: 'Sucesso!', variant: "success", description: 'A sua secção "Sobre Mim" foi atualizada.' });
             setInitialContent(content);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });

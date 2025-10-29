@@ -5,10 +5,14 @@ import { LogOut, ArrowLeft } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import React from 'react';
 import { optimizeCloudinaryUrl } from "@/lib/utils.ts";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/hooks/use-toast";
 
 const ClientLayout = () => {
     const navigate = useNavigate();
     const [headerBackAction, setHeaderBackAction] = useState<(() => void) | null>(null);
+    const { toasts } = useToast();
+    const logoOffset = 0;
 
     useEffect(() => {
         // Remove o dark mode forçado
@@ -17,6 +21,7 @@ const ClientLayout = () => {
             navigate('/portal/login');
         }
     }, [navigate]);
+
 
     const handleLogout = () => {
         localStorage.removeItem('clientAuthToken');
@@ -52,7 +57,10 @@ const ClientLayout = () => {
                     )}
                 </div>
 
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-300"
+                  style={{ transform: `translate(-50%, calc(-50% + ${logoOffset}px))` }}
+                >
                     <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
                 </div>
 

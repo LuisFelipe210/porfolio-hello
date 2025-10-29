@@ -4,14 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import Logo from "@/assets/logo.svg";
 import { optimizeCloudinaryUrl } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminLogin = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [loginError, setLoginError] = useState('');
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -24,6 +25,7 @@ const AdminLogin = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setLoginError('');
 
         try {
             const response = await fetch('/api/auth', {
@@ -42,17 +44,13 @@ const AdminLogin = () => {
             toast({
                 title: 'Login bem-sucedido!',
                 description: 'A redirecionar para o painel...',
-                className: 'bg-black/80 text-white border-green-500',
+                variant: 'success',
             });
 
             // Redireciona para a página de clientes após o login
             navigate('/admin');
         } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'Erro de login',
-                description: 'Utilizador ou palavra-passe incorretos.',
-            });
+            setLoginError('Utilizador ou palavra-passe incorretos.');
         } finally {
             setIsLoading(false);
         }
@@ -104,6 +102,11 @@ const AdminLogin = () => {
                                 placeholder="••••••••"
                                 className="bg-black/70 border-white/20 rounded-xl h-12"
                             />
+                            {loginError && (
+                                <div className="text-sm text-red-600 mt-1">
+                                    {loginError}
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                     <CardFooter>

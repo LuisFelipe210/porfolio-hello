@@ -106,7 +106,7 @@ const AdminServices = () => {
 
             if (!response.ok) throw new Error('Falha ao salvar na API.');
 
-            toast({ title: 'Sucesso!', description: 'Serviço atualizado.' });
+            toast({ title: 'Sucesso!', variant: "success", description: 'Serviço atualizado.' });
             resetEditingState();
             await fetchServices();
         } catch (error: any) {

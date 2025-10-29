@@ -78,7 +78,7 @@ const AdminClients = () => {
         const randomString = Math.random().toString(36).substring(2, 10);
         const newEmail = `${randomString}@hello.com`;
         setEmail(newEmail);
-        toast({ title: 'Email gerado', description: `Email aleatório gerado: ${newEmail}` });
+        toast({ title: 'Email gerado', variant: "success" ,description: `Email aleatório gerado: ${newEmail}` });
     };
 
     const generateRandomPassword = () => {
@@ -88,13 +88,13 @@ const AdminClients = () => {
             result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         setPassword(result);
-        toast({ title: 'Senha gerada', description: 'Senha aleatória gerada com sucesso.' });
+        toast({ title: 'Senha gerada', variant: "success" ,description: 'Senha aleatória gerada com sucesso.' });
     };
 
     const copyToClipboard = useCallback((text: string, label: string) => {
         if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
-            toast({ title: 'Copiado!', description: `${label} copiado para a área de transferência.` });
+            toast({ title: 'Copiado!', variant: "success" ,description: `${label} copiado para a área de transferência.` });
         }).catch(() => {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível copiar.' });
         });
@@ -121,7 +121,7 @@ const AdminClients = () => {
             }
             const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
             if (!response.ok) throw new Error(`Falha ao ${isEditing ? 'atualizar' : 'criar'} o cliente.`);
-            toast({ title: 'Sucesso!', description: `Cliente ${name} ${isEditing ? 'atualizado' : 'adicionado'}.` });
+            toast({ title: 'Sucesso!', variant: "success" ,description: `Cliente ${name} ${isEditing ? 'atualizado' : 'adicionado'}.` });
             resetForm();
             setIsDialogOpen(false);
             fetchClients();
@@ -140,7 +140,7 @@ const AdminClients = () => {
             const ids = Array.from(selectedClients);
             const response = await fetch(`/api/admin/portal?action=deleteClients`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ clientIds: ids }) });
             if (!response.ok) throw new Error('Falha ao excluir os clientes.');
-            toast({ title: 'Sucesso', description: `${ids.length} cliente(s) excluído(s).` });
+            toast({ title: 'Sucesso', variant: "success" ,description: `${ids.length} cliente(s) excluído(s).` });
             setSelectedClients(new Set());
             fetchClients();
             setIsDeleteDialogOpen(false);
