@@ -1,7 +1,4 @@
-// porfolio-hello/src/App.tsx
-
 import React, { useState, useEffect, Suspense, lazy } from "react";
-// 1. Importar useLocation
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
@@ -14,9 +11,6 @@ import ShutterPreloader from "./components/ShutterPreloader.tsx";
 import FloatingContact from "./components/FloatingContact.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
-
-// --- Importação do Chatbot ---
-import Chatbot from './components/Chatbot.tsx';
 
 // --- Páginas com Lazy Loading ---
 const Index = lazy(() => import("./pages/Index.tsx"));
@@ -86,9 +80,6 @@ const App = () => {
 
                     <div className="site-content">
                         <BrowserRouter>
-                            {/* --- Renderiza o Chatbot globalmente --- */}
-                            <Chatbot />
-
                             <ScrollToTop />
                             <Suspense fallback={<PageLoader />}>
                                 {/* Envolve as rotas com MessagesProvider para o contexto */}

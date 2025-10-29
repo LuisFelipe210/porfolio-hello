@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, Save } from 'lucide-react';
 
 interface Settings {
     _id: string;
@@ -96,9 +97,6 @@ const AdminSettings = () => {
                     <h1 className="text-3xl font-bold text-white">Configurações Gerais</h1>
                     <p className="text-white/80">Edite informações globais que aparecem em várias partes do site.</p>
                 </div>
-                <Button type="submit" disabled={isSubmitting || !isModified} className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all h-12 px-6 font-semibold w-full sm:w-auto">
-                    {isSubmitting ? 'A guardar...' : 'Guardar Alterações'}
-                </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-8 pr-2 -mr-2">
@@ -203,6 +201,21 @@ const AdminSettings = () => {
                     </CardContent>
                 </Card>
             </div>
+            <Button
+                type="submit"
+                disabled={isSubmitting || !isModified}
+                className={`fixed bottom-6 right-6 z-50 flex items-center justify-center rounded-full h-14 w-14 p-4 transition-all
+                    ${isSubmitting || !isModified
+                        ? 'bg-orange-700/50 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl'
+                    }`}
+            >
+                {isSubmitting ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                ) : (
+                    <Save className="h-12 w-12 text-white" />
+                )}
+            </Button>
         </form>
     );
 };

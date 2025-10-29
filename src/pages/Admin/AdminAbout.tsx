@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Upload, Loader2 } from 'lucide-react';
+import { Trash2, Upload, Loader2, Save } from 'lucide-react';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
@@ -182,9 +182,6 @@ const AdminAbout = () => {
                     <h1 className="text-3xl font-bold text-white">Gerir "Sobre Mim"</h1>
                     <p className="text-white/80">Edite os textos e as imagens da sua página de apresentação.</p>
                 </div>
-                <Button type="submit" disabled={isSubmitting || !isModified} className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all h-12 px-6 font-semibold w-full sm:w-auto">
-                    {isSubmitting ? 'A guardar...' : 'Guardar Alterações'}
-                </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 -mr-2">
@@ -220,6 +217,23 @@ const AdminAbout = () => {
                     </Card>
                 </div>
             </div>
+
+            {/* Botão flutuante de salvar alterações */}
+            <Button
+                type="submit"
+                disabled={isSubmitting || !isModified}
+                className={`fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 text-white font-semibold rounded-full h-14 w-14 p-4 transition-all
+                    ${isSubmitting || !isModified
+                        ? 'bg-orange-700/50 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl'
+                    }`}
+            >
+                {isSubmitting ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                    <Save className="h-12 w-12" />
+                )}
+            </Button>
         </form>
     );
 };

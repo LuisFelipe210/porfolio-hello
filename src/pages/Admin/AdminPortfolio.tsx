@@ -23,7 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Plus } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
@@ -258,41 +258,6 @@ const AdminPortfolio = () => {
                             <Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedItems.size})
                         </Button>
                     )}
-                    <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                        <DialogTrigger asChild>
-                            <Button className="bg-orange-500 rounded-xl text-white hover:bg-orange-600 transition-all font-semibold w-full sm:w-auto" onClick={() => handleOpenDialog()}>
-                                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Item
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
-                            <DialogHeader>
-                                <DialogTitle className="text-white">{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
-                                <DialogDescription className="text-white/80">{editingId ? "Altere as informações abaixo." : "Preencha os detalhes e faça o upload da imagem."}</DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div><Label htmlFor="title" className="text-white mb-1 font-semibold">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-                                <div>
-                                    <Label htmlFor="category" className="text-white mb-1 font-semibold">Categoria</Label>
-                                    <Select onValueChange={setCategory} value={category}>
-                                        <SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                                        <SelectContent className="bg-black/90 text-white border-white/20">
-                                            <SelectItem value="portrait">Retratos</SelectItem>
-                                            <SelectItem value="wedding">Casamentos</SelectItem>
-                                            <SelectItem value="maternity">Maternidade</SelectItem>
-                                            <SelectItem value="family">Família</SelectItem>
-                                            <SelectItem value="events">Eventos</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div><Label htmlFor="description" className="text-white mb-1 font-semibold">Descrição</Label><Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" /></div>
-                                <div><Label htmlFor="file" className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" /></div>
-                                <DialogFooter className="!mt-6">
-                                    <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                                    <Button type="submit" disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isSubmitting ? 'A guardar...' : 'Guardar'}</Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </div>
 
@@ -316,6 +281,67 @@ const AdminPortfolio = () => {
                 )}
                 {isMobile && items.length === 0 && <div className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</div>}
             </div>
+
+            {/* Botão flutuante de adicionar */}
+            <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
+                <DialogTrigger asChild>
+                    <Button
+                        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
+                        onClick={() => handleOpenDialog()}
+                    >
+                        <Plus className="h-12 w-12" />
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-white">{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
+                        <DialogDescription className="text-white/80">
+                            {editingId ? "Altere as informações abaixo." : "Preencha os detalhes e faça o upload da imagem."}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <Label htmlFor="title" className="text-white mb-1 font-semibold">Título</Label>
+                            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                        </div>
+                        <div>
+                            <Label htmlFor="category" className="text-white mb-1 font-semibold">Categoria</Label>
+                            <Select onValueChange={setCategory} value={category}>
+                                <SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                <SelectContent className="bg-black/90 text-white border-white/20">
+                                    <SelectItem value="portrait">Retratos</SelectItem>
+                                    <SelectItem value="wedding">Casamentos</SelectItem>
+                                    <SelectItem value="maternity">Maternidade</SelectItem>
+                                    <SelectItem value="family">Família</SelectItem>
+                                    <SelectItem value="events">Eventos</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label htmlFor="description" className="text-white mb-1 font-semibold">Descrição</Label>
+                            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" />
+                        </div>
+                        <div>
+                            <Label htmlFor="file" className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
+                            <Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                        </div>
+                        <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary" className="rounded-xl h-12 px-6">
+                                    Cancelar
+                                </Button>
+                            </DialogClose>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6"
+                            >
+                                {isSubmitting ? 'A guardar...' : 'Guardar'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* DIÁLOGO DE EXCLUSÃO */}
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>

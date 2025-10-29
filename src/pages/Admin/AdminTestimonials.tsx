@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 
@@ -172,8 +172,11 @@ const AdminTestimonials = () => {
                     )}
                     <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
                         <DialogTrigger asChild>
-                            <Button className="bg-orange-500 rounded-xl text-white hover:bg-orange-600 transition-all font-semibold w-full sm:w-auto" onClick={() => handleOpenDialog()}>
-                                <PlusCircle className="mr-2 h-4 w-4" />Adicionar
+                            <Button
+                                className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
+                                onClick={() => handleOpenDialog()}
+                            >
+                                <Plus className="h-12 w-12" />
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">

@@ -7,7 +7,6 @@ import { ArrowRight, PlusCircle, ImageIcon, Users, FileText, MessageSquare, User
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import QuickNotes from './components/QuickNotes';
-// IMPORTAÇÕES ADICIONADAS PARA OS DIÁLOGOS
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -54,6 +53,9 @@ const AdminDashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [greeting, setGreeting] = useState('Bem-vindo(a), Hellô');
     const { toast } = useToast();
+
+    // REMOVIDO: Mobile modals control (openShortcuts, openStats, openSessions, etc.)
+    // MANTIDO: Apenas os estados para os diálogos de INPUT (Novo Cliente e Novo Portfólio)
 
     // ***********************************************
     // LÓGICA DO DIÁLOGO DE NOVO CLIENTE (Extraída de AdminClients.tsx)
@@ -243,17 +245,13 @@ const AdminDashboard = () => {
     useEffect(() => {
         const hour = new Date().getHours();
 
-        // Lógica de saudação atualizada para:
-        // Bom dia: 5h até 11:59:59
-        // Boa tarde: 12h até 17:59:59
-        // Boa noite: 18h até 4:59:59 (18-23 e 0-4)
-
+        // Lógica de saudação atualizada
         if (hour >= 5 && hour < 12) {
             setGreeting(`Bom dia, Hellô`); // 5h até 11:59:59
         } else if (hour >= 12 && hour < 18) {
             setGreeting(`Boa tarde, Hellô`); // 12h até 17:59:59
-        } else { // Cobre as horas 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4
-            setGreeting(`Boa noite, Hellô`);
+        } else {
+            setGreeting(`Boa noite, Hellô`); // 18h até 4:59:59 (e o resto da noite/madrugada)
         }
 
         fetchDashboardData();
@@ -271,6 +269,238 @@ const AdminDashboard = () => {
 
     const COLORS = ['#FF8042', '#FFBB28', '#00C49F', '#0088FE', '#8884d8'];
 
+    // Simple viewport detection
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+        return (
+            <div className="flex flex-col h-full animate-fade-in p-4">
+                {/* Cabeçalho no estilo do AdminClients */}
+                <div className="shrink-0 mb-6">
+                    <h1 className="text-3xl font-bold text-white">{greeting}</h1>
+                    <p className="text-white/80">
+                        Aqui tem uma visão geral da atividade recente no seu site.
+                    </p>
+                </div>
+
+                {/* Container com rolagem */}
+                <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6">
+
+                {/* --- 1. ATALHOS ESSENCIAIS (Prioridade Máxima) --- */}
+                <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10 mb-6">
+                    <CardHeader className="p-3 pb-0"><CardTitle className="text-white text-base font-semibold">Ações Rápidas</CardTitle></CardHeader>
+                    <CardContent className="p-4 pt-3 grid grid-cols-3 gap-3">
+                        {/* Mensagens */}
+                        <Button asChild className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl relative">
+                            <Link to="/admin/messages" className="flex flex-col items-center justify-center h-full w-full">
+                                {hasUnreadMessages && <span className="absolute top-1 right-1 flex h-3 w-3"><span className="animate-ping absolute h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}
+                                <Inbox className="h-5 w-5 mb-1" />
+                                <span className="font-medium text-center">Mensagens</span>
+                            </Link>
+                        </Button>
+                        {/* Novo Cliente */}
+                        <Button onClick={() => { resetClientForm(); setIsClientDialogOpen(true); }} className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl">
+                            <PlusCircle className="h-5 w-5 mb-1" />
+                            <span className="font-medium text-center">Novo Cliente</span>
+                        </Button>
+                        {/* Novo Portfólio */}
+                        <Button onClick={() => { resetPortfolioForm(); setIsPortfolioDialogOpen(true); }} className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl">
+                            <ImageIcon className="h-5 w-5 mb-1" />
+                            <span className="font-medium text-center">Portfólio</span>
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                {/* --- 2. DADOS CRÍTICOS (Visão Instantânea - 4 Cartões) --- */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                    {/* Clientes */}
+                    <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                        <CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><Users className="h-4 w-4" /> Clientes</CardTitle>
+                        <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.clients}</p>
+                    </Card>
+
+                    {/* Galerias Não Lidas */}
+                    <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                        <CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><CheckCircle className="h-4 w-4 text-green-400" /> Não Lidas</CardTitle>
+                        <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.galleryStatus.unread}</p>
+                    </Card>
+
+                    {/* ITENS NO PORTFÓLIO (3 - NOVO DESTAQUE) */}
+                    <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                        <CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><ImageIcon className="h-4 w-4" /> Portfólio</CardTitle>
+                        <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.portfolio}</p>
+                    </Card>
+
+                    {/* Galerias Pendentes */}
+                    <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                        <CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><Clock className="h-4 w-4 text-yellow-400" /> Pendentes</CardTitle>
+                        <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.galleryStatus.pending}</p>
+                    </Card>
+                </div>
+
+                {/* --- 3. ATIVIDADE E SESSÕES (Listas) --- */}
+                <div className="space-y-4 mb-6"> {/* Espaçamento reduzido */}
+                    {/* Próximas Sessões */}
+                    <Card className="bg-black/70 rounded-2xl border border-white/10">
+                        <CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Próximas Sessões</CardTitle></CardHeader>
+                        <CardContent className="space-y-2 p-4 pt-2">
+                            {isLoading ? <Skeleton className="h-8 w-full bg-white/10 p-2" /> : (
+                                Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (
+                                    data.activity.reservedDates.slice(0, 3).map((d, i) => (
+                                        <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg"> {/* Padding mais harmonioso */}
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="h-5 w-5 text-indigo-400" />
+                                                <span className="text-white font-semibold text-sm">{formatDate(d)}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : <p className="text-white/70 text-sm p-1">Nenhuma sessão próxima.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Última Atividade */}
+                    <Card className="bg-black/70 rounded-2xl border border-white/10">
+                        <CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Última Atividade</CardTitle></CardHeader>
+                        <CardContent className="space-y-2 p-4 pt-2">
+                            {isLoading ? <Skeleton className="h-10 w-full bg-white/10 p-2" /> : (
+                                <>
+                                    {!data?.activity.lastMessage && !data?.activity.lastSelection ? <p className="text-white/70 text-sm p-1">Nenhuma nova atividade por ler.</p> : null}
+
+                                    {/* Link envolvente para facilitar o toque */}
+                                    {data?.activity.lastMessage && (
+                                        <Link to="/admin/messages" className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <MessageSquare className="h-5 w-5 text-orange-400 flex-shrink-0" />
+                                                <p className="font-semibold text-white text-sm truncate">Nova mensagem de {data.activity.lastMessage.name}</p>
+                                            </div>
+                                            <ArrowRight className="h-4 w-4 text-white/70" />
+                                        </Link>
+                                    )}
+
+                                    {data?.activity.lastSelection && (
+                                        <Link to="/admin/messages" className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <Users className="h-5 w-5 text-orange-400 flex-shrink-0" />
+                                                <p className="font-semibold text-white text-sm truncate">Nova seleção de {data.activity.lastSelection.clientInfo.name}</p>
+                                            </div>
+                                            <ArrowRight className="h-4 w-4 text-white/70" />
+                                        </Link>
+                                    )}
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* --- 4. QUICK NOTES (Componente Interativo) --- */}
+                <div className="mb-6"><QuickNotes /></div>
+
+                {/* --- 5. CARTÕES DE DETALHES ADICIONAIS --- */}
+                <div className="grid grid-cols-1 gap-4 mb-6"> {/* Espaçamento reduzido */}
+                    {/* Distribuição do Portfólio (Gráfico Vertical Compacto) */}
+                    <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10">
+                        <CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Distribuição do Portfólio</CardTitle></CardHeader>
+                        <CardContent className="h-56 p-4 pt-2"> {/* Altura ajustada */}
+                            <ResponsiveContainer width="100%" height="100%">
+                                {isLoading ? <Skeleton className="h-full w-full bg-white/10" /> :
+                                    <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                                        <XAxis type="number" hide />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="name"
+                                            stroke="#A1A1AA"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            width={80}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: 'rgba(255, 255, 255, 0.08)' }}
+                                            content={<CustomTooltip />}
+                                        />
+                                        <Bar dataKey="total" radius={[0, 6, 6, 0]}>
+                                            {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                        </Bar>
+                                    </BarChart>}
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+
+                    {/* Últimos Clientes (Lista) */}
+                    <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10">
+                        <CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Últimos 5 Clientes</CardTitle></CardHeader>
+                        <CardContent className="space-y-2 p-4 pt-2">
+                            {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (data?.activity.latestClients.length > 0 ? data.activity.latestClients.map(client => <div key={client._id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"><UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white text-sm truncate">{client.name}</p></div>) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>)}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* DIÁLOGOS DE INPUT (MANTIDOS SEM ALTERAÇÃO VISUAL) */}
+                {/* DIÁLOGO: NOVO CLIENTE */}
+                <Dialog open={isClientDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetClientForm(); setIsClientDialogOpen(isOpen); }}>
+                    <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                        <DialogHeader><DialogTitle className="text-xl font-semibold text-white">Adicionar Novo Cliente</DialogTitle></DialogHeader>
+                        <form onSubmit={handleClientSubmit} className="space-y-4">
+                            <div><Label htmlFor="name" className="text-white mb-1 font-semibold">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                            <div>
+                                <Label htmlFor="email" className="text-white mb-1 font-semibold">Email de Login</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                                    <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                </div>
+                            </div>
+                            <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone (opcional)</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                            <div>
+                                <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(password, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                </div>
+                            </div>
+                            <div><Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar Senha (opcional)</Label><Input id="phrase" value={phrase} onChange={(e) => setPhrase(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                            <DialogFooter className="!mt-6"><DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose><Button type="submit" disabled={isClientSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isClientSubmitting ? 'A guardar...' : 'Guardar'}</Button></DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* DIÁLOGO: NOVO ITEM DO PORTFÓLIO */}
+                <Dialog open={isPortfolioDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetPortfolioForm(); setIsPortfolioDialogOpen(isOpen); }}>
+                    <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                        <DialogHeader>
+                            <DialogTitle className="text-white">Adicionar Novo Item</DialogTitle>
+                            <DialogDescription className="text-white/80">Preencha os detalhes e faça o upload da imagem.</DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handlePortfolioSubmit} className="space-y-4">
+                            <div><Label htmlFor="title" className="text-white mb-1 font-semibold">Título</Label><Input id="title" value={pTitle} onChange={(e) => setPTitle(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+                            <div>
+                                <Label htmlFor="category" className="text-white mb-1 font-semibold">Categoria</Label>
+                                <Select onValueChange={setPCategory} value={pCategory} required>
+                                    <SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                    <SelectContent position="popper" className="bg-black/90 text-white border-white/20 z-[9999]">
+                                        <SelectItem value="portrait">Retratos</SelectItem>
+                                        <SelectItem value="wedding">Casamentos</SelectItem>
+                                        <SelectItem value="maternity">Maternidade</SelectItem>
+                                        <SelectItem value="family">Família</SelectItem>
+                                        <SelectItem value="events">Eventos</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div><Label htmlFor="description" className="text-white mb-1 font-semibold">Descrição</Label><Textarea id="description" value={pDescription} onChange={(e) => setPDescription(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" /></div>
+                            <div><Label htmlFor="file" className="text-white mb-1 font-semibold">Imagem</Label><Input id="file" type="file" onChange={(e) => setPFile(e.target.files?.[0] || null)} required className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" /></div>
+                            <DialogFooter className="!mt-6">
+                                <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
+                                <Button type="submit" disabled={isPortfolioSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isPortfolioSubmitting ? 'A guardar...' : 'Guardar'}</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full animate-fade-in">

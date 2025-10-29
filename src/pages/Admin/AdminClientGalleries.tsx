@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, ArrowLeft, Upload, Eye } from 'lucide-react';
+import { PlusCircle, Trash2, ArrowLeft, Upload, Eye, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UploadPhotosDialog } from './components/UploadPhotosDialog';
 import { ViewSelectionsDialog } from './components/ViewSelectionsDialog';
@@ -131,10 +131,10 @@ const AdminClientGalleries = () => {
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                     <DialogTrigger asChild>
                         <Button
+                            className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
                             onClick={() => setIsCreateDialogOpen(true)}
-                            className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-semibold transition-all w-full sm:w-auto"
                         >
-                            <PlusCircle className="mr-2 h-4 w-4" />Nova Galeria
+                            <Plus className="h-12 w-12 text-white" />
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl border-white/10 text-white">

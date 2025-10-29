@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
+import { Plus, PlusCircle, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ClientCard from './components/ClientCard';
 
@@ -172,36 +172,6 @@ const AdminClients = () => {
                 <div><h1 className="text-3xl font-bold text-white">Gerir Clientes</h1><p className="text-white/80">Crie, edite e gira o acesso dos seus clientes.</p></div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     {selectedClients.size > 0 && (<Button type="button" disabled={isDeleting} onClick={() => setIsDeleteDialogOpen(true)} className="border border-red-500/80 hover:bg-red-500/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent w-full sm:w-auto"><Trash2 className="h-4 w-4 mr-2" />Excluir ({selectedClients.size})</Button>)}
-                    <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                        <DialogTrigger asChild><Button onClick={() => handleOpenDialog(null)} className="bg-orange-500 rounded-xl text-white hover:bg-orange-600 transition-all font-semibold w-full sm:w-auto"><PlusCircle className="mr-2 h-4 w-4" />Novo Cliente</Button></DialogTrigger>
-                        <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
-                            <DialogHeader><DialogTitle className="text-xl font-semibold text-white">{currentClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle></DialogHeader>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div><Label htmlFor="name" className="text-white mb-1 font-semibold">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-                                <div>
-                                    <Label htmlFor="email" className="text-white mb-1 font-semibold">Email de Login</Label>
-                                    <div className="flex items-center gap-2">
-                                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
-                                        {!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>}
-                                        <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
-                                    </div>
-                                </div>
-                                <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone (opcional)</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-                                {!currentClient && (
-                                    <div>
-                                        <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>
-                                        <div className="flex items-center gap-2">
-                                            <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
-                                            <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
-                                            <Button type="button" size="icon" onClick={() => copyToClipboard(password, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
-                                        </div>
-                                    </div>
-                                )}
-                                <div><Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar Senha (opcional)</Label><Input id="phrase" value={phrase} onChange={(e) => setPhrase(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-                                <DialogFooter className="!mt-6"><DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose><Button type="submit" disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isSubmitting ? 'A guardar...' : 'Guardar'}</Button></DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </div>
 
@@ -244,6 +214,57 @@ const AdminClients = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+        {/* Botão flutuante de adicionar cliente */}
+        <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
+          <DialogTrigger asChild>
+            <Button
+              className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
+              onClick={() => handleOpenDialog(null)}
+            >
+              <Plus className="h-12 w-12" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-white">
+                {currentClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div><Label htmlFor="name" className="text-white mb-1 font-semibold">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+              <div>
+                <Label htmlFor="email" className="text-white mb-1 font-semibold">Email de Login</Label>
+                <div className="flex items-center gap-2">
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                  {!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>}
+                  <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                </div>
+              </div>
+              <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone (opcional)</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+              {!currentClient && (
+                <div>
+                  <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>
+                  <div className="flex items-center gap-2">
+                    <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
+                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
+                    <Button type="button" size="icon" onClick={() => copyToClipboard(password, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                  </div>
+                </div>
+              )}
+              <div><Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar Senha (opcional)</Label><Input id="phrase" value={phrase} onChange={(e) => setPhrase(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
+              <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary" className="rounded-xl h-12 px-6">
+                    Cancelar
+                  </Button>
+                </DialogClose>
+                <Button type="submit" disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6">
+                  {isSubmitting ? 'A guardar...' : 'Guardar'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
         </div>
     );
 };

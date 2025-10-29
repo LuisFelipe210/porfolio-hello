@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CalendarDays } from 'lucide-react';
+import { Loader2, CalendarDays, Save } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import Calendar from 'react-calendar';
@@ -100,7 +100,7 @@ const AdminAvailability = () => {
 
         if (eventIndex !== -1) {
             setEvents(prev => prev.filter((_, index) => index !== eventIndex));
-            toast({ title: 'Data Liberada', variant: "info", description: `A data ${format(date, 'dd/MM/yyyy')} foi marcada como disponível.`, duration: 2000 });
+            toast({ title: 'Data Liberada', variant:     "info", description: `A data ${format(date, 'dd/MM/yyyy')} foi marcada como disponível.`, duration: 2000 });
         } else {
             setEvents(prev => [...prev, { title: 'OCUPADO', start: date, end: date, allDay: true }]);
             toast({ title: 'Data Reservada', variant: "warning", description: `A data ${format(date, 'dd/MM/yyyy')} foi marcada como ocupada.`, duration: 2000 });
@@ -134,15 +134,16 @@ const AdminAvailability = () => {
                 <Button
                     onClick={handleSave}
                     disabled={isLoading || isSubmitting}
-                    className="text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-all h-12 px-6 font-semibold w-full sm:w-auto"
+                    className={`fixed bottom-6 right-6 z-50 flex items-center justify-center rounded-full h-14 w-14 p-4 transition-all
+                        ${isLoading || isSubmitting
+                            ? 'bg-orange-700/50 cursor-not-allowed'
+                            : 'bg-orange-500 hover:bg-orange-600 shadow-lg'
+                        }`}
                 >
                     {isSubmitting ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            A salvar...
-                        </>
+                        <Loader2 className="h-6 w-6 animate-spin" />
                     ) : (
-                        'Salvar Alterações'
+                        <Save className="h-12 w-12 text-white" />
                     )}
                 </Button>
             </div>
