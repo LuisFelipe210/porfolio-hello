@@ -14,7 +14,7 @@ import {
     Rss,
     Users,
     Home,
-    CalendarDays // <-- ÍCONE PARA DISPONIBILIDADE
+    CalendarDays
 } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import { FaReact } from 'react-icons/fa';
@@ -57,42 +57,42 @@ const AdminLayout = () => {
 
 
     const NavLinks = ({ className }: { className?: string }) => (
-        <nav className={`flex flex-col gap-2 p-4 ${className}`}>
+        <nav className={`flex flex-col gap-2 p-4 min-w-full ${className}`}>
             <Link to="/admin" onClick={() => setSheetOpen(false)}>
-                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}>
+                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
                     <Home className="mr-3 h-5 w-5" /> Início
                 </Button>
             </Link>
             <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
-                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}>
+                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
                     <Users className="mr-3 h-5 w-5" /> Clientes
                 </Button>
             </Link>
             <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
-                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80 relative`}>
+                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black relative`}>
                     <Inbox className="mr-3 h-5 w-5" /> Mensagens
                     {hasUnreadMessages && <span className="absolute top-1/2 right-4 -translate-y-1/2 h-2.5 w-2.5 bg-orange-500 rounded-full animate-pulse" />}
                 </Button>
             </Link>
-            <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><ImageIcon className="mr-3 h-5 w-5" /> Portfólio</Button></Link>
-            <Link to="/admin/services" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><LayoutDashboard className="mr-3 h-5 w-5" /> Serviços</Button></Link>
-            <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
-            <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos</Button></Link>
+            <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><ImageIcon className="mr-3 h-5 w-5" /> Portfólio</Button></Link>
+            <Link to="/admin/services" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><LayoutDashboard className="mr-3 h-5 w-5" /> Serviços</Button></Link>
+            <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
+            <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos</Button></Link>
 
             {/* NOVO LINK DE DISPONIBILIDADE */}
             <Link to="/admin/availability" onClick={() => setSheetOpen(false)}>
-                <Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}>
+                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
                     <CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade
                 </Button>
             </Link>
             {/* FIM DO NOVO LINK */}
 
-            <Link to="/admin/blog" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><Rss className="mr-3 h-5 w-5" /> Blog</Button></Link>
-            <Link to="/admin/settings" onClick={() => setSheetOpen(false)}><Button variant="ghost" className={`w-full justify-start text-base p-6 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-black text-orange-500' : 'text-white'} hover:bg-black/80`}><Settings className="mr-3 h-5 w-5" /> Configurações</Button></Link>
+            <Link to="/admin/blog" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Rss className="mr-3 h-5 w-5" /> Blog</Button></Link>
+            <Link to="/admin/settings" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Settings className="mr-3 h-5 w-5" /> Configurações</Button></Link>
         </nav>
     );
 
-    const sidebarWidth = '280px';
+    const sidebarWidth = '260px';
 
     const optimizedHamsterUrl = optimizeCloudinaryUrl(HAMSTER_URL, "f_auto,q_auto,w_80");
 
@@ -103,7 +103,7 @@ const AdminLayout = () => {
             {/* BARRA LATERAL (Desktop) */}
             {!isMobile && (
                 <aside
-                    className="h-full bg-black/50 backdrop-blur-lg border-r border-white/10 flex flex-col relative z-20 transition-all duration-300 ease-in-out"
+                    className="h-full bg-black/50 backdrop-blur-lg border-r border-white/10 flex flex-col relative z-20 transition-all duration-300 ease-in-out overflow-y-auto"
                     style={{
                         width: isSidebarOpen ? sidebarWidth : '0',
                         minWidth: isSidebarOpen ? sidebarWidth : '0',
@@ -120,7 +120,7 @@ const AdminLayout = () => {
                     <div className="mt-auto p-4 border-t border-white/10">
                         <Button
                             variant="outline"
-                            className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base"
+                            className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-4 text-sm"
                             onClick={handleLogout}
                         >
                             <LogOut className="mr-3 h-5 w-5" /> Sair
@@ -156,10 +156,42 @@ const AdminLayout = () => {
                                         <span className="text-xl font-semibold text-white">Painel</span>
                                     </div>
                                     <div className="flex-1 overflow-y-auto">
-                                        <NavLinks />
+                                        <nav className="flex flex-col gap-2 p-4 min-w-full">
+                                            <Link to="/admin" onClick={() => setSheetOpen(false)}>
+                                                <Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
+                                                    <Home className="mr-3 h-5 w-5" /> Início
+                                                </Button>
+                                            </Link>
+                                            <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
+                                                <Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
+                                                    <Users className="mr-3 h-5 w-5" /> Clientes
+                                                </Button>
+                                            </Link>
+                                            <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
+                                                <Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black relative`}>
+                                                    <Inbox className="mr-3 h-5 w-5" /> Mensagens
+                                                    {hasUnreadMessages && <span className="absolute top-1/2 right-4 -translate-y-1/2 h-2.5 w-2.5 bg-orange-500 rounded-full animate-pulse" />}
+                                                </Button>
+                                            </Link>
+                                            <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><ImageIcon className="mr-3 h-5 w-5" /> Portfólio</Button></Link>
+                                            <Link to="/admin/services" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><LayoutDashboard className="mr-3 h-5 w-5" /> Serviços</Button></Link>
+                                            <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
+                                            <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos</Button></Link>
+
+                                            {/* NOVO LINK DE DISPONIBILIDADE */}
+                                            <Link to="/admin/availability" onClick={() => setSheetOpen(false)}>
+                                                <Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
+                                                    <CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade
+                                                </Button>
+                                            </Link>
+                                            {/* FIM DO NOVO LINK */}
+
+                                            <Link to="/admin/blog" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Rss className="mr-3 h-5 w-5" /> Blog</Button></Link>
+                                            <Link to="/admin/settings" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-auto justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Settings className="mr-3 h-5 w-5" /> Configurações</Button></Link>
+                                        </nav>
                                     </div>
                                     <div className="mt-auto p-4 border-t border-white/10 shrink-0">
-                                        <Button variant="outline" className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-6 text-base" onClick={handleLogout}>
+                                        <Button variant="outline" className="w-full text-red-500 hover:bg-red-500/10 hover:text-red-400 border-red-500/50 transition-colors duration-200 rounded-2xl p-4 text-sm" onClick={handleLogout}>
                                             <LogOut className="mr-3 h-5 w-5" /> Sair
                                         </Button>
                                     </div>
@@ -178,7 +210,6 @@ const AdminLayout = () => {
                     <Outlet />
                 </main>
             </div>
-            {/* CSS PARA ANIMAÇÃO DA IMAGEM */}
             <style>{`
                 @keyframes run {
                     0% { transform: translateX(0); }
@@ -195,7 +226,6 @@ const AdminLayout = () => {
                     animation: run 30s linear infinite; /* 15s, velocidade constante, infinito */
                 }
             `}</style>
-            {/* FIM DO CSS */}
         </div>
     );
 };

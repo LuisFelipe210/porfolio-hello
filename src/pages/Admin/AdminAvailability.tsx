@@ -199,14 +199,14 @@ const AdminAvailability = () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    height: 80px; /* Aumenta a altura */
+                    height: 60px; /* Reduzido para melhor adaptação em telas HD */
                     border-radius: 1rem; /* Mais arredondado */
                     font-weight: 500;
                     font-size: 1rem;
                     transition: all 0.2s ease-in-out;
                 }
                 @media (max-width: 640px) {
-                  .react-calendar__tile { height: 50px; }
+                  .react-calendar__tile { height: 40px; }
                 }
                 .react-calendar__tile:enabled:hover,
                 .react-calendar__tile:enabled:focus {
