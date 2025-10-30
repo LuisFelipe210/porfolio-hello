@@ -47,12 +47,15 @@ const AboutSection = () => {
                     <div className="order-1 animate-fade-in">
                         {/* --- CORREÇÃO: Combinação dos dois ícones --- */}
                         <div className="flex flex-wrap items-center gap-4 mb-6">
-                            <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                                Sobre Mim
-                            </h2>
+                            <div className="inline-block">
+                                <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-foreground relative inline-block pb-2">
+                                    Quem sou eu?
+                                    <span className="absolute bottom-0 left-0 w-full h-[3px] bg-orange-500 rounded-full"></span>
+                                </h2>
+                            </div>
                             <div className="flex items-center gap-3">
-                                <FaHeartbeat className="w-9 h-8 md:w-10 md:h-10 text-accent" />
-                                <Camera className="w-9 h-8 md:w-10 md:h-10 text-accent" />
+                                <FaHeartbeat className="w-5 h-5 sm:w-6 sm:h-6 md:w-10 md:h-10 text-accent" />
+                                <Camera className="w-5 h-5 sm:w-6 sm:h-6 md:w-10 md:h-10 text-accent" />
                             </div>
                         </div>
 
