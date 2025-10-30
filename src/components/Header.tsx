@@ -37,7 +37,7 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
     const visibleNavLinks = navLinks;
 
     const linkClasses = "drop-shadow-lg font-bold whitespace-nowrap text-black dark:text-white hover:text-orange-500 dark:hover:text-orange-500 transition-colors uppercase";
-    const buttonIconClasses = "text-black dark:text-white hover:text-black/60 dark:hover:text-white/60";
+    const buttonIconClasses = "text-black dark:text-white";
 
     return (
         <>
@@ -62,7 +62,11 @@ const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
                     </div>
 
                     <div className="hidden lg:flex items-center gap-1 sm:gap-2 shrink-0">
-                        <Button variant="ghost" size="icon" className={buttonIconClasses}>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="gap-2 whitespace-nowrap text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 px-4 py-2 relative flex items-center justify-center w-8 h-8 rounded-full bg-white/20 dark:bg-black/20 text-neutral-900 dark:text-white backdrop-blur-sm transition-all duration-300 active:scale-95"
+                        >
                             <ThemeToggle />
                         </Button>
                         <Button variant="ghost" asChild className={`p-2 rounded-xl font-bold ${buttonIconClasses} uppercase`}>
