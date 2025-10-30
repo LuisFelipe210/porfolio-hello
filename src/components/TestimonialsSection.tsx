@@ -12,6 +12,7 @@ interface TestimonialFromAPI {
     author: string;
     source: string;
     imageUrl: string;
+    alt?: string;
 }
 
 const cardRotations = [3, -1, 2, -3, 2, -3, 3];
@@ -19,7 +20,6 @@ const cardRotations = [3, -1, 2, -3, 2, -3, 3];
 const TestimonialsSection = () => {
     const [testimonials, setTestimonials] = useState<TestimonialFromAPI[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'center' });
 
@@ -49,7 +49,14 @@ const TestimonialsSection = () => {
                 const response = await fetch('/api/testimonials');
                 if (!response.ok) throw new Error('Falha ao buscar depoimentos.');
                 const data = await response.json();
-                const mappedData = data.map((item: any) => ({ ...item, source: item.role }));
+
+                // Mapeia 'role' para 'source' para manter compatibilidade com TestimonialCard
+                const mappedData = data.map((item: any) => ({
+                    ...item,
+                    source: item.role,
+                    alt: item.alt || `Foto de ${item.author}` || 'Cliente satisfeito'
+                }));
+
                 setTestimonials(mappedData);
             } catch (error) {
                 console.error("Erro ao buscar depoimentos:", error);
@@ -76,32 +83,59 @@ const TestimonialsSection = () => {
 
                 <div className="relative">
                     <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 w-full justify-between z-20">
-                        <Button onClick={scrollPrev} className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-800 rounded-full h-12 w-12 -ml-20" size="icon" aria-label="Depoimento anterior"><ChevronLeft className="h-6 w-6" /></Button>
-                        <Button onClick={scrollNext} className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-800 rounded-full h-12 w-12 -mr-20" size="icon" aria-label="Próximo depoimento"><ChevronRight className="h-6 w-6" /></Button>
+                        <Button
+                            onClick={scrollPrev}
+                            className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-800 rounded-full h-12 w-12 -ml-20"
+                            size="icon"
+                            aria-label="Depoimento anterior"
+                        >
+                            <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                        <Button
+                            onClick={scrollNext}
+                            className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-800 rounded-full h-12 w-12 -mr-20"
+                            size="icon"
+                            aria-label="Próximo depoimento"
+                        >
+                            <ChevronRight className="h-6 w-6" />
+                        </Button>
                     </div>
 
-                    {/* MUDANÇA: Margem negativa menor (-ml-3) */}
                     <div className="overflow-hidden -mx-2" ref={emblaRef}>
                         <div className="flex -ml-3 -space-x-4">
                             {isLoading ? (
                                 Array.from({ length: 3 }).map((_, index) => (
-                                    // MUDANÇA: Largura do item maior (80%) e padding menor (pl-3)
-                                    <div key={index} className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6">
-                                        {/* MUDANÇA: Padding vertical menor (py-6) */}
-                                        <div className="py-6"><Skeleton className="h-[26rem] sm:h-[28rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" /></div>
+                                    <div
+                                        key={index}
+                                        className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6"
+                                    >
+                                        <div className="py-6">
+                                            <Skeleton className="h-[26rem] sm:h-[28rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" />
+                                        </div>
                                     </div>
                                 ))
+                            ) : testimonials.length === 0 ? (
+                                <div className="w-full text-center py-12">
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        Nenhum depoimento disponível no momento.
+                                    </p>
+                                </div>
                             ) : (
                                 testimonials.map((testimonial, index) => (
-                                    // MUDANÇA: Largura do item maior (80%) e padding menor (pl-3)
-                                    <div key={testimonial._id} className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6">
-                                        {/* MUDANÇA: Padding vertical menor (py-6) */}
+                                    <div
+                                        key={testimonial._id}
+                                        className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6"
+                                    >
                                         <div className="h-full py-6">
                                             <TestimonialCard
                                                 text={testimonial.text}
                                                 author={testimonial.author}
                                                 source={testimonial.source}
-                                                imageUrl={optimizeCloudinaryUrl(testimonial.imageUrl, "f_auto,q_auto,w_500")}
+                                                imageUrl={optimizeCloudinaryUrl(
+                                                    testimonial.imageUrl,
+                                                    "f_auto,q_auto,w_500"
+                                                )}
+                                                alt={testimonial.alt}
                                                 rotation={cardRotations[index % cardRotations.length]}
                                             />
                                         </div>
@@ -112,16 +146,22 @@ const TestimonialsSection = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-center space-x-2 mt-12">
-                    {scrollSnaps.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => scrollTo(index)}
-                            className={`h-2.5 rounded-full transition-all duration-300 ${ index === selectedIndex ? 'bg-zinc-800 dark:bg-white w-6' : 'bg-gray-300 dark:bg-gray-700 w-2.5' }`}
-                            aria-label={`Ir para o depoimento ${index + 1}`}
-                        />
-                    ))}
-                </div>
+                {!isLoading && testimonials.length > 0 && (
+                    <div className="flex justify-center space-x-2 mt-12">
+                        {scrollSnaps.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => scrollTo(index)}
+                                className={`h-2.5 rounded-full transition-all duration-300 ${
+                                    index === selectedIndex
+                                        ? 'bg-zinc-800 dark:bg-white w-6'
+                                        : 'bg-gray-300 dark:bg-gray-700 w-2.5'
+                                }`}
+                                aria-label={`Ir para o depoimento ${index + 1}`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     );
