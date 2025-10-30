@@ -11,10 +11,14 @@ interface Service {
     icon: keyof typeof iconMap;
     features: string[];
     imageUrl: string;
+    alt?: string;
 }
 
-const iconMap: { [key:string]: React.ElementType } = {
-    Camera: Camera, Heart: Heart, UserPlus: UserPlus, Users: Users,
+const iconMap: { [key: string]: React.ElementType } = {
+    Camera: Camera,
+    Heart: Heart,
+    UserPlus: UserPlus,
+    Users: Users,
 };
 
 // --- Componente do Card Individual ---
@@ -46,7 +50,8 @@ const ServiceCard = ({ service }: { service: Service }) => {
         >
             <img
                 src={optimizedImageUrl}
-                alt={service.title}
+                alt={service.alt || service.title}
+                loading="lazy"
                 className={`absolute inset-0 w-full h-full object-cover
                            transition-all duration-700 ease-in-out
                            lg:group-hover:scale-110 lg:group-hover:blur-sm
@@ -97,17 +102,20 @@ const ServiceCard = ({ service }: { service: Service }) => {
                                 ${isOpen ? 'opacity-100 max-h-96 mt-6 translate-y-0' : 'opacity-0 max-h-0 translate-y-4'}`}
                 >
                     <p className="text-white/80 leading-relaxed text-sm mb-4">{service.description}</p>
-                    <ul className="space-y-1.5 mb-4">
-                        {service.features.map((f: string) => (
-                            <li key={f} className="text-sm text-white/90 flex items-start">
-                                <Check className="w-4 h-4 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                                {f}
-                            </li>
-                        ))}
-                    </ul>
+                    {service.features && service.features.length > 0 && (
+                        <ul className="space-y-1.5 mb-4">
+                            {service.features.map((f: string, idx: number) => (
+                                <li key={idx} className="text-sm text-white/90 flex items-start">
+                                    <Check className="w-4 h-4 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+                                    {f}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                     <a
                         href={`https://api.whatsapp.com/send?phone=5574991248392&text=${encodeURIComponent('Olá, gostaria de saber os valores para o serviço ' + service.title + '.')}`}
-                        target="_blank" rel="noopener noreferrer"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         className="relative z-30 bg-orange-500 text-white dark:text-black font-semibold px-4 py-1.5 rounded-lg
                                    hover:bg-orange-600 transition-colors inline-block self-start text-xs md:text-sm shadow-lg"
@@ -193,8 +201,12 @@ const ServicesSection = () => {
                 <div className="relative">
                     <div
                         ref={carouselRef}
-                        style={{ scrollbarWidth: !isDesktop ? 'none' : undefined, msOverflowStyle: !isDesktop ? 'none' : undefined, WebkitOverflowScrolling: !isDesktop ? 'touch' : undefined }}
-                        className={`${!isDesktop ? "flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 gap-4" : "lg:grid lg:grid-cols-4 lg:gap-6 lg:p-0"}`}
+                        style={{
+                            scrollbarWidth: !isDesktop ? 'none' : undefined,
+                            msOverflowStyle: !isDesktop ? 'none' : undefined,
+                            WebkitOverflowScrolling: !isDesktop ? 'touch' : undefined
+                        }}
+                        className={`${!isDesktop ? "flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 gap-4" : "lg:grid lg:grid-cols-4 lg:gap-6 lg:px-4"}`}
                         data-carousel-scroll={!isDesktop ? true : undefined}
                     >
                         {isLoading ? (
@@ -203,15 +215,17 @@ const ServicesSection = () => {
                                     <Skeleton className="h-[45vh] md:h-[55vh] max-h-[480px] w-full rounded-2xl bg-zinc-800" />
                                 </div>
                             ))
+                        ) : services.length === 0 ? (
+                            <div className="col-span-4 text-center py-12">
+                                <p className="text-muted-foreground">Nenhum serviço disponível no momento.</p>
+                            </div>
                         ) : (
                             services.map((service) => (
                                 <div
                                     key={service._id}
                                     className="flex-shrink-0 basis-[90%] sm:basis-[calc(50%-8px)] md:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto snap-start"
                                 >
-                                    <ServiceCard
-                                        service={service}
-                                    />
+                                    <ServiceCard service={service} />
                                 </div>
                             ))
                         )}

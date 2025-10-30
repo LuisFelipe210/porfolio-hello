@@ -289,12 +289,33 @@ const AdminAbout = () => {
 
     return (
         <>
-            <form onSubmit={handleSave} className="flex flex-col h-full animate-fade-in">
+            <div className="flex flex-col h-full animate-fade-in">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-white">Gerir "Sobre Mim"</h1>
                         <p className="text-white/80">Edite os textos e as imagens da sua página de apresentação.</p>
                     </div>
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSubmitting || !isModified}
+                        className={`text-white font-semibold rounded-xl h-12 px-6 transition-all
+                            ${isSubmitting || !isModified
+                            ? 'bg-orange-700/50 cursor-not-allowed'
+                            : 'bg-orange-500 hover:bg-orange-600'
+                        }`}
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                A guardar...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-4 w-4 mr-2" />
+                                Guardar
+                            </>
+                        )}
+                    </Button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto pr-2 -mr-2">
@@ -365,24 +386,7 @@ const AdminAbout = () => {
                         </Card>
                     </div>
                 </div>
-
-                {/* Botão flutuante de salvar alterações */}
-                <Button
-                    type="submit"
-                    disabled={isSubmitting || !isModified}
-                    className={`fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 text-white font-semibold rounded-full h-14 w-14 p-4 transition-all
-                        ${isSubmitting || !isModified
-                        ? 'bg-orange-700/50 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl'
-                    }`}
-                >
-                    {isSubmitting ? (
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                    ) : (
-                        <Save className="h-12 w-12" />
-                    )}
-                </Button>
-            </form>
+            </div>
 
             {/* Dialog para editar ALT */}
             <Dialog open={editingImage !== null} onOpenChange={(open) => !open && setEditingImage(null)}>
