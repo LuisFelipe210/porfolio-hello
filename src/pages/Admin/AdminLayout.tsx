@@ -17,14 +17,12 @@ import {
     CalendarDays
 } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
-import { FaReact } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMessages } from '@/context/MessagesContext';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 
-// Seu URL de imagem do Cloudinary:
-const HAMSTER_URL = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1761709820/Fundo_de_Gemini_Generated_Image_ats4g5ats4g5ats4_Removido_yynaov.png";
+const HAMSTER_URL = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1761845385/fifi_y0nden.png";
 
 const AdminLayout = () => {
     const navigate = useNavigate();
