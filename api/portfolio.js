@@ -3,12 +3,12 @@ import jwt from 'jsonwebtoken';
 
 // Função para conectar ao banco
 async function connectToDatabase(uri) {
-    if (global.mongoClient) {
+    if (global.mongoClient?.topology?.isConnected()) {
         return global.mongoClient.db('helloborges_portfolio');
     }
     const client = new MongoClient(uri);
-    global.mongoClient = client;
     await client.connect();
+    global.mongoClient = client;
     return client.db('helloborges_portfolio');
 }
 
@@ -26,10 +26,33 @@ export default async function handler(req, res) {
         if (!token) {
             return res.status(401).json({ error: 'Acesso não autorizado: Token não fornecido.' });
         }
-        jwt.verify(token, process.env.JWT_SECRET);
+
+        try {
+            jwt.verify(token, process.env.JWT_SECRET);
+        } catch (jwtError) {
+            return res.status(401).json({
+                error: 'Acesso não autorizado: Token inválido ou expirado.'
+            });
+        }
 
         if (req.method === 'POST') {
             const newItem = req.body;
+
+            // Validação básica
+            if (!newItem || Object.keys(newItem).length === 0) {
+                return res.status(400).json({ error: 'Dados do item não fornecidos.' });
+            }
+
+            // Validação de campos obrigatórios
+            if (!newItem.title || !newItem.description || !newItem.image) {
+                return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
+            }
+
+            // Se alt não for fornecido, usar o título como fallback
+            if (!newItem.alt) {
+                newItem.alt = newItem.title;
+            }
+
             const result = await collection.insertOne(newItem);
             const insertedItem = { ...newItem, _id: result.insertedId };
             return res.status(201).json(insertedItem);
@@ -42,18 +65,24 @@ export default async function handler(req, res) {
             }
 
             const updatedData = req.body;
-            delete updatedData._id; // Remove o _id para não tentar atualizar a chave
+            delete updatedData._id;
 
-            const result = await collection.updateOne(
+            // Se alt não for fornecido mas título foi atualizado, usar o novo título
+            if (updatedData.title && !updatedData.alt) {
+                updatedData.alt = updatedData.title;
+            }
+
+            const result = await collection.findOneAndUpdate(
                 { _id: new ObjectId(id) },
-                { $set: updatedData }
+                { $set: updatedData },
+                { returnDocument: 'after' }
             );
 
-            if (result.matchedCount === 0) {
+            if (!result) {
                 return res.status(404).json({ error: 'Item não encontrado.' });
             }
 
-            return res.status(200).json({ message: 'Item atualizado com sucesso.' });
+            return res.status(200).json(result);
         }
 
         if (req.method === 'DELETE') {
@@ -83,11 +112,16 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
         }
 
-
         return res.status(405).json({ error: 'Método não permitido.' });
 
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('API Error:', {
+            method: req.method,
+            query: req.query,
+            error: error.message,
+            stack: error.stack
+        });
+
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({ error: 'Acesso não autorizado: Token inválido.' });
         }

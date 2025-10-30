@@ -34,6 +34,7 @@ interface PortfolioItem {
     category: string;
     description: string;
     image: string;
+    alt?: string;
 }
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
@@ -49,6 +50,7 @@ const AdminPortfolio = () => {
     const [title, setTitle] = useState('');
     const [category, setCategory] = useState('');
     const [description, setDescription] = useState('');
+    const [alt, setAlt] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -79,6 +81,7 @@ const AdminPortfolio = () => {
         setTitle('');
         setCategory('');
         setDescription('');
+        setAlt('');
         setFile(null);
         setEditingId(null);
     };
@@ -90,6 +93,7 @@ const AdminPortfolio = () => {
             setTitle(item.title);
             setCategory(item.category);
             setDescription(item.description);
+            setAlt(item.alt || item.title);
         }
         setIsDialogOpen(true);
     };
@@ -128,7 +132,13 @@ const AdminPortfolio = () => {
             const token = localStorage.getItem('authToken');
             const method = editingId ? 'PUT' : 'POST';
             const url = editingId ? `/api/portfolio?id=${editingId}` : '/api/portfolio';
-            const body = { title, category, description, ...(imageUrl && { image: imageUrl }) };
+            const body = {
+                title,
+                category,
+                description,
+                alt: alt || title,
+                ...(imageUrl && { image: imageUrl })
+            };
 
             const response = await fetch(url, {
                 method,
@@ -186,7 +196,6 @@ const AdminPortfolio = () => {
         setSelectedItems(newSet);
     };
 
-
     const renderContent = () => {
         if (isLoading) {
             return Array.from({ length: 4 }).map((_, i) => (
@@ -209,7 +218,7 @@ const AdminPortfolio = () => {
             return items.map((item) => (
                 <div key={item._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-4 flex gap-4 border border-white/10 relative">
                     <input type="checkbox" className="absolute top-4 left-4 w-5 h-5 accent-orange-500 bg-transparent rounded" checked={selectedItems.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} />
-                    <img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={item.title} className="h-24 w-24 object-cover rounded-2xl flex-shrink-0 ml-8" />
+                    <img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={item.alt || item.title} className="h-24 w-24 object-cover rounded-2xl flex-shrink-0 ml-8" />
                     <div className="flex-1 flex flex-col justify-center">
                         <h3 className="font-semibold text-white text-lg">{item.title}</h3>
                         <p className="text-sm text-white/80 capitalize">{item.category}</p>
@@ -228,7 +237,7 @@ const AdminPortfolio = () => {
                 <TableCell className="w-12">
                     <input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedItems.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} />
                 </TableCell>
-                <TableCell><img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={item.title} className="h-16 w-16 object-cover rounded-xl" /></TableCell>
+                <TableCell><img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={item.alt || item.title} className="h-16 w-16 object-cover rounded-xl" /></TableCell>
                 <TableCell className="font-medium text-white">{item.title}</TableCell>
                 <TableCell className="capitalize text-white/80">{item.category}</TableCell>
                 <TableCell className="text-right">
@@ -292,7 +301,7 @@ const AdminPortfolio = () => {
                         <Plus className="h-12 w-12" />
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-white">{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
                         <DialogDescription className="text-white/80">
@@ -322,8 +331,24 @@ const AdminPortfolio = () => {
                             <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" />
                         </div>
                         <div>
+                            <Label htmlFor="alt" className="text-white mb-1 font-semibold">
+                                Texto Alternativo (ALT)
+                                <span className="text-white/60 text-xs ml-2">(Opcional - melhora acessibilidade e SEO)</span>
+                            </Label>
+                            <Input
+                                id="alt"
+                                value={alt}
+                                onChange={(e) => setAlt(e.target.value)}
+                                placeholder={title || "Descreva a imagem para acessibilidade"}
+                                className="bg-black/70 border-white/20 rounded-xl h-12"
+                            />
+                            <p className="text-xs text-white/50 mt-1">
+                                Se deixado em branco, usaremos o título como texto alternativo
+                            </p>
+                        </div>
+                        <div>
                             <Label htmlFor="file" className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
-                            <Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                            <Input id="file" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
                         </div>
                         <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
                             <DialogClose asChild>

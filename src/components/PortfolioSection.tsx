@@ -5,13 +5,13 @@ import { optimizeCloudinaryUrl } from "@/lib/utils";
 import React from "react";
 import Masonry from 'react-masonry-css';
 
-
 interface PortfolioItem {
     id: string;
     title: string;
     description: string;
     image: string;
     category: string;
+    alt?: string;
 }
 
 // Componente MobileSwipeCard
@@ -35,10 +35,9 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         const diffX = Math.abs(startX.current - currentX);
         const diffY = Math.abs(startY.current - currentY);
 
-        // Só considera swipe se movimento horizontal for maior que vertical
         if (diffX > 20 && diffX > diffY) {
             isSwiping.current = true;
-            e.preventDefault(); // Previne scroll durante swipe horizontal
+            e.preventDefault();
         }
     };
 
@@ -48,10 +47,9 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         const diffX = startX.current - endX;
         const diffY = Math.abs(startY.current - endY);
         const absDiffX = Math.abs(diffX);
-        const tapThreshold = 25; // Aumentado para evitar toques acidentais
-        const swipeThreshold = 100; // Aumentado para swipe mais intencional
+        const tapThreshold = 25;
+        const swipeThreshold = 100;
 
-        // É um tap se: não está fazendo swipe E movimento é mínimo
         if (!isSwiping.current && absDiffX < tapThreshold && diffY < tapThreshold) {
             e.preventDefault();
             if (!isOpen) {
@@ -64,7 +62,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
             return;
         }
 
-        // É um swipe se: swipe detectado E movimento horizontal > vertical E passa do threshold
         if (isSwiping.current && absDiffX > swipeThreshold && absDiffX > diffY) {
             if (diffX > 0 && !isOpen) {
                 setIsOpen(true);
@@ -91,7 +88,7 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
         >
             <img
                 src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")}
-                alt={item.title}
+                alt={item.alt || item.title}
                 loading="lazy"
                 className="w-full h-auto object-cover"
             />
@@ -125,7 +122,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
     );
 };
 
-
 // Componente para o layout Masonry
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
     return (
@@ -133,16 +129,14 @@ const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioIt
             className={`relative group cursor-pointer rounded-none overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg w-full mb-4`}
             onClick={() => setSelectedIndex(index)}
         >
-
             <img
                 src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")}
-                alt={item.title}
+                alt={item.alt || item.title}
                 loading="lazy"
                 className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
                 style={{ transitionProperty: "transform, filter" }}
             />
 
-            {/* ESTILO DESKTOP: Overlay ativado por HOVER */}
             <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
                 <div className="p-0 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0 h-full flex flex-col">
                     <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0">
@@ -159,7 +153,6 @@ const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioIt
     );
 };
 
-
 const PortfolioSection = () => {
     const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -169,7 +162,6 @@ const PortfolioSection = () => {
     const [showAllDesktop, setShowAllDesktop] = useState(false);
     const mobileActionRef = useRef<HTMLDivElement>(null);
     const portfolioGridRef = useRef<HTMLDivElement>(null);
-
 
     useEffect(() => {
         const fetchPortfolioItems = async () => {
@@ -189,7 +181,6 @@ const PortfolioSection = () => {
         };
         fetchPortfolioItems();
     }, []);
-
 
     const filteredItems = activeCategory === "all"
         ? portfolioItems
@@ -217,8 +208,6 @@ const PortfolioSection = () => {
         : filteredItems.slice(0, DESKTOP_LIMIT);
     const shouldShowShowAllDesktopButton = !showAllDesktop && filteredItems.length > DESKTOP_LIMIT;
 
-
-    // EFEITO 1: Controle de teclado para o Lightbox
     useEffect(() => {
         if (selectedIndex === null) return;
         const handleKey = (e: KeyboardEvent) => {
@@ -230,7 +219,6 @@ const PortfolioSection = () => {
         return () => window.removeEventListener("keydown", handleKey);
     }, [selectedIndex, filteredItems.length]);
 
-    // EFEITO 2: Bloqueio de scroll do body quando qualquer overlay estiver aberto
     useEffect(() => {
         const isOverlayOpen = selectedIndex !== null;
         if (isOverlayOpen) {
@@ -242,7 +230,6 @@ const PortfolioSection = () => {
             document.body.classList.remove('overflow-hidden');
         };
     }, [selectedIndex]);
-
 
     const categoriesScrollRef = useRef<HTMLDivElement>(null);
 
@@ -261,7 +248,6 @@ const PortfolioSection = () => {
         scrollEl.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
     };
 
-    // Lógica de touch para o modal de visualização (light-box)
     const touchStartX = useRef<number | null>(null);
     const touchStartY = useRef<number | null>(null);
     const isLightboxSwiping = useRef<boolean>(false);
@@ -277,10 +263,9 @@ const PortfolioSection = () => {
         const diffX = Math.abs(e.touches[0].clientX - touchStartX.current);
         const diffY = Math.abs(e.touches[0].clientY - touchStartY.current);
 
-        // Só considera swipe se movimento horizontal for significativo e maior que vertical
         if (diffX > 30 && diffX > diffY * 1.5) {
             isLightboxSwiping.current = true;
-            e.preventDefault(); // Previne scroll
+            e.preventDefault();
         }
     };
 
@@ -291,7 +276,6 @@ const PortfolioSection = () => {
         const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
         const absDiffX = Math.abs(diffX);
 
-        // Só navega se for realmente um swipe intencional
         if (isLightboxSwiping.current && absDiffX > 100 && absDiffX > diffY * 1.5) {
             if (diffX > 0 && selectedIndex !== null && selectedIndex > 0) {
                 setSelectedIndex(selectedIndex - 1);
@@ -304,7 +288,6 @@ const PortfolioSection = () => {
         touchStartY.current = null;
         isLightboxSwiping.current = false;
     };
-
 
     const linkClasses = `relative pb-1 text-base tracking-wide font-light transition-all duration-300 whitespace-nowrap snap-center uppercase
         text-accent after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.5px] after:bg-accent hover:text-accent/80 hover:after:w-0`;
@@ -323,14 +306,12 @@ const PortfolioSection = () => {
         }, 50);
     };
 
-    // Configuração de Breakpoints para o Masonry
     const breakpointColumnsObj = {
-        default: 4, // 4 colunas (xl e acima)
-        1024: 3,  // 3 colunas (lg)
-        768: 2,   // 2 colunas (md)
-        640: 1,   // 1 coluna (sm)
+        default: 4,
+        1024: 3,
+        768: 2,
+        640: 1,
     };
-
 
     return (
         <section id="portfolio" className="py-16 md:py-24 bg-secondary/20">
@@ -338,7 +319,6 @@ const PortfolioSection = () => {
                 <div className="text-center mb-12">
                     <h2 className="text-4xl md:text-5xl font-semibold mb-4 animate-fade-in uppercase">Portfólio</h2>
                 </div>
-                {/* Categorias DESKTOP */}
                 <div className="hidden md:flex flex-wrap justify-center gap-4 mb-12 animate-fade-in">
                     {categories.map((category) => (
                         <button
@@ -356,7 +336,6 @@ const PortfolioSection = () => {
                 </div>
             </div>
 
-            {/* Categorias MOBILE (Scroll Horizontal) */}
             <div className="relative md:hidden">
                 <div
                     ref={categoriesScrollRef}
@@ -391,7 +370,6 @@ const PortfolioSection = () => {
                     </div>
                 ) : (
                     <>
-                        {/* Renderização MOBILE (com SWAP) */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden mb-4 px-6">
                             {mobileItems.map((item, index) => (
                                 <MobileSwipeCard
@@ -402,7 +380,6 @@ const PortfolioSection = () => {
                             ))}
                         </div>
 
-                        {/* Botões MOSTRAR MAIS/MENOS (MOBILE) */}
                         <div className="flex justify-center mb-12 md:hidden px-6" ref={mobileActionRef}>
                             {shouldShowShowAllButton && (
                                 <button onClick={() => setShowAllMobile(true)} className={linkClasses}>
@@ -416,7 +393,6 @@ const PortfolioSection = () => {
                             )}
                         </div>
 
-                        {/* LAYOUT DESKTOP: USANDO REACT-MASONRY-CSS */}
                         <div className="hidden md:block px-6 md:px-12" ref={portfolioGridRef}>
                             <Masonry
                                 breakpointCols={breakpointColumnsObj}
@@ -434,7 +410,6 @@ const PortfolioSection = () => {
                             </Masonry>
                         </div>
 
-                        {/* Botões MOSTRAR MAIS/MENOS (DESKTOP) */}
                         <div className="flex justify-center mb-12 hidden md:flex px-6">
                             {shouldShowShowAllDesktopButton && (
                                 <button onClick={() => setShowAllDesktop(true)} className={linkClasses}>
@@ -450,13 +425,11 @@ const PortfolioSection = () => {
                     </>
                 )}
 
-                {/* LIGHTBOX / MODAL DE VISUALIZAÇÃO */}
                 {selectedIndex !== null && (
                     <div
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 cursor-pointer"
                         onClick={() => setSelectedIndex(null)}
                         onTouchMove={(e) => {
-                            // Previne scroll do body quando lightbox está aberto
                             if (isLightboxSwiping.current) {
                                 e.preventDefault();
                             }
@@ -488,7 +461,7 @@ const PortfolioSection = () => {
                                 >
                                     <img
                                         src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_720")}
-                                        alt={filteredItems[selectedIndex].title}
+                                        alt={filteredItems[selectedIndex].alt || filteredItems[selectedIndex].title}
                                         className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300 pointer-events-none select-none"
                                     />
                                 </div>
