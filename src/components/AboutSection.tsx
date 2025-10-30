@@ -24,6 +24,9 @@ const AboutSection = () => {
         const fetchContent = async () => {
             try {
                 const response = await fetch('/api/about');
+                if (!response.ok) {
+                    throw new Error('Falha ao buscar conteúdo da seção "Sobre".');
+                }
                 const data = await response.json();
                 if (data) {
                     setContent(data);
@@ -45,7 +48,7 @@ const AboutSection = () => {
                 <div className="flex flex-col lg:grid lg:grid-cols-[3fr_2fr] gap-12 lg:gap-16 items-center">
 
                     <div className="order-1 animate-fade-in">
-                        {/* --- CORREÇÃO: Combinação dos dois ícones --- */}
+                        {/* Título com ícones */}
                         <div className="flex flex-wrap items-center gap-4 mb-6">
                             <div className="inline-block">
                                 <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-foreground relative inline-block pb-2">
@@ -59,6 +62,7 @@ const AboutSection = () => {
                             </div>
                         </div>
 
+                        {/* Parágrafos */}
                         {isLoading || !content ? (
                             <div className="space-y-4 max-w-3xl">
                                 <Skeleton className="h-6 w-full" />
@@ -73,6 +77,7 @@ const AboutSection = () => {
                             </div>
                         )}
 
+                        {/* Estatísticas */}
                         <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-10 pt-8 border-t border-border">
                             <div className="text-center p-2 sm:p-4 bg-card rounded-2xl border">
                                 <Camera className="w-7 h-7 md:w-8 md:h-8 text-orange-400 mx-auto mb-2" />
@@ -92,17 +97,22 @@ const AboutSection = () => {
                         </div>
                     </div>
 
+                    {/* Grid de Imagens */}
                     <div className="order-2 animate-fade-in">
                         {isLoading || !content ? (
                             <Skeleton className="h-[400px] w-full rounded-3xl" />
                         ) : (
                             <div className="grid grid-cols-2 gap-4">
                                 {allImages.slice(0, 4).map((img, index) => (
-                                    <div key={index} className="overflow-hidden rounded-2xl shadow-lg aspect-[2/3] max-h-[400px]">
+                                    <div
+                                        key={index}
+                                        className="overflow-hidden rounded-2xl shadow-lg aspect-[2/3] max-h-[400px]"
+                                    >
                                         <img
                                             src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_400")}
-                                            alt={img.alt}
+                                            alt={img.alt || `Imagem sobre a fotógrafa ${index + 1}`}
                                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                            loading="lazy"
                                         />
                                     </div>
                                 ))}
