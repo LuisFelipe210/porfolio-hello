@@ -9,6 +9,7 @@ interface Client {
     email: string;
     phone?: string;
     createdAt: string;
+    galleryCount: number; // <-- ADICIONADO: Contagem de galerias
 }
 
 interface ClientCardProps {
@@ -40,11 +41,13 @@ const ClientCard = ({ client, isSelected, onSelectionChange, onEdit, onCopy }: C
             </div>
             {/* ***** BOTÃO RESTAURADO E MELHORADO AQUI ***** */}
             <div className="flex gap-2 justify-end">
+                {/* v-- ALTERAÇÃO AQUI --v */}
                 <Button asChild variant="default" className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white flex-1 font-semibold">
                     <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                        <FolderKanban className="h-4 w-4 mr-2" /> Ver Galerias
+                        <FolderKanban className="h-4 w-4 mr-2" /> Ver Galerias ({client.galleryCount})
                     </Link>
                 </Button>
+                {/* ^-- ALTERAÇÃO AQUI --^ */}
                 <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(client)}>
                     <Edit className="h-4 w-4" />
                 </Button>

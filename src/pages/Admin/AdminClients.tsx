@@ -35,6 +35,7 @@ interface Client {
     password?: string;
     phrase?: string;
     createdAt: string;
+    galleryCount: number; // <-- ADICIONADO: Contagem de galerias
 }
 
 const AdminClients = () => {
@@ -224,11 +225,14 @@ const AdminClients = () => {
                 <TableCell className="text-white/80">{client.email}</TableCell>
                 <TableCell className="text-white/80">{client.phone}</TableCell>
                 <TableCell className="text-right">
-                    {/* ***** BOTÃO RESTAURADO E MELHORADO AQUI ***** */}
                     <div className="flex gap-2 justify-end">
-                        <Button asChild variant="ghost" className="bg-orange-500/10 text-orange-500 rounded-xl hover:bg-orange-500/20">
-                            <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
+                        <Button asChild variant="ghost" className="bg-orange-500/10 text-orange-500 rounded-xl hover:bg-orange-500/20 px-3">
+                            <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`} className="flex items-center gap-2">
+                                <span className="font-bold">Galerias</span>
+                                <span className="font-bold">      </span>
+                                <span className="font-bold">      </span>
                                 <FolderKanban className="h-4 w-4" />
+                                <span className="font-bold">{client.galleryCount}</span>
                             </Link>
                         </Button>
                         <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(client)}>

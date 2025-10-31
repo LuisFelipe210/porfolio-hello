@@ -54,15 +54,46 @@ export default async function handler(req, res) {
 
         const { action, clientId, galleryId } = req.query;
 
+        // v-- LÓGICA MODIFICADA AQUI --v
         if (action === 'getClients' && req.method === 'GET') {
-            const clients = await clientsCollection.find({}).sort({ name: 1 }).toArray();
+            const clients = await clientsCollection.aggregate([
+                {
+                    $lookup: {
+                        from: 'galleries', // A coleção para "juntar"
+                        localField: '_id', // O campo da coleção de clientes
+                        foreignField: 'clientId', // O campo correspondente na coleção de galerias
+                        as: 'clientGalleries' // Nome do array temporário com as galerias encontradas
+                    }
+                },
+                {
+                    $addFields: {
+                        // Adiciona um novo campo 'galleryCount' com o tamanho do array
+                        galleryCount: { $size: '$clientGalleries' }
+                    }
+                },
+                {
+                    $sort: { name: 1 } // Ordena os clientes por nome
+                },
+                {
+                    $project: {
+                        // Remove campos desnecessários antes de enviar a resposta
+                        password: 0, // Remove o campo de senha
+                        clientGalleries: 0 // Remove o array temporário de galerias
+                    }
+                }
+            ]).toArray(); // Converte o resultado da agregação para um array
+
+            // Desencripta a "phrase" de cada cliente, se existir
             const decryptedClients = clients.map(client => {
-                delete client.password;
-                if (client.phrase) client.phrase = decrypt(client.phrase);
+                if (client.phrase) {
+                    client.phrase = decrypt(client.phrase);
+                }
                 return client;
             });
+
             return res.status(200).json(decryptedClients);
         }
+        // ^-- FIM DA LÓGICA MODIFICADA --^
 
         if (action === 'createClient' && req.method === 'POST') {
             const { name, email, password, phone, recoveryEmail, phrase } = req.body;
