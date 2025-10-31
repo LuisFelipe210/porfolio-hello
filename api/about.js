@@ -1,5 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
 
 // Função para conectar ao banco
 async function connectToDatabase(uri) {
@@ -11,6 +12,19 @@ async function connectToDatabase(uri) {
     global.mongoClient = client;
     return client.db('helloborges_portfolio');
 }
+
+const imageSchema = z.object({
+  src: z.string().url(),
+  alt: z.string().min(1)
+});
+
+const updateAboutSchema = z.object({
+  _id: z.string().min(1),
+  paragraph1: z.string().min(1).optional(),
+  paragraph2: z.string().min(1).optional(),
+  imagesColumn1: z.array(imageSchema).optional(),
+  imagesColumn2: z.array(imageSchema).optional(),
+});
 
 export default async function handler(req, res) {
     try {
@@ -42,58 +56,11 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'PUT') {
-            const { _id, ...updatedData } = req.body;
-
-            // Validação do ID
-            if (!_id || !ObjectId.isValid(_id)) {
-                return res.status(400).json({ error: 'ID de conteúdo inválido ou não fornecido.' });
+            const parsed = updateAboutSchema.safeParse(req.body);
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
             }
-
-            // Validação dos dados recebidos
-            if (!updatedData || Object.keys(updatedData).length === 0) {
-                return res.status(400).json({ error: 'Nenhum dado para atualizar foi fornecido.' });
-            }
-
-            // Validação de campos obrigatórios
-            if (updatedData.paragraph1 !== undefined && !updatedData.paragraph1.trim()) {
-                return res.status(400).json({ error: 'O primeiro parágrafo não pode estar vazio.' });
-            }
-
-            if (updatedData.paragraph2 !== undefined && !updatedData.paragraph2.trim()) {
-                return res.status(400).json({ error: 'O segundo parágrafo não pode estar vazio.' });
-            }
-
-            // Validação das imagens (se fornecidas)
-            if (updatedData.imagesColumn1 && !Array.isArray(updatedData.imagesColumn1)) {
-                return res.status(400).json({ error: 'imagesColumn1 deve ser um array.' });
-            }
-
-            if (updatedData.imagesColumn2 && !Array.isArray(updatedData.imagesColumn2)) {
-                return res.status(400).json({ error: 'imagesColumn2 deve ser um array.' });
-            }
-
-            // Validação da estrutura das imagens
-            const validateImages = (images) => {
-                return images.every(img =>
-                    img &&
-                    typeof img === 'object' &&
-                    typeof img.src === 'string' &&
-                    typeof img.alt === 'string' &&
-                    img.src.trim() !== ''
-                );
-            };
-
-            if (updatedData.imagesColumn1 && !validateImages(updatedData.imagesColumn1)) {
-                return res.status(400).json({
-                    error: 'Estrutura inválida em imagesColumn1. Cada imagem deve ter src e alt.'
-                });
-            }
-
-            if (updatedData.imagesColumn2 && !validateImages(updatedData.imagesColumn2)) {
-                return res.status(400).json({
-                    error: 'Estrutura inválida em imagesColumn2. Cada imagem deve ter src e alt.'
-                });
-            }
+            const { _id, ...updatedData } = parsed.data;
 
             // Atualizar e retornar o documento atualizado
             const result = await collection.findOneAndUpdate(

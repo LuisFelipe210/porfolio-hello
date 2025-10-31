@@ -2,6 +2,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { z } from "zod";
 
 const algorithm = 'aes-256-cbc';
 const key = crypto.createHash('sha256').update(String(process.env.ENCRYPTION_KEY)).digest('base64').substr(0, 32);
@@ -32,6 +33,39 @@ function decrypt(encryptedText) {
         return null;
     }
 }
+
+const createClientSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(6),
+  phone: z.string().optional(),
+  recoveryEmail: z.string().email().optional().nullable(),
+  phrase: z.string().optional().nullable(),
+});
+
+const updateClientSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  recoveryEmail: z.string().email().optional().nullable(),
+  phrase: z.string().optional().nullable(),
+});
+
+const deleteClientsSchema = z.object({
+  clientIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")),
+});
+
+const createGallerySchema = z.object({
+  name: z.string().min(1),
+});
+
+const updateGalleryImagesSchema = z.object({
+  images: z.array(z.string().url()),
+});
+
+const deleteGalleriesSchema = z.object({
+  galleryIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")),
+});
 
 let cachedDb = null;
 async function connectToDatabase(uri) {
@@ -96,8 +130,10 @@ export default async function handler(req, res) {
         // ^-- FIM DA LÓGICA MODIFICADA --^
 
         if (action === 'createClient' && req.method === 'POST') {
-            const { name, email, password, phone, recoveryEmail, phrase } = req.body;
-            if (!name || !email || !password) return res.status(400).json({ error: 'Dados incompletos.' });
+            const parsed = createClientSchema.safeParse(req.body);
+            if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+            const { name, email, password, phone, recoveryEmail, phrase } = parsed.data;
+
             const hashedPassword = await bcrypt.hash(password, 10);
             const encryptedPhrase = encrypt(phrase);
             const result = await clientsCollection.insertOne({
@@ -115,8 +151,10 @@ export default async function handler(req, res) {
 
         if (action === 'updateClient' && req.method === 'PUT') {
             if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'ID de cliente inválido.' });
-            const { name, email, phone, recoveryEmail, phrase } = req.body;
-            if (!name || !email) return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
+            const parsed = updateClientSchema.safeParse(req.body);
+            if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+            const { name, email, phone, recoveryEmail, phrase } = parsed.data;
+
             const existingClient = await clientsCollection.findOne({ email: email, _id: { $ne: new ObjectId(clientId) } });
             if (existingClient) return res.status(409).json({ error: 'Este email de login já está a ser utilizado.' });
             const encryptedPhrase = encrypt(phrase);
@@ -130,10 +168,10 @@ export default async function handler(req, res) {
         }
 
         if (action === 'deleteClients' && req.method === 'DELETE') {
-            const { clientIds } = req.body;
-            if (!Array.isArray(clientIds) || clientIds.some(id => !ObjectId.isValid(id))) {
-                return res.status(400).json({ error: 'IDs de clientes inválidos.' });
-            }
+            const parsed = deleteClientsSchema.safeParse(req.body);
+            if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+            const { clientIds } = parsed.data;
+
             const objectIds = clientIds.map(id => new ObjectId(id));
             await galleriesCollection.deleteMany({ clientId: { $in: objectIds } });
             const result = await clientsCollection.deleteMany({ _id: { $in: objectIds } });
@@ -149,8 +187,10 @@ export default async function handler(req, res) {
         }
 
         if (action === 'createGallery' && req.method === 'POST') {
-            const { name } = req.body;
-            if (!name || !clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'Dados incompletos.' });
+            if (!clientId || !ObjectId.isValid(clientId)) return res.status(400).json({ error: 'Dados incompletos.' });
+            const parsed = createGallerySchema.safeParse(req.body);
+            if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+            const { name } = parsed.data;
 
             const newGallery = {
                 clientId: new ObjectId(clientId),
@@ -170,7 +210,10 @@ export default async function handler(req, res) {
 
         if (action === 'updateGalleryImages' && req.method === 'PUT') {
             if (!galleryId || !ObjectId.isValid(galleryId)) return res.status(400).json({ error: 'ID de galeria inválido.' });
-            const { images } = req.body;
+            const parsed = updateGalleryImagesSchema.safeParse(req.body);
+            if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+            const { images } = parsed.data;
+
             const result = await galleriesCollection.updateOne(
                 { _id: new ObjectId(galleryId) },
                 { $set: { images } }
@@ -189,10 +232,10 @@ export default async function handler(req, res) {
         }
 
         if (action === 'deleteGalleries' && req.method === 'DELETE') {
-            const { galleryIds } = req.body;
-            if (!Array.isArray(galleryIds) || galleryIds.some(id => !ObjectId.isValid(id))) {
-                return res.status(400).json({ error: 'IDs de galerias inválidos.' });
-            }
+            const parsed = deleteGalleriesSchema.safeParse(req.body);
+            if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+            const { galleryIds } = parsed.data;
+
             const objectIds = galleryIds.map(id => new ObjectId(id));
             const result = await galleriesCollection.deleteMany({ _id: { $in: objectIds } });
 

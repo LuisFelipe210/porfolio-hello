@@ -1,5 +1,18 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
+
+const updateSettingsSchema = z.object({
+    siteTitle: z.string().min(1).optional(),
+    siteDescription: z.string().min(1).optional(),
+    logoUrl: z.string().url().optional(),
+    faviconUrl: z.string().url().optional(),
+    contactEmail: z.string().email().optional(),
+    socialLinks: z.array(z.object({
+        name: z.string().min(1),
+        url: z.string().url()
+    })).optional()
+});
 
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
@@ -50,11 +63,16 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Nenhum dado para atualizar foi fornecido.' });
             }
 
-            updatedData.updatedAt = new Date();
+            const parsed = updateSettingsSchema.safeParse(updatedData);
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+            }
+            const validatedData = parsed.data;
+            validatedData.updatedAt = new Date();
 
             const result = await collection.findOneAndUpdate(
                 { _id: new ObjectId(_id) },
-                { $set: updatedData },
+                { $set: validatedData },
                 { returnDocument: 'after' }
             );
 

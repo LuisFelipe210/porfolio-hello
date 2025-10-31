@@ -1,5 +1,24 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
+
+const createPortfolioItemSchema = z.object({
+    title: z.string().min(1, "Título é obrigatório"),
+    description: z.string().min(1, "Descrição é obrigatória"),
+    image: z.string().url("URL de imagem inválida"),
+    alt: z.string().optional()
+});
+
+const updatePortfolioItemSchema = z.object({
+    title: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+    image: z.string().url().optional(),
+    alt: z.string().optional()
+});
+
+const deletePortfolioItemsSchema = z.object({
+    itemIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")).optional()
+});
 
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
@@ -35,15 +54,11 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
-            const newItem = req.body;
-
-            if (!newItem || Object.keys(newItem).length === 0) {
-                return res.status(400).json({ error: 'Dados do item não fornecidos.' });
+            const parseResult = createPortfolioItemSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: parseResult.error.errors.map(e => e.message).join(', ') });
             }
-
-            if (!newItem.title || !newItem.description || !newItem.image) {
-                return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
-            }
+            const newItem = parseResult.data;
 
             if (!newItem.alt) {
                 newItem.alt = newItem.title;
@@ -60,7 +75,11 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'ID do item inválido ou não fornecido.' });
             }
 
-            const updatedData = req.body;
+            const parseResult = updatePortfolioItemSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: parseResult.error.errors.map(e => e.message).join(', ') });
+            }
+            const updatedData = parseResult.data;
             delete updatedData._id;
 
             if (updatedData.title && !updatedData.alt) {
@@ -85,6 +104,10 @@ export default async function handler(req, res) {
             const { itemIds } = req.body;
 
             if (itemIds && Array.isArray(itemIds)) {
+                const parseResult = deletePortfolioItemsSchema.safeParse({ itemIds });
+                if (!parseResult.success) {
+                    return res.status(400).json({ error: parseResult.error.errors.map(e => e.message).join(', ') });
+                }
                 if (itemIds.length === 0) {
                     return res.status(400).json({ error: 'Nenhum ID de item foi fornecido.' });
                 }

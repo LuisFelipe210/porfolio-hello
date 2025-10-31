@@ -1,5 +1,26 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
+
+const createTestimonialSchema = z.object({
+    author: z.string().min(1, "O nome do autor é obrigatório"),
+    role: z.string().min(1, "O cargo/serviço é obrigatório"),
+    text: z.string().min(1, "O texto do depoimento é obrigatório"),
+    imageUrl: z.string().min(1, "A imagem é obrigatória"),
+    alt: z.string().optional()
+});
+
+const updateTestimonialSchema = z.object({
+    author: z.string().min(1).optional(),
+    role: z.string().min(1).optional(),
+    text: z.string().min(1).optional(),
+    imageUrl: z.string().optional(),
+    alt: z.string().optional()
+});
+
+const deleteTestimonialsSchema = z.object({
+    testimonialIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")).optional()
+});
 
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
@@ -45,24 +66,9 @@ export default async function handler(req, res) {
         if (req.method === 'POST') {
             const newTestimonial = req.body;
 
-            if (!newTestimonial || Object.keys(newTestimonial).length === 0) {
-                return res.status(400).json({ error: 'Dados do depoimento não fornecidos.' });
-            }
-
-            if (!newTestimonial.author || !newTestimonial.author.trim()) {
-                return res.status(400).json({ error: 'O nome do autor é obrigatório.' });
-            }
-
-            if (!newTestimonial.role || !newTestimonial.role.trim()) {
-                return res.status(400).json({ error: 'O cargo/serviço é obrigatório.' });
-            }
-
-            if (!newTestimonial.text || !newTestimonial.text.trim()) {
-                return res.status(400).json({ error: 'O texto do depoimento é obrigatório.' });
-            }
-
-            if (!newTestimonial.imageUrl || !newTestimonial.imageUrl.trim()) {
-                return res.status(400).json({ error: 'A imagem é obrigatória.' });
+            const validation = createTestimonialSchema.safeParse(newTestimonial);
+            if (!validation.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: validation.error.errors });
             }
 
             if (!newTestimonial.alt || !newTestimonial.alt.trim()) {
@@ -86,16 +92,9 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Nenhum dado para atualizar foi fornecido.' });
             }
 
-            if (updatedData.author !== undefined && !updatedData.author.trim()) {
-                return res.status(400).json({ error: 'O nome do autor não pode estar vazio.' });
-            }
-
-            if (updatedData.role !== undefined && !updatedData.role.trim()) {
-                return res.status(400).json({ error: 'O cargo/serviço não pode estar vazio.' });
-            }
-
-            if (updatedData.text !== undefined && !updatedData.text.trim()) {
-                return res.status(400).json({ error: 'O texto do depoimento não pode estar vazio.' });
+            const validation = updateTestimonialSchema.safeParse(updatedData);
+            if (!validation.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: validation.error.errors });
             }
 
             if (updatedData.author && !updatedData.alt) {
@@ -121,6 +120,11 @@ export default async function handler(req, res) {
         if (req.method === 'DELETE') {
             const { testimonialIds } = req.body;
             const { id } = req.query;
+
+            const validation = deleteTestimonialsSchema.safeParse({ testimonialIds });
+            if (!validation.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: validation.error.errors });
+            }
 
             if (testimonialIds && Array.isArray(testimonialIds)) {
                 if (testimonialIds.length === 0) {

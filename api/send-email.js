@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { MongoClient } from 'mongodb';
 import cors from 'cors';
+import { z } from "zod";
 
 // Helper de conexão com o MongoDB
 let cachedDb = null;
@@ -18,6 +19,14 @@ const corsMiddleware = cors({
     origin: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
 });
 
+const sendEmailSchema = z.object({
+    name: z.string().min(1, "Nome é obrigatório"),
+    email: z.string().email("Email inválido"),
+    phone: z.string().optional(),
+    service: z.string().min(1, "Serviço é obrigatório"),
+    message: z.string().min(1, "Mensagem é obrigatória"),
+});
+
 export default async function handler(req, res) {
     await new Promise((resolve, reject) => {
         corsMiddleware(req, res, (result) => (result instanceof Error ? reject(result) : resolve(result)));
@@ -27,11 +36,11 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Método não permitido' });
     }
 
-    const { name, email, phone, service, message } = req.body;
-
-    if (!name || !email || !service || !message) {
-        return res.status(400).json({ error: 'Faltam dados obrigatórios.' });
+    const parsed = sendEmailSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
     }
+    const { name, email, phone, service, message } = parsed.data;
 
     try {
         // 1. Guardar a mensagem no banco de dados

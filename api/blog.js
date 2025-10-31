@@ -1,5 +1,24 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
+
+const createPostSchema = z.object({
+    title: z.string().min(1, "Título é obrigatório"),
+    content: z.string().min(1, "Conteúdo é obrigatório"),
+    coverImage: z.string().min(1, "Imagem de capa é obrigatória"),
+    alt: z.string().optional()
+});
+
+const updatePostSchema = z.object({
+    title: z.string().min(1).optional(),
+    content: z.string().min(1).optional(),
+    coverImage: z.string().min(1).optional(),
+    alt: z.string().optional()
+});
+
+const deletePostSchema = z.object({
+    postIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")).optional()
+});
 
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
@@ -147,20 +166,11 @@ export default async function handler(req, res) {
             }
 
             if (req.method === 'POST') {
-                const { title, content, coverImage } = req.body;
-
-                // Validação de campos obrigatórios
-                if (!title || !title.trim()) {
-                    return res.status(400).json({ error: 'O título é obrigatório.' });
+                const parsed = createPostSchema.safeParse(req.body);
+                if (!parsed.success) {
+                    return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.format() });
                 }
-
-                if (!content || !content.trim()) {
-                    return res.status(400).json({ error: 'O conteúdo é obrigatório.' });
-                }
-
-                if (!coverImage || !coverImage.trim()) {
-                    return res.status(400).json({ error: 'A imagem de capa é obrigatória.' });
-                }
+                const { title, content, coverImage, alt } = parsed.data;
 
                 const slug = createSlug(title);
 
@@ -175,7 +185,7 @@ export default async function handler(req, res) {
                     title: title.trim(),
                     content: content.trim(),
                     coverImage,
-                    alt: title.trim(), // Usa o título como alt por padrão
+                    alt: alt || title.trim(), // Usa o título como alt por padrão se alt não fornecido
                     slug,
                     createdAt: new Date(),
                     updatedAt: new Date(),
@@ -188,11 +198,15 @@ export default async function handler(req, res) {
 
             if (req.method === 'PUT') {
                 const { id } = req.query;
-                const { _id, ...updatedData } = req.body;
-
                 if (!id || !ObjectId.isValid(id)) {
                     return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
                 }
+
+                const parsed = updatePostSchema.safeParse(req.body);
+                if (!parsed.success) {
+                    return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.format() });
+                }
+                const updatedData = parsed.data;
 
                 // Validação de campos obrigatórios (se fornecidos)
                 if (updatedData.title !== undefined && !updatedData.title.trim()) {
@@ -252,6 +266,13 @@ export default async function handler(req, res) {
             if (req.method === 'DELETE') {
                 const { id } = req.query;
                 const { postIds } = req.body;
+
+                if (postIds) {
+                    const parsed = deletePostSchema.safeParse(req.body);
+                    if (!parsed.success) {
+                        return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.format() });
+                    }
+                }
 
                 if (postIds && Array.isArray(postIds)) {
                     if (postIds.length === 0) {

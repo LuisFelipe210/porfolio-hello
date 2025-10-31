@@ -2,6 +2,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+import { z } from 'zod';
 
 // --- Variável para Cache da Conexão com o Banco de Dados ---
 let cachedDb = null;
@@ -34,7 +35,6 @@ async function sendPasswordResetEmail(email, token) {
     console.log(`[EMAIL] Preparando para enviar e-mail de redefinição para: ${email}`);
     console.log(`[EMAIL] Link de redefinição gerado: ${resetLink}`);
 
-
     const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'Hellô Borges Fotografia'}" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -66,6 +66,33 @@ async function sendPasswordResetEmail(email, token) {
     }
 }
 
+// --- Schemas Zod para validação ---
+const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(1),
+});
+
+const requestPasswordResetSchema = z.object({
+    email: z.string().email(),
+});
+
+const updatePasswordWithTokenSchema = z.object({
+    newPassword: z.string().min(6),
+});
+
+const resetPasswordSchema = z.object({
+    newPassword: z.string().min(6),
+});
+
+const updateSelectionSchema = z.object({
+    galleryId: z.string().min(1),
+    selectedImages: z.array(z.string()),
+});
+
+const submitSelectionSchema = z.object({
+    galleryId: z.string().min(1),
+    selectedImages: z.array(z.string()),
+});
 
 // --- Handler Principal da API (Função Serverless) ---
 export default async function handler(req, res) {
@@ -81,8 +108,11 @@ export default async function handler(req, res) {
 
         // --- AÇÃO: LOGIN DO CLIENTE ---
         if (action === 'login' && req.method === 'POST') {
-            const { email, password } = req.body;
-            if (!email || !password) return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
+            const parseResult = loginSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: parseResult.error.errors });
+            }
+            const { email, password } = parseResult.data;
 
             const client = await clientsCollection.findOne({ email });
             if (!client) return res.status(401).json({ error: 'Credenciais inválidas.' });
@@ -100,10 +130,11 @@ export default async function handler(req, res) {
 
         // --- AÇÃO: SOLICITAR REDEFINIÇÃO DE SENHA ---
         if (action === 'requestPasswordReset' && req.method === 'POST') {
-            const { email } = req.body;
-            if (!email) {
-                return res.status(400).json({ error: 'E-mail é obrigatório.' });
+            const parseResult = requestPasswordResetSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: parseResult.error.errors });
             }
+            const { email } = parseResult.data;
 
             const client = await clientsCollection.findOne({ email });
 
@@ -128,7 +159,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Se o e-mail estiver registado, um link de redefinição foi enviado.' });
         }
 
-
         // =================================================================
         // VERIFICAÇÃO DE TOKEN PARA AÇÕES PRIVADAS
         // =================================================================
@@ -144,7 +174,6 @@ export default async function handler(req, res) {
         } catch (error) {
             return res.status(401).json({ error: 'Token inválido ou expirado.' });
         }
-
 
         // =================================================================
         // AÇÕES PRIVADAS (PRECISAM DE TOKEN)
@@ -163,10 +192,11 @@ export default async function handler(req, res) {
             if (decoded.purpose !== 'password-reset') {
                 return res.status(401).json({ error: 'Token inválido para esta ação.' });
             }
-            const { newPassword } = req.body;
-            if (!newPassword || newPassword.length < 6) {
-                return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+            const parseResult = updatePasswordWithTokenSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: parseResult.error.errors });
             }
+            const { newPassword } = parseResult.data;
 
             const hashedPassword = await bcrypt.hash(newPassword, 10);
             const result = await clientsCollection.updateOne(
@@ -178,16 +208,17 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Senha atualizada com sucesso!' });
         }
 
-
         const { clientId } = decoded;
         if (!clientId) return res.status(401).json({ error: 'Token de login inválido.' });
 
         // --- AÇÃO: REDEFINIR SENHA (PRIMEIRO LOGIN) ---
         if (action === 'resetPassword' && req.method === 'POST') {
-            const { newPassword } = req.body;
-            if (!newPassword || newPassword.length < 6) {
-                return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+            const parseResult = resetPasswordSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: parseResult.error.errors });
             }
+            const { newPassword } = parseResult.data;
+
             const hashedPassword = await bcrypt.hash(newPassword, 10);
             await clientsCollection.updateOne(
                 { _id: new ObjectId(clientId) },
@@ -220,8 +251,11 @@ export default async function handler(req, res) {
 
         // --- AÇÃO: ATUALIZAR SELEÇÃO (AUTOSAVE) ---
         if (action === 'updateSelection' && req.method === 'POST') {
-            const { galleryId, selectedImages } = req.body;
-            if (!galleryId || !Array.isArray(selectedImages)) return res.status(400).json({ error: 'Dados incompletos.' });
+            const parseResult = updateSelectionSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: parseResult.error.errors });
+            }
+            const { galleryId, selectedImages } = parseResult.data;
 
             const result = await galleriesCollection.updateOne(
                 { _id: new ObjectId(galleryId), clientId: new ObjectId(clientId), status: { $ne: 'selection_complete' } },
@@ -233,8 +267,11 @@ export default async function handler(req, res) {
 
         // --- AÇÃO: SUBMETER SELEÇÃO DE FOTOS (FINALIZAR) ---
         if (action === 'submitSelection' && req.method === 'POST') {
-            const { galleryId, selectedImages } = req.body;
-            if (!galleryId || !Array.isArray(selectedImages)) return res.status(400).json({ error: 'Dados incompletos.' });
+            const parseResult = submitSelectionSchema.safeParse(req.body);
+            if (!parseResult.success) {
+                return res.status(400).json({ error: 'Dados inválidos.', details: parseResult.error.errors });
+            }
+            const { galleryId, selectedImages } = parseResult.data;
 
             const result = await galleriesCollection.updateOne(
                 { _id: new ObjectId(galleryId), clientId: new ObjectId(clientId) },
@@ -257,6 +294,8 @@ export default async function handler(req, res) {
                 to: process.env.EMAIL_TO,
                 subject: `Seleção de Fotos Recebida: ${client.name}`,
                 html: `<h2>O cliente ${client.name} finalizou a seleção de fotos!</h2><p><strong>Galeria:</strong> ${gallery.name}</p><p><strong>Total de fotos selecionadas:</strong> ${selectedImages.length}</p><p>Aceda ao seu painel de administração para ver as escolhas.</p>`,
+            }).then(info => {
+                console.log(`[EMAIL] Notificação para admin enviada com sucesso! MessageId: ${info.messageId}`);
             }).catch(err => console.error("Erro ao enviar e-mail de notificação para o admin:", err));
 
             return res.status(200).json({ message: 'Seleção enviada com sucesso!' });

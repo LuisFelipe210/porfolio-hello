@@ -1,5 +1,18 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
+
+const markMessageReadSchema = z.object({
+    id: z.string().refine(id => ObjectId.isValid(id), "ID inválido")
+});
+
+const markSelectionReadSchema = z.object({
+    selectionId: z.string().refine(id => ObjectId.isValid(id), "ID inválido")
+});
+
+const deleteMessageSchema = z.object({
+    id: z.string().refine(id => ObjectId.isValid(id), "ID inválido")
+});
 
 let cachedDb = null;
 async function connectToDatabase(uri) {
@@ -42,7 +55,8 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'PUT' && id) {
-            if (!ObjectId.isValid(id)) return res.status(400).json({ error: 'ID de mensagem inválido.' });
+            const validation = markMessageReadSchema.safeParse({ id });
+            if (!validation.success) return res.status(400).json({ error: validation.error.errors[0].message });
 
             const result = await messagesCollection.updateOne({ _id: new ObjectId(id) }, { $set: { read: true } });
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Mensagem não encontrada.' });
@@ -50,7 +64,8 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'PUT' && action === 'markSelectionRead' && selectionId) {
-            if (!ObjectId.isValid(selectionId)) return res.status(400).json({ error: 'ID de seleção inválido.' });
+            const validation = markSelectionReadSchema.safeParse({ selectionId });
+            if (!validation.success) return res.status(400).json({ error: validation.error.errors[0].message });
 
             const result = await galleriesCollection.updateOne({ _id: new ObjectId(selectionId) }, { $set: { read: true } });
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Seleção não encontrada.' });
@@ -58,7 +73,8 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'DELETE' && id) {
-            if (!ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido.' });
+            const validation = deleteMessageSchema.safeParse({ id });
+            if (!validation.success) return res.status(400).json({ error: validation.error.errors[0].message });
 
             const result = await messagesCollection.deleteOne({ _id: new ObjectId(id) });
             if (result.deletedCount === 0) return res.status(404).json({ error: 'Mensagem não encontrada.' });

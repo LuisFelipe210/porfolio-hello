@@ -1,5 +1,15 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
+
+const updateServiceSchema = z.object({
+    title: z.string().min(1, "O título é obrigatório").optional(),
+    description: z.string().min(1, "A descrição é obrigatória").optional(),
+    imageUrl: z.string().url("URL da imagem inválida").optional(),
+    alt: z.string().optional(),
+    features: z.array(z.string()).optional(),
+    price: z.string().optional()
+});
 
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
@@ -51,39 +61,20 @@ export default async function handler(req, res) {
 
         if (req.method === 'PUT') {
             const { id } = req.query;
-            const updatedData = req.body;
 
             if (!id || !ObjectId.isValid(id)) {
                 return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
             }
 
-            if (!updatedData || Object.keys(updatedData).length === 0) {
-                return res.status(400).json({ error: 'Nenhum dado para atualizar foi fornecido.' });
+            const parsed = updateServiceSchema.safeParse(req.body);
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
             }
-
+            const updatedData = parsed.data;
             delete updatedData._id;
-
-            if (updatedData.title !== undefined && !updatedData.title.trim()) {
-                return res.status(400).json({ error: 'O título não pode estar vazio.' });
-            }
-
-            if (updatedData.description !== undefined && !updatedData.description.trim()) {
-                return res.status(400).json({ error: 'A descrição não pode estar vazia.' });
-            }
-
-            if (updatedData.features !== undefined) {
-                if (!Array.isArray(updatedData.features)) {
-                    return res.status(400).json({ error: 'Features deve ser um array.' });
-                }
-                updatedData.features = updatedData.features.filter(f => f && f.trim());
-            }
 
             if (updatedData.title && !updatedData.alt) {
                 updatedData.alt = updatedData.title;
-            }
-
-            if (updatedData.imageUrl && typeof updatedData.imageUrl !== 'string') {
-                return res.status(400).json({ error: 'URL da imagem inválida.' });
             }
 
             const result = await collection.findOneAndUpdate(
