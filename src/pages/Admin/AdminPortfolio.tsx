@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Edit, Plus, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 
@@ -62,6 +63,8 @@ const AdminPortfolio = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { toast } = useToast();
     const isMobile = useIsMobile();
+
+    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
     // Os useState para campos de formulário foram removidos.
     const [file, setFile] = useState<File | null>(null);

@@ -10,6 +10,7 @@ import ClientCard from './components/ClientCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from 'react-router-dom';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 
 import { useForm } from "react-hook-form";
@@ -46,6 +47,7 @@ const AdminClients = () => {
     const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
     const { toast } = useToast();
     const isMobile = useIsMobile();
+    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<'a-z' | 'z-a'>('a-z');

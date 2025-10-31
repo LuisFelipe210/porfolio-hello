@@ -9,6 +9,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { format } from 'date-fns';
 
+import { useDashboardData } from '@/hooks/useDashboardData';
+
 // Tipo de evento para o calendário
 interface ReservedEvent {
     title: string;
@@ -23,6 +25,8 @@ const AdminAvailability = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
+
+    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
     // Função utilitária para formatar datas (YYYY-MM-DD)
     const formatDateString = (date: Date) => format(date, 'yyyy-MM-dd');

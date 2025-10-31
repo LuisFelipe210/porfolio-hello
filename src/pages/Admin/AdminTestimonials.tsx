@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,6 +43,7 @@ const AdminTestimonials = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { toast } = useToast();
     const isMobile = useIsMobile();
+    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
     const [selectedTestimonials, setSelectedTestimonials] = useState<Set<string>>(new Set());
     const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);

@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { UploadPhotosDialog } from './components/UploadPhotosDialog';
 import { ViewSelectionsDialog } from './components/ViewSelectionsDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { useForm } from "react-hook-form";
@@ -37,6 +38,7 @@ const AdminClientGalleries = () => {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const { toast } = useToast();
     const isMobile = useIsMobile();
+    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);

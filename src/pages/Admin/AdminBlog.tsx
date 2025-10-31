@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 const blogPostSchema = z.object({
     title: z.string().min(3, { message: "O título é obrigatório." }),
@@ -46,6 +47,8 @@ const AdminBlog = () => {
     const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
     const { toast } = useToast();
     const isMobile = useIsMobile();
+
+    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
     const [file, setFile] = useState<File | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);

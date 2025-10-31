@@ -14,7 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
-import { useQuery } from '@tanstack/react-query';
+import { useDashboardData } from '@/hooks/useDashboardData';
+// import { useQuery } from '@tanstack/react-query';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -33,7 +34,6 @@ const portfolioFormSchema = z.object({
     category: z.string().min(1, { message: "Selecione uma categoria." }),
     description: z.string().min(1, { message: "A descrição é obrigatória." }),
 });
-// ***** FIM DAS MODIFICAÇÕES *****
 
 
 interface DashboardData {
@@ -71,33 +71,7 @@ const AdminDashboard = () => {
     const [greeting, setGreeting] = useState('');
     const { toast } = useToast();
 
-    // ***** INÍCIO DAS MODIFICAÇÕES *****
-    // 2. Substituir o fetch manual pelo useQuery
-    const fetchDashboardData = async (): Promise<DashboardData> => {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/admin/dashboard-stats', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!response.ok) throw new Error('Falha ao buscar dados do dashboard.');
-
-        const responseData = await response.json();
-
-        // Ordenação continua aqui
-        if (responseData.activity.reservedDates) {
-            responseData.activity.reservedDates.sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime());
-        }
-        return responseData;
-    };
-
-
-    const { data, isLoading, refetch } = useQuery<DashboardData>({
-        queryKey: ['dashboardData'],
-        queryFn: fetchDashboardData,
-        staleTime: 5 * 60 * 1000,
-        // refetchInterval: 15 * 1000,
-        refetchOnWindowFocus: true,
-        refetchIntervalInBackground: true
-    });
-
-
+    const { data, isLoading, refetch } = useDashboardData();
 
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
 

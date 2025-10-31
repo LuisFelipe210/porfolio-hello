@@ -309,13 +309,13 @@ const AdminLayout = () => {
 
                 .animated-runner {
                     position: absolute;
-                    bottom: 0; /* Colado na base */
-                    left: -100px; /* Começa fora da tela à esquerda */
+                    bottom: 0;
+                    left: -100px;
                     height: 60px; 
                     width: auto;
-                    z-index: 0; /* Passa por baixo dos elementos do header e botões */
-                    pointer-events: none; /* Não interfere nos cliques */
-                    animation: run 23s linear infinite; /* velocidade constante, infinito */
+                    z-index: 0;
+                    pointer-events: none;
+                    animation: run 23s linear infinite; 
                 }
             `}</style>
         </div>
