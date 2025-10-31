@@ -43,10 +43,8 @@ export default async function handler(req, res) {
                 { $group: { _id: "$category", count: { $sum: 1 } } },
                 { $sort: { _id: 1 } }
             ]).toArray(),
-            // ▼▼▼ CORREÇÃO APLICADA AQUI ▼▼▼
-            // Alterado de 'createdAt' para '_id' para garantir a ordem de criação correta
             db.collection('clients').find({}).sort({ _id: -1 }).limit(5).toArray(),
-            // ▲▲▲ FIM DA CORREÇÃO ▲▲▲
+
         ]);
 
         const [pendingGalleries, unreadSelections] = await Promise.all([
@@ -65,7 +63,6 @@ export default async function handler(req, res) {
             ]).toArray()
         ]);
 
-        // Correção: pegar reservedDates do objeto retornado pela API
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
         const response = await fetch(`${baseUrl}/api/blog?api=availability`);
         let reservedDates = [];

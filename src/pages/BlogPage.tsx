@@ -15,7 +15,8 @@ interface Post {
     slug: string;
     coverImage: string;
     createdAt: string;
-    content: string; // Adicionado para a pré-visualização
+    content: string;
+    alt?: string;
 }
 
 const BlogPage = () => {
@@ -55,7 +56,7 @@ const BlogPage = () => {
             <div className="absolute inset-0 z-0 opacity-30">
                 <img
                     src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")}
-                    alt="Background"
+                    alt="Fundo do blog"
                     className="w-full h-full object-cover"
                 />
             </div>
@@ -81,6 +82,12 @@ const BlogPage = () => {
                                 <Skeleton className="h-80 w-full rounded-3xl bg-black/60 dark:bg-white/20" />
                             </div>
                         </div>
+                    ) : posts.length === 0 ? (
+                        <div className="text-center py-12">
+                            <p className="text-white/60 text-lg">
+                                Nenhum artigo disponível no momento. Volte em breve!
+                            </p>
+                        </div>
                     ) : (
                         <div className="space-y-12">
                             {/* Artigo em Destaque */}
@@ -91,7 +98,8 @@ const BlogPage = () => {
                                             <div className="overflow-hidden aspect-[4/3]">
                                                 <img
                                                     src={optimizeCloudinaryUrl(featuredPost.coverImage, "f_auto,q_auto,w_800")}
-                                                    alt={featuredPost.title}
+                                                    alt={featuredPost.alt || featuredPost.title}
+                                                    loading="eager"
                                                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                                                 />
                                             </div>
@@ -115,29 +123,32 @@ const BlogPage = () => {
                             )}
 
                             {/* Outros Artigos */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {otherPosts.map((post) => (
-                                    <Link to={`/blog/${post.slug}`} key={post._id} className="group block">
-                                        <Card className="overflow-hidden h-full border border-black/10 dark:border-white/10 rounded-3xl bg-white/10 dark:bg-black/50 shadow-lg hover:border-orange-500/50 transition-all duration-300">
-                                            <div className="overflow-hidden aspect-[16/10]">
-                                                <img
-                                                    src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_800")}
-                                                    alt={post.title}
-                                                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                                                />
-                                            </div>
-                                            <CardHeader className="p-6">
-                                                <CardTitle className="text-xl font-semibold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors">
-                                                    {post.title}
-                                                </CardTitle>
-                                                <CardDescription className="pt-2 text-white/70 dark:text-white/70">
-                                                    {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                                                </CardDescription>
-                                            </CardHeader>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
+                            {otherPosts.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {otherPosts.map((post) => (
+                                        <Link to={`/blog/${post.slug}`} key={post._id} className="group block">
+                                            <Card className="overflow-hidden h-full border border-black/10 dark:border-white/10 rounded-3xl bg-white/10 dark:bg-black/50 shadow-lg hover:border-orange-500/50 transition-all duration-300">
+                                                <div className="overflow-hidden aspect-[16/10]">
+                                                    <img
+                                                        src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_800")}
+                                                        alt={post.alt || post.title}
+                                                        loading="lazy"
+                                                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                                                    />
+                                                </div>
+                                                <CardHeader className="p-6">
+                                                    <CardTitle className="text-xl font-semibold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors line-clamp-2">
+                                                        {post.title}
+                                                    </CardTitle>
+                                                    <CardDescription className="pt-2 text-white/70 dark:text-white/70">
+                                                        {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                                                    </CardDescription>
+                                                </CardHeader>
+                                            </Card>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </section>

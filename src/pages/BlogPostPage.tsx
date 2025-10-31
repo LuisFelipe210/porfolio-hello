@@ -15,6 +15,7 @@ interface Post {
     content: string;
     coverImage: string;
     createdAt: string;
+    alt?: string;
 }
 
 const BlogPostPage = () => {
@@ -27,6 +28,7 @@ const BlogPostPage = () => {
         window.scrollTo(0, 0);
 
         if (!slug) return;
+
         const fetchPost = async () => {
             try {
                 setIsLoading(true);
@@ -36,11 +38,12 @@ const BlogPostPage = () => {
                 setPost(data);
             } catch (error) {
                 console.error("Erro ao buscar artigo:", error);
-                setPost(null); // Garante que não exibe um post antigo se a busca falhar
+                setPost(null);
             } finally {
                 setIsLoading(false);
             }
         };
+
         fetchPost();
     }, [slug]);
 
@@ -60,7 +63,7 @@ const BlogPostPage = () => {
                             <div className="absolute inset-0 z-0">
                                 <img
                                     src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_1920")}
-                                    alt={post.title}
+                                    alt={post.alt || post.title}
                                     className="w-full h-full object-cover"
                                 />
                                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -71,7 +74,9 @@ const BlogPostPage = () => {
                                 </h1>
                                 <p className="text-lg text-white/80 mt-4 flex items-center justify-center gap-2">
                                     <Clock className="h-5 w-5" />
-                                    <span>Publicado em {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</span>
+                                    <span>
+                                        Publicado em {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                                    </span>
                                 </p>
                             </div>
                         </div>
@@ -84,7 +89,11 @@ const BlogPostPage = () => {
                                 </div>
 
                                 <div className="mt-16 text-center">
-                                    <Button asChild variant="outline" className="rounded-xl border-white/20 bg-white/10 hover:bg-white/20">
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        className="rounded-xl border-white/20 bg-white/10 hover:bg-white/20"
+                                    >
                                         <Link to="/blog" className="inline-flex items-center text-white no-underline">
                                             <ArrowLeft className="h-4 w-4 mr-2" />
                                             Voltar para todos os artigos
@@ -97,7 +106,9 @@ const BlogPostPage = () => {
                 ) : (
                     <div className="text-center py-32 container mx-auto">
                         <h1 className="text-4xl font-bold">Artigo não encontrado</h1>
-                        <p className="text-white/80 mt-4">O link que você seguiu pode estar quebrado ou o artigo foi removido.</p>
+                        <p className="text-white/80 dark:text-white/80 mt-4">
+                            O link que você seguiu pode estar quebrado ou o artigo foi removido.
+                        </p>
                         <Button asChild className="mt-8 bg-orange-500 hover:bg-orange-600 rounded-xl">
                             <Link to="/blog">Voltar para o Blog</Link>
                         </Button>

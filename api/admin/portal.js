@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
-// --- Funções Auxiliares para Criptografia ---
 const algorithm = 'aes-256-cbc';
 const key = crypto.createHash('sha256').update(String(process.env.ENCRYPTION_KEY)).digest('base64').substr(0, 32);
 const iv = crypto.createHash('sha256').update(String(process.env.ENCRYPTION_IV)).digest('base64').substr(0, 16);
@@ -34,7 +33,6 @@ function decrypt(encryptedText) {
     }
 }
 
-// --- Gestão da Conexão com o Banco de Dados ---
 let cachedDb = null;
 async function connectToDatabase(uri) {
     if (cachedDb) return cachedDb;
@@ -44,7 +42,6 @@ async function connectToDatabase(uri) {
     return db;
 }
 
-// --- Handler Principal da API ---
 export default async function handler(req, res) {
     try {
         const token = req.headers.authorization?.split(' ')[1];

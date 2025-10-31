@@ -1,7 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 
-// Função para conectar ao banco
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
         return global.mongoClient.db('helloborges_portfolio');
@@ -30,7 +29,6 @@ export default async function handler(req, res) {
             return res.status(200).json(testimonialsWithDefaults);
         }
 
-        // --- VERIFICAÇÃO DE TOKEN PARA ROTAS PROTEGIDAS ---
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ error: 'Acesso não autorizado: Token não fornecido.' });
@@ -44,11 +42,9 @@ export default async function handler(req, res) {
             });
         }
 
-        // --- ROTA PROTEGIDA: ADICIONAR DEPOIMENTO (POST) ---
         if (req.method === 'POST') {
             const newTestimonial = req.body;
 
-            // Validação de campos obrigatórios
             if (!newTestimonial || Object.keys(newTestimonial).length === 0) {
                 return res.status(400).json({ error: 'Dados do depoimento não fornecidos.' });
             }
@@ -69,7 +65,6 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'A imagem é obrigatória.' });
             }
 
-            // Se alt não for fornecido, usar o nome do autor
             if (!newTestimonial.alt || !newTestimonial.alt.trim()) {
                 newTestimonial.alt = `Foto de ${newTestimonial.author}`;
             }
@@ -79,22 +74,18 @@ export default async function handler(req, res) {
             return res.status(201).json(inserted);
         }
 
-        // --- ROTA PROTEGIDA: ATUALIZAR DEPOIMENTO (PUT) ---
         if (req.method === 'PUT') {
             const { id } = req.query;
             const { _id, ...updatedData } = req.body;
 
-            // Validação do ID
             if (!id || !ObjectId.isValid(id)) {
                 return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
             }
 
-            // Validação dos dados recebidos
             if (!updatedData || Object.keys(updatedData).length === 0) {
                 return res.status(400).json({ error: 'Nenhum dado para atualizar foi fornecido.' });
             }
 
-            // Validação de campos obrigatórios (se fornecidos)
             if (updatedData.author !== undefined && !updatedData.author.trim()) {
                 return res.status(400).json({ error: 'O nome do autor não pode estar vazio.' });
             }
@@ -107,12 +98,10 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'O texto do depoimento não pode estar vazio.' });
             }
 
-            // Se alt não for fornecido mas autor foi atualizado, usar o novo autor
             if (updatedData.author && !updatedData.alt) {
                 updatedData.alt = `Foto de ${updatedData.author}`;
             }
 
-            // Atualizar e retornar o documento atualizado
             const result = await collection.findOneAndUpdate(
                 { _id: new ObjectId(id) },
                 { $set: updatedData },
@@ -129,18 +118,15 @@ export default async function handler(req, res) {
             });
         }
 
-        // --- ROTA PROTEGIDA: EXCLUIR DEPOIMENTO (DELETE) ---
         if (req.method === 'DELETE') {
             const { testimonialIds } = req.body;
             const { id } = req.query;
 
-            // Lógica para excluir vários depoimentos
             if (testimonialIds && Array.isArray(testimonialIds)) {
                 if (testimonialIds.length === 0) {
                     return res.status(400).json({ error: 'Nenhum ID foi fornecido.' });
                 }
 
-                // Validar todos os IDs
                 const invalidIds = testimonialIds.filter(id => !ObjectId.isValid(id));
                 if (invalidIds.length > 0) {
                     return res.status(400).json({
@@ -162,7 +148,6 @@ export default async function handler(req, res) {
                 });
             }
 
-            // Lógica para excluir um único depoimento
             if (id && ObjectId.isValid(id)) {
                 const result = await collection.deleteOne({ _id: new ObjectId(id) });
 

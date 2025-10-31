@@ -18,11 +18,9 @@ export default async function handler(req, res) {
 
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const messagesCollection = db.collection('messages');
-        // --- CORREÇÃO: Usar o nome de coleção consistente 'galleries' ---
         const galleriesCollection = db.collection('galleries');
         const { action, id, selectionId } = req.query;
 
-        // --- CORREÇÃO: Adicionada verificação explícita para a ação ---
         if (req.method === 'GET' && action === 'getGalleries') {
             const messages = await messagesCollection.find({}).sort({ createdAt: -1 }).toArray();
 
@@ -43,7 +41,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ messages, selections });
         }
 
-        // --- AÇÃO: MARCAR MENSAGEM DE CONTATO COMO LIDA ---
         if (req.method === 'PUT' && id) {
             if (!ObjectId.isValid(id)) return res.status(400).json({ error: 'ID de mensagem inválido.' });
 
@@ -52,7 +49,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Mensagem marcada como lida.' });
         }
 
-        // --- AÇÃO PARA MARCAR SELEÇÃO COMO LIDA ---
         if (req.method === 'PUT' && action === 'markSelectionRead' && selectionId) {
             if (!ObjectId.isValid(selectionId)) return res.status(400).json({ error: 'ID de seleção inválido.' });
 
@@ -61,7 +57,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Seleção marcada como lida com sucesso!' });
         }
 
-        // --- AÇÃO: APAGAR MENSAGEM ---
         if (req.method === 'DELETE' && id) {
             if (!ObjectId.isValid(id)) return res.status(400).json({ error: 'ID inválido.' });
 

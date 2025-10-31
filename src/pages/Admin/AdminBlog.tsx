@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit, Search, Plus } from 'lucide-react';
+import { Trash2, Edit, Search, Plus, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -18,6 +18,7 @@ interface Post {
     content: string;
     coverImage: string;
     createdAt: string;
+    alt?: string;
 }
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
@@ -34,6 +35,7 @@ const AdminBlog = () => {
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [alt, setAlt] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,11 +65,12 @@ const AdminBlog = () => {
 
     useEffect(() => {
         fetchPosts();
-    }, [toast]);
+    }, []);
 
     const resetForm = () => {
         setTitle('');
         setContent('');
+        setAlt('');
         setFile(null);
         setEditingId(null);
     };
@@ -78,6 +81,7 @@ const AdminBlog = () => {
             setEditingId(item._id);
             setTitle(item.title);
             setContent(item.content);
+            setAlt(item.alt || item.title);
         }
         setIsDialogOpen(true);
     };
@@ -90,13 +94,60 @@ const AdminBlog = () => {
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
         const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
-        if (!uploadRes.ok) throw new Error('Falha no upload para o Cloudinary.');
+
+        if (!uploadRes.ok) {
+            const error = await uploadRes.json();
+            console.error("Erro no Cloudinary:", error);
+            throw new Error('Falha no upload para o Cloudinary.');
+        }
+
         const uploadData = await uploadRes.json();
         return uploadData.secure_url;
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
+
+        // Validação de tipo
+        if (!selectedFile.type.startsWith('image/')) {
+            toast({
+                variant: 'destructive',
+                title: 'Arquivo inválido',
+                description: 'Por favor, selecione uma imagem válida.'
+            });
+            e.target.value = '';
+            return;
+        }
+
+        // Validação de tamanho (máximo 10MB)
+        if (selectedFile.size > 10 * 1024 * 1024) {
+            toast({
+                variant: 'destructive',
+                title: 'Arquivo muito grande',
+                description: 'A imagem deve ter no máximo 10MB.'
+            });
+            e.target.value = '';
+            return;
+        }
+
+        setFile(selectedFile);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validações
+        if (!title.trim()) {
+            toast({ variant: 'destructive', title: 'Erro de Validação', description: 'O título é obrigatório.' });
+            return;
+        }
+
+        if (!content.trim()) {
+            toast({ variant: 'destructive', title: 'Erro de Validação', description: 'O conteúdo é obrigatório.' });
+            return;
+        }
+
         if (!editingId && !file) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem de capa.' });
             return;
@@ -112,7 +163,12 @@ const AdminBlog = () => {
             const token = localStorage.getItem('authToken');
             const method = editingId ? 'PUT' : 'POST';
             const url = editingId ? `/api/blog?id=${editingId}` : '/api/blog';
-            const body = { title, content, ...(coverImage && { coverImage }) };
+            const body = {
+                title,
+                content,
+                alt: alt || title,
+                ...(coverImage && { coverImage })
+            };
 
             const response = await fetch(url, {
                 method,
@@ -120,8 +176,16 @@ const AdminBlog = () => {
                 body: JSON.stringify(body),
             });
 
-            if (!response.ok) throw new Error('Falha ao salvar o artigo.');
-            toast({ title: 'Sucesso!', variant: "success", description: `Artigo ${editingId ? 'atualizado' : 'publicado'}.` });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Falha ao salvar o artigo.');
+            }
+
+            toast({
+                title: 'Sucesso!',
+                variant: "success",
+                description: `Artigo ${editingId ? 'atualizado' : 'publicado'} com sucesso.`
+            });
 
             resetForm();
             setIsDialogOpen(false);
@@ -146,11 +210,21 @@ const AdminBlog = () => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ postIds: ids }),
             });
-            if (!response.ok) throw new Error('Falha ao excluir o(s) artigo(s).');
-            toast({ title: 'Sucesso', variant: "success", description: `${ids.length} artigo(s) excluído(s).` });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Falha ao excluir o(s) artigo(s).');
+            }
+
+            toast({
+                title: 'Sucesso',
+                variant: "success",
+                description: `${ids.length} artigo(s) excluído(s) com sucesso.`
+            });
             fetchPosts();
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o(s) artigo(s).' });
+            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
+            toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
         } finally {
             setIsDeleteDialogOpen(false);
             setSelectedPosts(new Set());
@@ -186,31 +260,6 @@ const AdminBlog = () => {
                             <Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedPosts.size})
                         </Button>
                     )}
-                    <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                        <DialogTrigger asChild>
-                            <Button
-                                className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
-                                onClick={() => handleOpenDialog()}
-                            >
-                                <Plus className="h-12 w-12" />
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
-                            <DialogHeader>
-                                <DialogTitle className="text-white font-bold text-xl">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
-                                <DialogDescription className="text-white/80">{editingId ? "Altere os detalhes abaixo." : "Preencha os detalhes e faça o upload da imagem de capa."}</DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div><Label htmlFor="title" className="text-white font-bold">Título</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-                                <div><Label htmlFor="coverImage" className="text-white font-bold">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label><Input id="coverImage" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" /></div>
-                                <div><Label htmlFor="content" className="text-white font-bold">Conteúdo</Label><Textarea id="content" rows={10} value={content} onChange={(e) => setContent(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" /></div>
-                                <DialogFooter className="!mt-6">
-                                    <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                                    <Button type="submit" disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{isSubmitting ? 'A guardar...' : 'Guardar'}</Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </div>
 
@@ -218,9 +267,18 @@ const AdminBlog = () => {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
                 <div className="relative w-full sm:w-1/2 md:w-1/3">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
-                    <Input placeholder="Buscar por título..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
+                    <Input
+                        placeholder="Buscar por título..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-black/70 border-white/20 rounded-xl h-12 pl-12"
+                    />
                 </div>
-                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full sm:w-auto">
+                <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
+                    className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full sm:w-auto"
+                >
                     <option value="recent">Mais recentes</option>
                     <option value="oldest">Mais antigos</option>
                 </select>
@@ -230,30 +288,159 @@ const AdminBlog = () => {
             <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                 <div className="space-y-4">
                     {isLoading ? (
-                        <><Skeleton className="h-24 w-full bg-black/60 rounded-3xl" /><Skeleton className="h-24 w-full bg-black/60 rounded-3xl" /></>
+                        <>
+                            <Skeleton className="h-24 w-full bg-black/60 rounded-3xl" />
+                            <Skeleton className="h-24 w-full bg-black/60 rounded-3xl" />
+                        </>
                     ) : filteredPosts.length > 0 ? (
                         filteredPosts.map((post) => (
-                            <Card key={post._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 transition-all duration-300 hover:border-orange-500/50 relative">
+                            <Card
+                                key={post._id}
+                                className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 transition-all duration-300 hover:border-orange-500/50 relative"
+                            >
                                 <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <div className="flex items-center gap-4 flex-1">
-                                        <input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded shrink-0" checked={selectedPosts.has(post._id)} onChange={(e) => handleSelectionChange(post._id, e.target.checked)} />
-                                        <img src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200,c_fill,ar_16:9,g_auto")} alt={post.title} className="w-32 h-20 rounded-2xl object-cover border border-white/10 shrink-0" />
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded shrink-0"
+                                            checked={selectedPosts.has(post._id)}
+                                            onChange={(e) => handleSelectionChange(post._id, e.target.checked)}
+                                        />
+                                        <img
+                                            src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200,c_fill,ar_16:9,g_auto")}
+                                            alt={post.alt || post.title}
+                                            className="w-32 h-20 rounded-2xl object-cover border border-white/10 shrink-0"
+                                        />
                                         <div className="flex-1">
-                                            <h3 className="text-white font-bold text-lg leading-tight">{post.title}</h3>
-                                            <p className="text-white/80 text-sm">Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+                                            <h3 className="text-white font-bold text-lg leading-tight line-clamp-2">
+                                                {post.title}
+                                            </h3>
+                                            <p className="text-white/80 text-sm">
+                                                Publicado em: {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2 self-end sm:self-center">
-                                        <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="bg-white/10 rounded-xl hover:bg-white/20"
+                                            onClick={() => handleOpenDialog(post)}
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>
                         ))
                     ) : (
-                        <p className="text-center text-white/60 pt-12">Nenhum artigo encontrado.</p>
+                        <p className="text-center text-white/60 pt-12">
+                            {searchTerm ? 'Nenhum artigo encontrado com esse termo.' : 'Nenhum artigo encontrado. Crie o primeiro!'}
+                        </p>
                     )}
                 </div>
             </div>
+
+            {/* BOTÃO FLUTUANTE DE ADICIONAR */}
+            <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
+                <DialogTrigger asChild>
+                    <Button
+                        className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
+                        onClick={() => handleOpenDialog()}
+                    >
+                        <Plus className="h-12 w-12" />
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="text-white font-bold text-xl">
+                            {editingId ? "Editar Artigo" : "Criar Novo Artigo"}
+                        </DialogTitle>
+                        <DialogDescription className="text-white/80">
+                            {editingId ? "Altere os detalhes abaixo." : "Preencha os detalhes e faça o upload da imagem de capa."}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <Label htmlFor="title" className="text-white font-bold">Título</Label>
+                            <Input
+                                id="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                required
+                                className="bg-black/70 border-white/20 rounded-xl h-12"
+                            />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="coverImage" className="text-white font-bold">
+                                Imagem de Capa {editingId ? "(Opcional)" : ""}
+                            </Label>
+                            <Input
+                                id="coverImage"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                required={!editingId}
+                                className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0"
+                            />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="alt" className="text-white font-bold">
+                                Texto Alternativo (ALT)
+                                <span className="text-white/60 text-xs ml-2 font-normal">
+                                    (Opcional - melhora acessibilidade e SEO)
+                                </span>
+                            </Label>
+                            <Input
+                                id="alt"
+                                value={alt}
+                                onChange={(e) => setAlt(e.target.value)}
+                                placeholder={title || "Descreva a imagem de capa"}
+                                className="bg-black/70 border-white/20 rounded-xl h-12"
+                            />
+                            <p className="text-xs text-white/50 mt-1">
+                                Se deixado em branco, usaremos o título como texto alternativo
+                            </p>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="content" className="text-white font-bold">Conteúdo</Label>
+                            <Textarea
+                                id="content"
+                                rows={10}
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                required
+                                className="bg-black/70 border-white/20 rounded-xl"
+                            />
+                        </div>
+
+                        <DialogFooter className="!mt-6">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary" className="rounded-xl h-12">
+                                    Cancelar
+                                </Button>
+                            </DialogClose>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        A guardar...
+                                    </>
+                                ) : (
+                                    'Guardar'
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* DIÁLOGO DE EXCLUSÃO */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -261,10 +448,32 @@ const AdminBlog = () => {
                     <DialogHeader>
                         <DialogTitle className="text-xl font-semibold">Confirmar exclusão</DialogTitle>
                     </DialogHeader>
-                    <p className="text-white/80">Tem a certeza que deseja excluir os {selectedPosts.size} artigos selecionados? Esta ação não pode ser desfeita.</p>
+                    <p className="text-white/80">
+                        Tem a certeza que deseja excluir {selectedPosts.size} artigo(s) selecionado(s)? Esta ação não pode ser desfeita.
+                    </p>
                     <DialogFooter className="flex justify-end gap-2 !mt-6">
-                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={isDeleting}><Trash2 className="h-4 w-4 mr-2" />{isDeleting ? 'A excluir...' : 'Excluir'}</Button>
+                        <DialogClose asChild>
+                            <Button variant="secondary" className="rounded-xl h-12">
+                                Cancelar
+                            </Button>
+                        </DialogClose>
+                        <Button
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    A excluir...
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir
+                                </>
+                            )}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

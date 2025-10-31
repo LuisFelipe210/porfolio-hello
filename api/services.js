@@ -1,7 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 
-// Função para conectar ao banco
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
         return global.mongoClient.db('helloborges_portfolio');
@@ -37,7 +36,6 @@ export default async function handler(req, res) {
             return res.status(200).json(servicesWithDefaults);
         }
 
-        // --- VERIFICAÇÃO DE TOKEN PARA ROTAS PROTEGIDAS ---
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ error: 'Acesso não autorizado: Token não fornecido.' });
@@ -51,25 +49,20 @@ export default async function handler(req, res) {
             });
         }
 
-        // --- ROTA PROTEGIDA: ATUALIZAR UM SERVIÇO (PUT) ---
         if (req.method === 'PUT') {
             const { id } = req.query;
             const updatedData = req.body;
 
-            // Validação do ID
             if (!id || !ObjectId.isValid(id)) {
                 return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
             }
 
-            // Validação dos dados recebidos
             if (!updatedData || Object.keys(updatedData).length === 0) {
                 return res.status(400).json({ error: 'Nenhum dado para atualizar foi fornecido.' });
             }
 
-            // Remove o _id para evitar modificação
             delete updatedData._id;
 
-            // Validação de campos obrigatórios
             if (updatedData.title !== undefined && !updatedData.title.trim()) {
                 return res.status(400).json({ error: 'O título não pode estar vazio.' });
             }
@@ -78,26 +71,21 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'A descrição não pode estar vazia.' });
             }
 
-            // Validação do array de features
             if (updatedData.features !== undefined) {
                 if (!Array.isArray(updatedData.features)) {
                     return res.status(400).json({ error: 'Features deve ser um array.' });
                 }
-                // Remove features vazias
                 updatedData.features = updatedData.features.filter(f => f && f.trim());
             }
 
-            // Se alt não for fornecido mas título foi atualizado, usar o novo título
             if (updatedData.title && !updatedData.alt) {
                 updatedData.alt = updatedData.title;
             }
 
-            // Validação de URL de imagem (opcional, mas útil)
             if (updatedData.imageUrl && typeof updatedData.imageUrl !== 'string') {
                 return res.status(400).json({ error: 'URL da imagem inválida.' });
             }
 
-            // Atualizar e retornar o documento atualizado
             const result = await collection.findOneAndUpdate(
                 { _id: new ObjectId(id) },
                 { $set: updatedData },

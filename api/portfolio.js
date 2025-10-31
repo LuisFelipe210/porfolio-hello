@@ -1,7 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 
-// Função para conectar ao banco
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
         return global.mongoClient.db('helloborges_portfolio');
@@ -38,17 +37,14 @@ export default async function handler(req, res) {
         if (req.method === 'POST') {
             const newItem = req.body;
 
-            // Validação básica
             if (!newItem || Object.keys(newItem).length === 0) {
                 return res.status(400).json({ error: 'Dados do item não fornecidos.' });
             }
 
-            // Validação de campos obrigatórios
             if (!newItem.title || !newItem.description || !newItem.image) {
                 return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
             }
 
-            // Se alt não for fornecido, usar o título como fallback
             if (!newItem.alt) {
                 newItem.alt = newItem.title;
             }
@@ -67,7 +63,6 @@ export default async function handler(req, res) {
             const updatedData = req.body;
             delete updatedData._id;
 
-            // Se alt não for fornecido mas título foi atualizado, usar o novo título
             if (updatedData.title && !updatedData.alt) {
                 updatedData.alt = updatedData.title;
             }
@@ -89,7 +84,6 @@ export default async function handler(req, res) {
             const { id } = req.query;
             const { itemIds } = req.body;
 
-            // Lógica para excluir múltiplos itens
             if (itemIds && Array.isArray(itemIds)) {
                 if (itemIds.length === 0) {
                     return res.status(400).json({ error: 'Nenhum ID de item foi fornecido.' });
@@ -99,7 +93,6 @@ export default async function handler(req, res) {
                 return res.status(200).json({ message: `${result.deletedCount} itens excluídos com sucesso.` });
             }
 
-            // Lógica original para excluir um único item
             if (id && ObjectId.isValid(id)) {
                 const result = await collection.deleteOne({ _id: new ObjectId(id) });
                 if (result.deletedCount === 0) {
