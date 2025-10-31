@@ -46,30 +46,94 @@ interface AboutContent {
     imagesColumn2: Image[];
 }
 
-const ImageColumn = ({ title, images, onFileChange, onRemove, onEditAlt, isUploading }: { title: string; images: Image[]; onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void; onRemove: (index: number) => void; onEditAlt: (index: number) => void; isUploading: boolean; }) => (
-    <div>
-        <h3 className="text-white font-semibold mb-4">{title}</h3>
-        <div className="grid grid-cols-3 gap-4 mb-4">
-            {images.map((img, index) => (
-                <div key={index} className="relative group aspect-square">
-                    <img src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_200,h_200,c_fill,g_auto")} alt={img.alt} className="w-full h-full object-cover rounded-2xl" />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-2">
-                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={() => onEditAlt(index)} type="button"><Edit2 className="h-4 w-4" /></Button>
-                        <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-600" onClick={() => onRemove(index)} type="button"><Trash2 className="h-4 w-4" /></Button>
+const ImageColumn = ({
+    title,
+    images,
+    onFileChange,
+    onRemove,
+    onEditAlt,
+    isUploading,
+}: {
+    title: string;
+    images: Image[];
+    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onRemove: (index: number) => void;
+    onEditAlt: (index: number) => void;
+    isUploading: boolean;
+}) => {
+    const isLimitReached = images.length >= 2;
+    return (
+        <div>
+            <h3 className="text-white font-semibold mb-4">{title}</h3>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+                {images.map((img, index) => (
+                    <div key={index} className="relative group aspect-square">
+                        <img
+                            src={optimizeCloudinaryUrl(
+                                img.src,
+                                "f_auto,q_auto,w_200,h_200,c_fill,g_auto"
+                            )}
+                            alt={img.alt}
+                            className="w-full h-full object-cover rounded-2xl"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-2">
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                className="h-8 w-8 rounded-full"
+                                onClick={() => onEditAlt(index)}
+                                type="button"
+                            >
+                                <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                                className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-600"
+                                onClick={() => onRemove(index)}
+                                type="button"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        {img.alt && (
+                            <div className="absolute bottom-1 left-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded truncate">
+                                {img.alt}
+                            </div>
+                        )}
                     </div>
-                    {img.alt && (<div className="absolute bottom-1 left-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded truncate">{img.alt}</div>)}
-                </div>
-            ))}
-            {isUploading && (<div className="relative flex items-center justify-center w-full aspect-square bg-black/80 border border-white/20 rounded-2xl"><Loader2 className="h-8 w-8 animate-spin text-orange-500" /></div>)}
-        </div>
-        <Label htmlFor={`upload-${title.replace(/\s+/g, '')}`} className="w-full text-white font-semibold cursor-pointer">
-            <div className="flex items-center justify-center w-full p-4 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors">
-                <Upload className="h-5 w-5 mr-2" /> Adicionar Imagem
+                ))}
+                {isUploading && (
+                    <div className="relative flex items-center justify-center w-full aspect-square bg-black/80 border border-white/20 rounded-2xl">
+                        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                    </div>
+                )}
             </div>
-            <Input id={`upload-${title.replace(/\s+/g, '')}`} type="file" accept="image/*" className="hidden" onChange={onFileChange} disabled={isUploading} />
-        </Label>
-    </div>
-);
+            {isLimitReached ? (
+                <div className="w-full p-4 border-2 border-dashed border-red-500/50 rounded-2xl text-center text-red-400">
+                    Limite de 2 imagens atingido. Exclua uma para adicionar outra.
+                </div>
+            ) : (
+                <Label
+                    htmlFor={`upload-${title.replace(/\s+/g, "")}`}
+                    className="w-full text-white font-semibold cursor-pointer"
+                >
+                    <div className="flex items-center justify-center w-full p-4 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors">
+                        <Upload className="h-5 w-5 mr-2" /> Adicionar Imagem
+                    </div>
+                    <Input
+                        id={`upload-${title.replace(/\s+/g, "")}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={onFileChange}
+                        disabled={isUploading || isLimitReached}
+                    />
+                </Label>
+            )}
+        </div>
+    );
+};
 
 const AdminAbout = () => {
     const [content, setContent] = useState<AboutContent | null>(null);
