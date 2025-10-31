@@ -90,21 +90,7 @@ const AdminLayout = () => {
             <Link to="/admin/services" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><LayoutDashboard className="mr-3 h-5 w-5" /> Serviços</Button></Link>
             <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos</Button></Link>
             <Link to="/admin/blog" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Rss className="mr-3 h-5 w-5" /> Blog</Button></Link>
-            <Link to="/admin/availability" onClick={() => setSheetOpen(false)}>
-                <Button
-                    variant="secondary"
-                    size="default"
-                    aria-label="Disponibilidade"
-                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
-                >
-                    <CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade
-                    {eventsCount > 0 && (
-                        <span className="ml-1 text-white font-semibold text-sm">
-                            {eventsCount}
-                        </span>
-                    )}
-                </Button>
-            </Link>
+            <Link to="/admin/availability" onClick={() => setSheetOpen(false)}><Button variant="secondary" size="default" aria-label="Disponibilidade" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade {eventsCount > 0 && (<span className="ml-1 text-orange-500 font-semibold text-sm"> {eventsCount}</span>)}</Button></Link>
             <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
             <Link to="/admin/settings" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Settings className="mr-3 h-5 w-5" /> Configurações</Button></Link>
         </nav>
