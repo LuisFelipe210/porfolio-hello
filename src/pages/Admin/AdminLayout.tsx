@@ -315,7 +315,7 @@ const AdminLayout = () => {
                     width: auto;
                     z-index: 0; /* Passa por baixo dos elementos do header e botões */
                     pointer-events: none; /* Não interfere nos cliques */
-                    animation: run 30s linear infinite; /* velocidade constante, infinito */
+                    animation: run 23s linear infinite; /* velocidade constante, infinito */
                 }
             `}</style>
         </div>

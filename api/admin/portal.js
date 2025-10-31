@@ -69,7 +69,16 @@ export default async function handler(req, res) {
             if (!name || !email || !password) return res.status(400).json({ error: 'Dados incompletos.' });
             const hashedPassword = await bcrypt.hash(password, 10);
             const encryptedPhrase = encrypt(phrase);
-            const result = await clientsCollection.insertOne({ name, email, phone, password: hashedPassword, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase, mustResetPassword: true });
+            const result = await clientsCollection.insertOne({
+                name,
+                email,
+                phone,
+                password: hashedPassword,
+                recoveryEmail: recoveryEmail || null,
+                phrase: encryptedPhrase,
+                mustResetPassword: true
+            });
+
             return res.status(201).json({ name, email, phone, _id: result.insertedId });
         }
 
@@ -80,8 +89,12 @@ export default async function handler(req, res) {
             const existingClient = await clientsCollection.findOne({ email: email, _id: { $ne: new ObjectId(clientId) } });
             if (existingClient) return res.status(409).json({ error: 'Este email de login já está a ser utilizado.' });
             const encryptedPhrase = encrypt(phrase);
-            const result = await clientsCollection.updateOne({ _id: new ObjectId(clientId) }, { $set: { name, email, phone, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase } });
+            const result = await clientsCollection.updateOne(
+                { _id: new ObjectId(clientId) },
+                { $set: { name, email, phone, recoveryEmail: recoveryEmail || null, phrase: encryptedPhrase } }
+            );
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
+
             return res.status(200).json({ message: 'Cliente atualizado.' });
         }
 
@@ -93,6 +106,7 @@ export default async function handler(req, res) {
             const objectIds = clientIds.map(id => new ObjectId(id));
             await galleriesCollection.deleteMany({ clientId: { $in: objectIds } });
             const result = await clientsCollection.deleteMany({ _id: { $in: objectIds } });
+
             return res.status(200).json({ message: `${result.deletedCount} clientes excluídos.` });
         }
 
@@ -119,14 +133,19 @@ export default async function handler(req, res) {
             };
 
             const result = await galleriesCollection.insertOne(newGallery);
+
             return res.status(201).json({ ...newGallery, _id: result.insertedId });
         }
 
         if (action === 'updateGalleryImages' && req.method === 'PUT') {
             if (!galleryId || !ObjectId.isValid(galleryId)) return res.status(400).json({ error: 'ID de galeria inválido.' });
             const { images } = req.body;
-            const result = await galleriesCollection.updateOne({ _id: new ObjectId(galleryId) }, { $set: { images } });
+            const result = await galleriesCollection.updateOne(
+                { _id: new ObjectId(galleryId) },
+                { $set: { images } }
+            );
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Galeria não encontrada.' });
+
             return res.status(200).json({ message: 'Galeria atualizada.' });
         }
 
@@ -134,7 +153,19 @@ export default async function handler(req, res) {
             if (!galleryId || !ObjectId.isValid(galleryId)) return res.status(400).json({ error: 'ID de galeria inválido.' });
             const result = await galleriesCollection.deleteOne({ _id: new ObjectId(galleryId) });
             if (result.deletedCount === 0) return res.status(404).json({ error: 'Galeria não encontrada.' });
+
             return res.status(200).json({ message: 'Galeria excluída.' });
+        }
+
+        if (action === 'deleteGalleries' && req.method === 'DELETE') {
+            const { galleryIds } = req.body;
+            if (!Array.isArray(galleryIds) || galleryIds.some(id => !ObjectId.isValid(id))) {
+                return res.status(400).json({ error: 'IDs de galerias inválidos.' });
+            }
+            const objectIds = galleryIds.map(id => new ObjectId(id));
+            const result = await galleriesCollection.deleteMany({ _id: { $in: objectIds } });
+
+            return res.status(200).json({ message: `${result.deletedCount} galeria(s) excluída(s).` });
         }
 
         return res.status(400).json({ error: 'Ação inválida ou não especificada.' });

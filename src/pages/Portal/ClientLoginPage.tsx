@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,28 +9,51 @@ import Logo from "@/assets/logo.svg";
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import Header from '@/components/Header';
 
+// ***** INÍCIO DAS MODIFICAÇÕES *****
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Loader2 } from 'lucide-react';
+
+// 1. Esquema de validação com Zod
+const formSchema = z.object({
+    email: z.string().email({ message: "Por favor, insira um email válido." }),
+    password: z.string().min(1, { message: "A palavra-passe é obrigatória." }),
+});
+// ***** FIM DAS MODIFICAÇÕES *****
+
 const ClientLoginPage = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [loginError, setLoginError] = useState('');
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    // O useEffect que forçava o tema escuro foi removido para permitir a troca de tema.
+    // ***** INÍCIO DAS MODIFICAÇÕES *****
+    // 2. O formulário agora é controlado pelo React Hook Form
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        },
+    });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // 3. A função de submit é adaptada para o React Hook Form
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         setIsLoading(true);
+        form.clearErrors(); // Limpa erros antigos
 
         try {
             const response = await fetch('/api/portal?action=login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify(data), // Usa os dados validados do formulário
             });
 
-            if (!response.ok) throw new Error('Credenciais inválidas');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Credenciais inválidas');
+            }
 
             const { token, mustResetPassword } = await response.json();
             localStorage.setItem('clientAuthToken', token);
@@ -38,28 +61,33 @@ const ClientLoginPage = () => {
             toast({
                 title: 'Login bem-sucedido!',
                 description: 'A redirecionar para o seu portal...',
-                variant: "success"
+                variant: "success",
+                duration: 1500,
             });
 
-            if (mustResetPassword) {
-                navigate('/portal/reset-password');
-            } else {
-                navigate('/portal/gallery');
-            }
+            setTimeout(() => {
+                if (mustResetPassword) {
+                    navigate('/portal/reset-password');
+                } else {
+                    navigate('/portal/gallery');
+                }
+            }, 1500);
+
         } catch (error) {
-            setLoginError('Email ou senha incorretos.');
+            // Mostra o erro do servidor no campo de senha para feedback direto
+            form.setError("password", {
+                type: "manual",
+                message: error instanceof Error ? error.message : "Email ou senha incorretos."
+            });
         } finally {
             setIsLoading(false);
         }
     };
+    // ***** FIM DAS MODIFICAÇÕES *****
 
     return (
-        // --- CORREÇÃO: A div principal agora usa bg-background para o tema ---
         <div className="relative flex items-center justify-center min-h-screen bg-background text-foreground p-4">
-
             <Header isLoginPage={true} />
-
-            {/* --- CORREÇÃO: A IMAGEM DE FUNDO FOI ADICIONADA NOVAMENTE --- */}
             <div className="absolute inset-0 z-0">
                 <img
                     src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")}
@@ -77,49 +105,60 @@ const ClientLoginPage = () => {
                         Aceda à sua galeria privada para selecionar as suas fotos.
                     </CardDescription>
                 </CardHeader>
-                <form onSubmit={handleSubmit}>
-                    <CardContent className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email" className="text-black dark:text-white">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                placeholder="O seu email de acesso"
-                                className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
+
+                {/* ***** INÍCIO DAS MODIFICAÇÕES NO JSX ***** */}
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                        <CardContent className="grid gap-4">
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem className="grid gap-2">
+                                        <Label htmlFor="email" className="text-black dark:text-white">Email</Label>
+                                        <FormControl>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                required
+                                                placeholder="O seu email de acesso"
+                                                className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="password" className="text-black dark:text-white">Palavra-passe</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                placeholder="••••••••"
-                                className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem className="grid gap-2">
+                                        <Label htmlFor="password" className="text-black dark:text-white">Palavra-passe</Label>
+                                        <FormControl>
+                                            <Input
+                                                id="password"
+                                                type="password"
+                                                required
+                                                placeholder="••••••••"
+                                                className="bg-input border-border rounded-xl h-12 text-black dark:text-white placeholder-gray-700 dark:placeholder-gray-400"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage className="text-red-500" />
+                                    </FormItem>
+                                )}
                             />
-                            {loginError && (
-                                <div className="text-sm text-red-600 mt-1">
-                                    {loginError}
-                                </div>
-                            )}
-                            {/*<div className="text-right -mt-1">*/}
-                            {/*    <Link to="/portal/forgot-password" className="text-sm text-gray-900 dark:text-muted-foreground hover:text-foreground hover:underline transition-colors px-1">*/}
-                            {/*        Esqueceu a senha?*/}
-                            {/*    </Link>*/}
-                            {/*</div>*/}
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={isLoading}>
-                            {isLoading ? 'A entrar...' : 'Entrar'}
-                        </Button>
-                    </CardFooter>
-                </form>
+                        </CardContent>
+                        <CardFooter>
+                            <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="animate-spin" /> : 'Entrar'}
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Form>
+                {/* ***** FIM DAS MODIFICAÇÕES NO JSX ***** */}
             </Card>
         </div>
     );

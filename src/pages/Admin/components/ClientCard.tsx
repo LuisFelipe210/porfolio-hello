@@ -1,13 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GalleryHorizontal, Edit, Copy, Phone } from 'lucide-react';
+import { Edit, FolderKanban, Copy } from 'lucide-react'; // Importar novo ícone
+import { Link } from 'react-router-dom';
 
 interface Client {
     _id: string;
     name: string;
     email: string;
     phone?: string;
+    createdAt: string;
 }
 
 interface ClientCardProps {
@@ -18,45 +19,38 @@ interface ClientCardProps {
     onCopy: (text: string, label: string) => void;
 }
 
-const ClientCard = React.memo(({ client, isSelected, onSelectionChange, onEdit, onCopy }: ClientCardProps) => {
+const ClientCard = ({ client, isSelected, onSelectionChange, onEdit, onCopy }: ClientCardProps) => {
     return (
-        <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 flex flex-col p-6 gap-4 relative transition-all duration-300 hover:border-orange-500/50">
-            <div className="absolute top-4 left-4">
-                <input
-                    type="checkbox"
-                    id={`client-check-${client._id}`}
-                    className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded"
-                    checked={isSelected}
-                    onChange={(e) => onSelectionChange(client._id, e.target.checked)}
-                />
+        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-4 flex flex-col gap-4 border border-white/10 relative">
+            <input
+                type="checkbox"
+                className="absolute top-4 left-4 w-5 h-5 accent-orange-500 bg-transparent rounded"
+                checked={isSelected}
+                onChange={(e) => onSelectionChange(client._id, e.target.checked)}
+            />
+            <div className="flex-1 pl-8">
+                <h3 className="font-semibold text-white text-lg">{client.name}</h3>
+                <p className="text-sm text-white/70 flex items-center gap-2">
+                    {client.email}
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-white/70 hover:text-white" onClick={() => onCopy(client.email, 'Email')}>
+                        <Copy className="h-3 w-3" />
+                    </Button>
+                </p>
+                {client.phone && <p className="text-sm text-white/70">{client.phone}</p>}
             </div>
-            <div className="flex-1 flex flex-col justify-center text-center items-center gap-1 pl-6">
-                <h2 className="text-xl font-semibold text-white truncate w-full" title={client.name}>{client.name}</h2>
-                <div className="flex items-center gap-2 text-white/80">
-                    <span className="truncate" title={client.email}>{client.email}</span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => onCopy(client.email, "Email")}><Copy className="h-4 w-4" /></Button>
-                </div>
-                {client.phone && (
-                    <div className="flex items-center gap-2 text-white/80">
-                        <Phone className="h-4 w-4" />
-                        <span className="truncate" title={client.phone}>{client.phone}</span>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => onCopy(client.phone || '', "Telefone")}><Copy className="h-4 w-4" /></Button>
-                    </div>
-                )}
-            </div>
-            <div className="flex gap-2 w-full">
-                <Button asChild className="w-full bg-white/10 rounded-xl hover:bg-white/20 transition-all text-white">
+            {/* ***** BOTÃO RESTAURADO E MELHORADO AQUI ***** */}
+            <div className="flex gap-2 justify-end">
+                <Button asChild variant="default" className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white flex-1 font-semibold">
                     <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
-                        <GalleryHorizontal className="mr-2 h-4 w-4" />
-                        Galerias
+                        <FolderKanban className="h-4 w-4 mr-2" /> Ver Galerias
                     </Link>
                 </Button>
-                <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20 aspect-square" onClick={() => onEdit(client)}>
+                <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(client)}>
                     <Edit className="h-4 w-4" />
                 </Button>
             </div>
-        </div>
+        </Card>
     );
-});
+};
 
 export default ClientCard;

@@ -4,6 +4,7 @@ import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import React from "react";
 import Masonry from 'react-masonry-css';
+import { Loader2 } from "lucide-react";
 
 interface PortfolioItem {
     id: string;
@@ -14,7 +15,7 @@ interface PortfolioItem {
     alt?: string;
 }
 
-// Componente MobileSwipeCard
+// Componente MobileSwipeCard (sem alterações)
 const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenModal: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const startX = useRef<number>(0);
@@ -122,7 +123,7 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
     );
 };
 
-// Componente para o layout Masonry
+// Componente para o layout Masonry (sem alterações)
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
     return (
         <div
@@ -162,6 +163,7 @@ const PortfolioSection = () => {
     const [showAllDesktop, setShowAllDesktop] = useState(false);
     const mobileActionRef = useRef<HTMLDivElement>(null);
     const portfolioGridRef = useRef<HTMLDivElement>(null);
+    const [isLightboxImageLoading, setIsLightboxImageLoading] = useState(true);
 
     useEffect(() => {
         const fetchPortfolioItems = async () => {
@@ -231,6 +233,27 @@ const PortfolioSection = () => {
         };
     }, [selectedIndex]);
 
+    useEffect(() => {
+        if (selectedIndex === null) return;
+        const nextIndex = selectedIndex + 1;
+        if (nextIndex < filteredItems.length) {
+            const nextImage = new Image();
+            nextImage.src = optimizeCloudinaryUrl(filteredItems[nextIndex].image, "f_auto,q_auto,w_1200");
+        }
+        const prevIndex = selectedIndex - 1;
+        if (prevIndex >= 0) {
+            const prevImage = new Image();
+            prevImage.src = optimizeCloudinaryUrl(filteredItems[prevIndex].image, "f_auto,q_auto,w_1200");
+        }
+    }, [selectedIndex, filteredItems]);
+
+    useEffect(() => {
+        if (selectedIndex !== null) {
+            setIsLightboxImageLoading(true);
+        }
+    }, [selectedIndex]);
+
+
     const categoriesScrollRef = useRef<HTMLDivElement>(null);
 
     const scrollToCategory = (categoryId: string, index: number) => {
@@ -242,9 +265,7 @@ const PortfolioSection = () => {
         const containerWidth = scrollEl.offsetWidth;
         const buttonLeft = button.offsetLeft;
         const buttonWidth = button.offsetWidth;
-
         const targetScrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
-
         scrollEl.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
     };
 
@@ -271,7 +292,6 @@ const PortfolioSection = () => {
 
     const handleTouchEnd = (e: React.TouchEvent) => {
         if (touchStartX.current === null || touchStartY.current === null) return;
-
         const diffX = e.changedTouches[0].clientX - touchStartX.current;
         const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
         const absDiffX = Math.abs(diffX);
@@ -324,10 +344,9 @@ const PortfolioSection = () => {
                         <button
                             key={category.id}
                             onClick={() => { setActiveCategory(category.id); setShowAllDesktop(false); }}
-                            className={`px-6 py-2 text-sm font-light tracking-wide transition-all uppercase ${
-                                activeCategory === category.id
-                                    ? "text-accent border-b-2 border-accent"
-                                    : "text-muted-foreground hover:text-foreground"
+                            className={`px-6 py-2 text-sm font-light tracking-wide transition-all uppercase ${activeCategory === category.id
+                                ? "text-accent border-b-2 border-accent"
+                                : "text-muted-foreground hover:text-foreground"
                             }`}
                         >
                             {category.name}
@@ -346,10 +365,9 @@ const PortfolioSection = () => {
                             key={category.id}
                             onClick={() => { scrollToCategory(category.id, index); setShowAllMobile(false); }}
                             className={`relative pb-1 text-base tracking-wide font-light transition-all duration-300 whitespace-nowrap snap-center uppercase
-              ${
-                                activeCategory === category.id
-                                    ? "text-accent after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.5px] after:bg-accent"
-                                    : "text-zinc-400 hover:text-zinc-100 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-accent after:transition-all after:duration-300 hover:after:w-full"
+              ${activeCategory === category.id
+                                ? "text-accent after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.5px] after:bg-accent"
+                                : "text-zinc-400 hover:text-zinc-100 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-accent after:transition-all after:duration-300 hover:after:w-full"
                             }`}
                         >
                             {category.name}
@@ -379,7 +397,6 @@ const PortfolioSection = () => {
                                 />
                             ))}
                         </div>
-
                         <div className="flex justify-center mb-12 md:hidden px-6" ref={mobileActionRef}>
                             {shouldShowShowAllButton && (
                                 <button onClick={() => setShowAllMobile(true)} className={linkClasses}>
@@ -392,7 +409,6 @@ const PortfolioSection = () => {
                                 </button>
                             )}
                         </div>
-
                         <div className="hidden md:block px-6 md:px-12" ref={portfolioGridRef}>
                             <Masonry
                                 breakpointCols={breakpointColumnsObj}
@@ -409,7 +425,6 @@ const PortfolioSection = () => {
                                 ))}
                             </Masonry>
                         </div>
-
                         <div className="flex justify-center mb-12 hidden md:flex px-6">
                             {shouldShowShowAllDesktopButton && (
                                 <button onClick={() => setShowAllDesktop(true)} className={linkClasses}>
@@ -427,7 +442,7 @@ const PortfolioSection = () => {
 
                 {selectedIndex !== null && (
                     <div
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 cursor-pointer"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 cursor-pointer"
                         onClick={() => setSelectedIndex(null)}
                         onTouchMove={(e) => {
                             if (isLightboxSwiping.current) {
@@ -435,51 +450,66 @@ const PortfolioSection = () => {
                             }
                         }}
                     >
-                        <div className="relative w-full max-w-4xl h-full md:h-auto bg-transparent">
+                        {/* ***** INÍCIO DAS MODIFICAÇÕES ***** */}
+                        <div className="relative w-full h-full flex items-center justify-center">
+
+                            {/* Botão Fechar */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); setSelectedIndex(null); }}
-                                className="absolute top-2 right-2 text-white text-3xl z-10 hover:text-accent transition-colors"
+                                className="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-3xl z-50 hover:text-accent transition-colors"
                                 aria-label="Fechar visualização"
                             >×</button>
-                            <div className="flex items-center justify-between h-full">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (selectedIndex !== null && selectedIndex > 0) {
-                                            setSelectedIndex(selectedIndex - 1);
-                                        }
-                                    }}
-                                    disabled={selectedIndex === 0}
-                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30 touch-manipulation cursor-pointer"
-                                >❮</button>
-                                <div
-                                    className="flex-1 flex items-center justify-center px-4 cursor-pointer"
-                                    onTouchStart={handleTouchStart}
-                                    onTouchMove={handleTouchMove}
-                                    onTouchEnd={handleTouchEnd}
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <img
-                                        src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_720")}
-                                        alt={filteredItems[selectedIndex].alt || filteredItems[selectedIndex].title}
-                                        className="max-w-full max-h-[80vh] object-contain rounded-lg transition-transform duration-300 pointer-events-none select-none"
-                                    />
-                                </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (selectedIndex !== null && selectedIndex < filteredItems.length - 1) {
-                                            setSelectedIndex(selectedIndex + 1);
-                                        }
-                                    }}
-                                    disabled={selectedIndex === filteredItems.length - 1}
-                                    className="text-white text-4xl px-4 hover:text-accent transition-colors disabled:opacity-30 touch-manipulation cursor-pointer"
-                                >❯</button>
+
+                            {/* Botão Anterior (Esquerda) */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
+                                }}
+                                disabled={selectedIndex === 0}
+                                className="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-50 text-white text-4xl p-2 bg-black/20 rounded-full hover:bg-black/40 transition-colors disabled:opacity-20 disabled:cursor-not-allowed touch-manipulation"
+                                aria-label="Imagem Anterior"
+                            >❮</button>
+
+                            {/* Contêiner da Imagem */}
+                            <div
+                                className="w-full h-full flex items-center justify-center p-2 sm:p-4"
+                                onTouchStart={handleTouchStart}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleTouchEnd}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {isLightboxImageLoading && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Loader2 className="w-10 h-10 text-white animate-spin" />
+                                    </div>
+                                )}
+                                <img
+                                    src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1200")}
+                                    alt={filteredItems[selectedIndex].alt || filteredItems[selectedIndex].title}
+                                    onLoad={() => setIsLightboxImageLoading(false)}
+                                    className={`max-w-full max-h-full object-contain rounded-lg transition-opacity duration-300 pointer-events-none select-none ${isLightboxImageLoading ? 'opacity-0' : 'opacity-100'
+                                    }`}
+                                />
                             </div>
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded text-white text-sm opacity-80 pointer-events-none">
+
+                            {/* Botão Próximo (Direita) */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (selectedIndex < filteredItems.length - 1) setSelectedIndex(selectedIndex + 1);
+                                }}
+                                disabled={selectedIndex === filteredItems.length - 1}
+                                className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-50 text-white text-4xl p-2 bg-black/20 rounded-full hover:bg-black/40 transition-colors disabled:opacity-20 disabled:cursor-not-allowed touch-manipulation"
+                                aria-label="Próxima Imagem"
+                            >❯</button>
+
+                            {/* Contador */}
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded-lg text-white text-sm opacity-80 pointer-events-none">
                                 <span>{selectedIndex + 1} / {filteredItems.length}</span>
                             </div>
                         </div>
+                        {/* ***** FIM DAS MODIFICAÇÕES ***** */}
                     </div>
                 )}
             </div>

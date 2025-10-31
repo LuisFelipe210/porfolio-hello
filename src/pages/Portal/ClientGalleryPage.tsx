@@ -25,12 +25,23 @@ interface ClientInfo {
 
 interface LayoutContext {
     setHeaderBackAction: (action: (() => void) | null) => void;
+    galleries: Gallery[];
+    clientName: string;
+    isLoading: boolean;
+    setGalleries: React.Dispatch<React.SetStateAction<Gallery[]>>;
+    refetchData: () => void;
 }
 
-// --- Componente ImageModal (Refinado) ---
+// Componente ImageModal (sem alterações)
 const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages, toggleSelection, isSelectionComplete }: { images: string[]; currentIndex: number; onClose: () => void; onNavigate: (direction: 'prev' | 'next') => void; selectedImages: Set<string>; toggleSelection: (imageUrl: string) => void; isSelectionComplete: boolean; }) => {
+    // ... (código existente sem alterações)
+    const [isImageLoading, setIsImageLoading] = useState(true);
     const currentImage = images[currentIndex];
     const isSelected = selectedImages.has(currentImage);
+
+    useEffect(() => {
+        setIsImageLoading(true);
+    }, [currentIndex]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,34 +53,47 @@ const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages,
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onNavigate, onClose]);
 
-    // Preload de imagens vizinhas
     useEffect(() => {
         if (currentIndex < images.length - 1) new Image().src = optimizeCloudinaryUrl(images[currentIndex + 1], "f_auto,q_auto,w_1920");
         if (currentIndex > 0) new Image().src = optimizeCloudinaryUrl(images[currentIndex - 1], "f_auto,q_auto,w_1920");
     }, [currentIndex, images]);
 
     return createPortal(
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-2 animate-fade-in" onClick={onClose}>
-            <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-white z-20 h-12 w-12 rounded-full hover:bg-white/10" onClick={onClose}><X className="h-7 w-7" /></Button>
-                {currentIndex > 0 && <Button variant="ghost" size="icon" className="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 rounded-full hover:bg-white/10" onClick={() => onNavigate('prev')}><ChevronLeft className="h-10 w-10" /></Button>}
-                <div className="relative flex flex-col items-center justify-center gap-4 animate-zoom-in">
-                    <img src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_720")} alt="Foto do ensaio em tamanho grande" className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl" onContextMenu={(e) => e.preventDefault()} />
-                    {!isSelectionComplete && (
-                        <button onClick={() => toggleSelection(currentImage)} className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-white font-semibold transition-all duration-200 ${isSelected ? 'bg-orange-500 hover:bg-orange-600 scale-105' : 'bg-black/50 hover:bg-black/70'}`}>
-                            {isSelected ? <CheckCircle className="h-5 w-5" /> : <Heart className="h-5 w-5" />}
-                            {isSelected ? 'Selecionada' : 'Selecionar'}
-                        </button>
-                    )}
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fade-in" onClick={onClose}>
+            <div className="relative w-full h-full flex items-center justify-center group" onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="absolute top-3 right-3 sm:top-5 sm:right-5 text-white z-50 h-12 w-12 rounded-full hover:bg-white/10" onClick={onClose} aria-label="Fechar"><X className="h-7 w-7" /></Button>
+
+                {currentIndex > 0 && <Button variant="ghost" size="icon" className="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 text-white z-50 h-14 w-14 rounded-full hover:bg-white/10" onClick={() => onNavigate('prev')} aria-label="Anterior"><ChevronLeft className="h-10 w-10" /></Button>}
+
+                <div className="w-full h-full flex items-center justify-center p-4">
+                    <div className="w-full h-full flex items-center justify-center relative">
+                        {isImageLoading && <Loader2 className="h-10 w-10 text-white animate-spin absolute" />}
+                        <img
+                            src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1920")}
+                            alt="Foto do ensaio em tamanho grande"
+                            className={`max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                            onLoad={() => setIsImageLoading(false)}
+                            onContextMenu={(e) => e.preventDefault()}
+                        />
+                        {!isSelectionComplete && (
+                            <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
+                                <button onClick={() => toggleSelection(currentImage)} className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-white font-semibold transition-all duration-300 opacity-80 group-hover:opacity-100 group-hover:scale-105 ${isSelected ? 'bg-orange-500 hover:bg-orange-600' : 'bg-black/50 hover:bg-black/70'}`}>
+                                    {isSelected ? <CheckCircle className="h-5 w-5" /> : <Heart className="h-5 w-5" />}
+                                    {isSelected ? 'Selecionada' : 'Selecionar'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                {currentIndex < images.length - 1 && <Button variant="ghost" size="icon" className="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 rounded-full hover:bg-white/10" onClick={() => onNavigate('next')}><ChevronRight className="h-10 w-10" /></Button>}
+
+                {currentIndex < images.length - 1 && <Button variant="ghost" size="icon" className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 text-white z-50 h-14 w-14 rounded-full hover:bg-white/10" onClick={() => onNavigate('next')} aria-label="Próxima"><ChevronRight className="h-10 w-10" /></Button>}
             </div>
         </div>,
         document.body
     );
 };
 
-// --- Componente GallerySelectionView (Refinado) ---
+// --- Componente GallerySelectionView (sem alterações) ---
 const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }: { gallery: Gallery; onSelectionSubmit: () => void; onSelectionChange: (galleryId: string, selections: string[]) => void; }) => {
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => new Set(gallery.selections || []));
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,26 +101,44 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+    const [lastInteractedImage, setLastInteractedImage] = useState<string | null>(null);
 
-    // Auto-save
     useEffect(() => {
-        if (isSelectionComplete) return;
+        if (isSelectionComplete || saveStatus !== 'saving') return;
         const selectionsArray = Array.from(selectedImages);
-        onSelectionChange(gallery._id, selectionsArray);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(async () => {
             try {
                 const token = localStorage.getItem('clientAuthToken');
                 await fetch('/api/portal?action=updateSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: selectionsArray }) });
-            } catch (error) { console.error("[AUTOSAVE] Erro:", error); }
+                setSaveStatus('saved');
+                setTimeout(() => {
+                    setSaveStatus('idle');
+                    setLastInteractedImage(null);
+                }, 1500);
+            } catch (error) {
+                console.error("[AUTOSAVE] Erro:", error);
+                setSaveStatus('idle');
+                setLastInteractedImage(null);
+            }
         }, 1500);
         return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
-    }, [selectedImages, gallery._id, isSelectionComplete, onSelectionChange]);
+    }, [selectedImages, gallery._id, isSelectionComplete, onSelectionChange, saveStatus]);
 
     const toggleSelection = (imageUrl: string, event?: React.MouseEvent) => {
         if (isSelectionComplete) return;
         event?.stopPropagation();
-        setSelectedImages(prev => { const newSet = new Set(prev); if (newSet.has(imageUrl)) newSet.delete(imageUrl); else newSet.add(imageUrl); return newSet; });
+        setLastInteractedImage(imageUrl);
+        setSaveStatus('saving');
+        const newSet = new Set(selectedImages);
+        if (newSet.has(imageUrl)) {
+            newSet.delete(imageUrl);
+        } else {
+            newSet.add(imageUrl);
+        }
+        setSelectedImages(newSet);
+        onSelectionChange(gallery._id, Array.from(newSet));
     };
 
     const handleSubmitSelection = async () => {
@@ -127,6 +169,13 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 pb-32">
                 {gallery.images.map((imageUrl, index) => {
                     const isSelected = selectedImages.has(imageUrl);
+                    const isLastInteracted = lastInteractedImage === imageUrl;
+                    let iconContent;
+                    if (isLastInteracted && saveStatus === 'saving') {
+                        iconContent = <Loader2 className="h-5 w-5 text-white animate-spin" />;
+                    } else if (isSelected) {
+                        iconContent = <Check className="h-5 w-5 text-white" />;
+                    }
                     return (
                         <div key={imageUrl + index} className="aspect-square bg-black/70 rounded-2xl cursor-pointer group relative overflow-hidden border border-transparent hover:border-white/50" onClick={() => setModalImageIndex(index)}>
                             <img
@@ -137,8 +186,9 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             {!isSelectionComplete && (
-                                <div onClick={(e) => toggleSelection(imageUrl, e)} className={`absolute top-2.5 right-2.5 h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${isSelected ? 'bg-orange-500 border-orange-500 scale-110' : 'bg-black/50 border-white/50 group-hover:border-white'}`}>
-                                    {isSelected && <Check className="h-5 w-5 text-white" />}
+                                <div onClick={(e) => toggleSelection(imageUrl, e)}
+                                     className={`absolute top-2.5 right-2.5 h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isLastInteracted && saveStatus === 'saved' && isSelected ? 'bg-green-500 border-green-500 scale-110' : isSelected ? 'bg-orange-500 border-orange-500 scale-110' : 'bg-black/50 border-white/50 group-hover:border-white'}`}>
+                                    {iconContent}
                                 </div>
                             )}
                         </div>
@@ -175,11 +225,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 
 // --- Componente Principal ClientGalleryPage ---
 const ClientGalleryPage = () => {
-    const [galleries, setGalleries] = useState<Gallery[]>([]);
-    const [clientName, setClientName] = useState<string>('');
-    const [isLoading, setIsLoading] = useState(true);
-    const { toast } = useToast();
-    const { setHeaderBackAction } = useOutletContext<LayoutContext>();
+    const { galleries, clientName, isLoading, setGalleries, refetchData, setHeaderBackAction } = useOutletContext<LayoutContext>();
     const navigate = useNavigate();
     const { galleryId: urlGalleryId } = useParams<{ galleryId: string }>();
     const activeGallery = galleries.find(g => g._id === urlGalleryId) || null;
@@ -192,30 +238,16 @@ const ClientGalleryPage = () => {
         return () => { setHeaderBackAction(null); };
     }, [activeGallery, setHeaderBackAction, handleBack]);
 
-    const fetchData = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const token = localStorage.getItem('clientAuthToken');
-            if (!token) { navigate('/portal/login'); return; }
-            const headers = { 'Authorization': `Bearer ${token}` };
-            const [galleriesResponse, clientInfoResponse] = await Promise.all([
-                fetch('/api/portal?action=getGalleries', { headers }),
-                fetch('/api/portal?action=getClientInfo', { headers })
-            ]);
-            if (galleriesResponse.ok) setGalleries(await galleriesResponse.json());
-            else throw new Error('Falha ao buscar galerias.');
-            if (clientInfoResponse.ok) setClientName((await clientInfoResponse.json()).name || '');
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: error instanceof Error ? error.message : 'Não foi possível carregar os seus dados.' });
-        } finally {
-            setIsLoading(false);
-        }
-    }, [toast, navigate]);
+    const handleSelectionSubmit = () => {
+        handleBack();
+        refetchData();
+    };
 
-    useEffect(() => { fetchData(); }, [fetchData]);
-
-    const handleSelectionSubmit = () => { handleBack(); fetchData(); };
-    const handleSelectionChange = useCallback((galleryId: string, newSelections: string[]) => { setGalleries(prev => prev.map(g => g._id === galleryId ? { ...g, selections: newSelections } : g)); }, []);
+    const handleSelectionChange = useCallback((galleryId: string, newSelections: string[]) => {
+        setGalleries(prev =>
+            prev.map(g => (g._id === galleryId ? { ...g, selections: newSelections } : g))
+        );
+    }, [setGalleries]);
 
     if (isLoading) {
         return (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">{[...Array(3)].map((_, i) => <Skeleton key={i} className="aspect-[4/3] bg-black/60 rounded-3xl" />)}</div>);
@@ -227,8 +259,8 @@ const ClientGalleryPage = () => {
 
     return (
         <div className="animate-fade-in">
+            {/* ***** TÍTULO REMOVIDO DAQUI ***** */}
             <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight">{clientName ? `Galerias de ${clientName}` : 'As Suas Galerias'}</h1>
                 <p className="text-lg text-white/70 max-w-2xl mx-auto">Clique numa galeria para ver as fotos e fazer a sua seleção.</p>
             </div>
             {galleries.length > 0 ? (

@@ -4,15 +4,33 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, PlusCircle, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Copy, Search, Loader2, Edit, FolderKanban } from 'lucide-react'; // Importar novo ícone
 import { Skeleton } from '@/components/ui/skeleton';
 import ClientCard from './components/ClientCard';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Link } from 'react-router-dom';
+
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+
+const clientFormSchema = z.object({
+    name: z.string().min(3, { message: "O nome é obrigatório." }),
+    email: z.string().email({ message: "Insira um email válido." }),
+    phone: z.string().optional(),
+    password: z.string(),
+    phrase: z.string().optional(),
+});
+
 
 interface Client {
     _id: string;
     name: string;
     email: string;
-    phone?: string; // Adicionado
+    phone?: string;
     password?: string;
     phrase?: string;
     createdAt: string;
@@ -27,16 +45,42 @@ const AdminClients = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
     const { toast } = useToast();
-
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState(''); // Adicionado
-    const [password, setPassword] = useState('');
-    const [phrase, setPhrase] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isMobile = useIsMobile();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<'a-z' | 'z-a'>('a-z');
+
+    const form = useForm<z.infer<typeof clientFormSchema>>({
+        resolver: zodResolver(clientFormSchema),
+        defaultValues: {
+            name: "",
+            email: "",
+            phone: "",
+            password: "",
+            phrase: "",
+        },
+    });
+
+    const resetForm = () => {
+        form.reset();
+        setCurrentClient(null);
+    };
+
+    const handleOpenDialog = useCallback((client: Client | null) => {
+        resetForm();
+        if (client) {
+            setCurrentClient(client);
+            form.reset({
+                name: client.name,
+                email: client.email,
+                phone: client.phone || '',
+                password: '',
+                phrase: client.phrase || ''
+            });
+        }
+        setIsDialogOpen(true);
+    }, [form]);
+
 
     const fetchClients = async () => {
         setIsLoading(true);
@@ -55,29 +99,15 @@ const AdminClients = () => {
 
     useEffect(() => {
         fetchClients();
-    }, [toast]);
-
-    const resetForm = () => {
-        setName(''); setEmail(''); setPhone(''); setPassword(''); setPhrase(''); setCurrentClient(null);
-    };
-
-    const handleOpenDialog = useCallback((client: Client | null) => {
-        if (client) {
-            setCurrentClient(client);
-            setName(client.name);
-            setEmail(client.email);
-            setPhone(client.phone || '');
-            setPhrase(client.phrase || '');
-        } else {
-            resetForm();
-        }
-        setIsDialogOpen(true);
     }, []);
+
+
+
 
     const generateRandomEmail = () => {
         const randomString = Math.random().toString(36).substring(2, 10);
         const newEmail = `${randomString}@hello.com`;
-        setEmail(newEmail);
+        form.setValue('email', newEmail);
         toast({ title: 'Email gerado', variant: "success" ,description: `Email aleatório gerado: ${newEmail}` });
     };
 
@@ -87,11 +117,11 @@ const AdminClients = () => {
         for (let i = 0; i < 12; i++) {
             result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        setPassword(result);
+        form.setValue('password', result);
         toast({ title: 'Senha gerada', variant: "success" ,description: 'Senha aleatória gerada com sucesso.' });
     };
 
-    const copyToClipboard = useCallback((text: string, label: string) => {
+    const copyToClipboard = useCallback((text: string | undefined, label: string) => {
         if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
             toast({ title: 'Copiado!', variant: "success" ,description: `${label} copiado para a área de transferência.` });
@@ -100,35 +130,35 @@ const AdminClients = () => {
         });
     }, [toast]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (clients.some(c => c.email.toLowerCase() === email.toLowerCase() && c._id !== currentClient?._id)) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Já existe um cliente com este email de login.' });
+    const onSubmit = async (data: z.infer<typeof clientFormSchema>) => {
+        if (clients.some(c => c.email.toLowerCase() === data.email.toLowerCase() && c._id !== currentClient?._id)) {
+            form.setError("email", { message: "Já existe um cliente com este email." });
             return;
         }
-        setIsSubmitting(true);
+
+        const isEditing = !!currentClient;
+        if (!isEditing && !data.password) {
+            form.setError("password", { message: "A senha é obrigatória para novos clientes." });
+            return;
+        }
+
         try {
             const token = localStorage.getItem('authToken');
-            const isEditing = !!currentClient;
             const url = isEditing ? `/api/admin/portal?action=updateClient&clientId=${currentClient._id}` : '/api/admin/portal?action=createClient';
             const method = isEditing ? 'PUT' : 'POST';
-            const body: any = { name, email, phone, phrase: phrase || null }; // Adicionado phone
-            if (!isEditing && password) body.password = password;
-            else if (!isEditing && !password) {
-                toast({ variant: 'destructive', title: 'Erro', description: 'A senha é obrigatória para novos clientes.' });
-                setIsSubmitting(false);
-                return;
-            }
+
+            const body: any = { name: data.name, email: data.email, phone: data.phone, phrase: data.phrase || null };
+            if (!isEditing) body.password = data.password;
+
             const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
             if (!response.ok) throw new Error(`Falha ao ${isEditing ? 'atualizar' : 'criar'} o cliente.`);
-            toast({ title: 'Sucesso!', variant: "success" ,description: `Cliente ${name} ${isEditing ? 'atualizado' : 'adicionado'}.` });
+
+            toast({ title: 'Sucesso!', variant: "success" ,description: `Cliente ${data.name} ${isEditing ? 'atualizado' : 'adicionado'}.` });
             resetForm();
             setIsDialogOpen(false);
             fetchClients();
         } catch (error: unknown) {
             toast({ variant: 'destructive', title: 'Erro', description: error instanceof Error ? error.message : 'Ocorreu um erro.' });
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -164,10 +194,52 @@ const AdminClients = () => {
         .filter((client) => client.name.toLowerCase().includes(searchTerm.toLowerCase()) || client.email.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => sortOrder === 'a-z' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
 
+    const renderContent = () => {
+        if (isLoading) {
+            return isMobile ?
+                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />) :
+                Array.from({ length: 3 }).map((_, i) => <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>);
+        }
+        if (filteredClients.length === 0) {
+            return isMobile ? <div className="text-center text-white/60 pt-12">Nenhum cliente encontrado.</div> : <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum cliente encontrado.</TableCell></TableRow>;
+        }
+        if (isMobile) {
+            return filteredClients.map(client => (
+                <ClientCard
+                    key={client._id}
+                    client={client}
+                    isSelected={selectedClients.has(client._id)}
+                    onSelectionChange={handleSelectionChange}
+                    onEdit={handleOpenDialog}
+                    onCopy={copyToClipboard}
+                />
+            ));
+        }
+        return filteredClients.map(client => (
+            <TableRow key={client._id} className="border-white/10">
+                <TableCell className="w-12"><input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedClients.has(client._id)} onChange={(e) => handleSelectionChange(client._id, e.target.checked)} /></TableCell>
+                <TableCell className="font-medium text-white">{client.name}</TableCell>
+                <TableCell className="text-white/80">{client.email}</TableCell>
+                <TableCell className="text-white/80">{client.phone}</TableCell>
+                <TableCell className="text-right">
+                    {/* ***** BOTÃO RESTAURADO E MELHORADO AQUI ***** */}
+                    <div className="flex gap-2 justify-end">
+                        <Button asChild variant="ghost" className="bg-orange-500/10 text-orange-500 rounded-xl hover:bg-orange-500/20">
+                            <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
+                                <FolderKanban className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                        <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(client)}>
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </TableCell>
+            </TableRow>
+        ));
+    };
+
     return (
-        // --- CORREÇÃO: Animação aplicada aqui, no contentor principal ---
         <div className="flex flex-col h-full animate-fade-in">
-            {/* CABEÇALHO */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
                 <div><h1 className="text-3xl font-bold text-white">Gerir Clientes</h1><p className="text-white/80">Crie, edite e gira o acesso dos seus clientes.</p></div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -175,35 +247,15 @@ const AdminClients = () => {
                 </div>
             </div>
 
-            {/* FILTROS E BUSCA */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
                 <div className="relative w-full sm:w-1/2 md:w-1/3"><Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" /><Input placeholder="Buscar por nome ou email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" /></div>
                 <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'a-z' | 'z-a')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full sm:w-auto"><option value="a-z">Ordenar A-Z</option><option value="z-a">Ordenar Z-A</option></select>
             </div>
 
-            {/* LISTA DE CLIENTES */}
-            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {isLoading ? (
-                        Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />)
-                    ) : filteredClients.length > 0 ? (
-                        filteredClients.map((client) => (
-                            <ClientCard
-                                key={client._id}
-                                client={client}
-                                isSelected={selectedClients.has(client._id)}
-                                onSelectionChange={handleSelectionChange}
-                                onEdit={handleOpenDialog}
-                                onCopy={copyToClipboard}
-                            />
-                        ))
-                    ) : (
-                        <div className="text-center text-white/60 pt-12 col-span-full"><p>Nenhum cliente encontrado.</p></div>
-                    )}
-                </div>
+            <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
+                {isMobile ? renderContent() : (<div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2"><Table><TableHeader><TableRow className="border-white/10 hover:bg-transparent"><TableHead className="w-12"></TableHead><TableHead className="text-white">Nome</TableHead><TableHead className="text-white">Email</TableHead><TableHead className="text-white">Telefone</TableHead><TableHead className="text-right text-white">Ações</TableHead></TableRow></TableHeader><TableBody>{renderContent()}</TableBody></Table></div>)}
             </div>
 
-            {/* DIÁLOGO DE EXCLUSÃO */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
                     <DialogHeader><DialogTitle className="text-xl font-semibold">Confirmar exclusão</DialogTitle></DialogHeader>
@@ -214,57 +266,57 @@ const AdminClients = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        {/* Botão flutuante de adicionar cliente */}
-        <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-          <DialogTrigger asChild>
-            <Button
-              className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
-              onClick={() => handleOpenDialog(null)}
-            >
-              <Plus className="h-12 w-12" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-white">
-                {currentClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div><Label htmlFor="name" className="text-white mb-1 font-semibold">Nome do Cliente</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-              <div>
-                <Label htmlFor="email" className="text-white mb-1 font-semibold">Email de Login</Label>
-                <div className="flex items-center gap-2">
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
-                  {!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>}
-                  <Button type="button" size="icon" onClick={() => copyToClipboard(email, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
-                </div>
-              </div>
-              <div><Label htmlFor="phone" className="text-white mb-1 font-semibold">Telefone (opcional)</Label><Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-              {!currentClient && (
-                <div>
-                  <Label htmlFor="password" className="text-white mb-1 font-semibold">Senha Provisória</Label>
-                  <div className="flex items-center gap-2">
-                    <Input id="password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
-                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
-                    <Button type="button" size="icon" onClick={() => copyToClipboard(password, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
-                  </div>
-                </div>
-              )}
-              <div><Label htmlFor="phrase" className="text-white mb-1 font-semibold">Guardar Senha (opcional)</Label><Input id="phrase" value={phrase} onChange={(e) => setPhrase(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12" /></div>
-              <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
-                <DialogClose asChild>
-                  <Button type="button" variant="secondary" className="rounded-xl h-12 px-6">
-                    Cancelar
-                  </Button>
-                </DialogClose>
-                <Button type="submit" disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6">
-                  {isSubmitting ? 'A guardar...' : 'Guardar'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+
+            <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
+                <DialogTrigger asChild>
+                    <Button
+                        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
+                        onClick={() => handleOpenDialog(null)}
+                    >
+                        <Plus className="h-12 w-12" />
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-white">{currentClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField control={form.control} name="name" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Nome do Cliente</Label><FormControl><Input required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
+                            </FormItem>)} />
+                            <FormField control={form.control} name="email" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Email de Login</Label>
+                                <div className="flex items-center gap-2">
+                                    <FormControl><Input type="email" required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
+                                    {!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>}
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                </div><FormMessage />
+                            </FormItem>)} />
+                            <FormField control={form.control} name="phone" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Telefone (opcional)</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
+                            </FormItem>)} />
+                            {!currentClient && (<FormField control={form.control} name="password" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Senha Provisória</Label>
+                                <div className="flex items-center gap-2">
+                                    <FormControl><Input type="text" required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
+                                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                </div><FormMessage />
+                            </FormItem>)} />)}
+                            <FormField control={form.control} name="phrase" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Guardar Senha (opcional)</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
+                            </FormItem>)} />
+                            <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
+                                <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12 px-6">Cancelar</Button></DialogClose>
+                                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6">
+                                    {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Guardar'}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

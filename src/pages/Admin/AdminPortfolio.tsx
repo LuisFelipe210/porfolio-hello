@@ -23,10 +23,26 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit, Plus } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Plus, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
+
+// ***** INÍCIO DAS MODIFICAÇÕES *****
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+
+// 1. Esquema de validação com Zod
+const portfolioItemSchema = z.object({
+    title: z.string().min(3, { message: "O título é obrigatório." }),
+    category: z.string().min(1, { message: "Selecione uma categoria." }),
+    description: z.string().min(1, { message: "A descrição é obrigatória." }),
+    alt: z.string().optional(),
+});
+// ***** FIM DAS MODIFICAÇÕES *****
+
 
 interface PortfolioItem {
     _id: string;
@@ -47,17 +63,26 @@ const AdminPortfolio = () => {
     const { toast } = useToast();
     const isMobile = useIsMobile();
 
-    const [title, setTitle] = useState('');
-    const [category, setCategory] = useState('');
-    const [description, setDescription] = useState('');
-    const [alt, setAlt] = useState('');
+    // Os useState para campos de formulário foram removidos.
     const [file, setFile] = useState<File | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // ***** INÍCIO DAS MODIFICAÇÕES *****
+    // 2. O formulário agora é controlado pelo React Hook Form
+    const form = useForm<z.infer<typeof portfolioItemSchema>>({
+        resolver: zodResolver(portfolioItemSchema),
+        defaultValues: {
+            title: "",
+            category: "",
+            description: "",
+            alt: "",
+        },
+    });
+    // ***** FIM DAS MODIFICAÇÕES *****
 
     const fetchItems = async () => {
         setIsLoading(true);
@@ -78,10 +103,7 @@ const AdminPortfolio = () => {
     }, []);
 
     const resetForm = () => {
-        setTitle('');
-        setCategory('');
-        setDescription('');
-        setAlt('');
+        form.reset({ title: "", category: "", description: "", alt: "" });
         setFile(null);
         setEditingId(null);
     };
@@ -90,10 +112,13 @@ const AdminPortfolio = () => {
         resetForm();
         if (item) {
             setEditingId(item._id);
-            setTitle(item.title);
-            setCategory(item.category);
-            setDescription(item.description);
-            setAlt(item.alt || item.title);
+            // Popula o formulário com dados do item para edição
+            form.reset({
+                title: item.title,
+                category: item.category,
+                description: item.description,
+                alt: item.alt || item.title,
+            });
         }
         setIsDialogOpen(true);
     };
@@ -115,14 +140,14 @@ const AdminPortfolio = () => {
         return uploadData.secure_url;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // ***** INÍCIO DAS MODIFICAÇÕES *****
+    // 3. A função de submit é adaptada para o React Hook Form
+    const onSubmit = async (data: z.infer<typeof portfolioItemSchema>) => {
         if (!editingId && !file) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem para um novo item.' });
             return;
         }
 
-        setIsSubmitting(true);
         try {
             let imageUrl = '';
             if (file) {
@@ -133,10 +158,10 @@ const AdminPortfolio = () => {
             const method = editingId ? 'PUT' : 'POST';
             const url = editingId ? `/api/portfolio?id=${editingId}` : '/api/portfolio';
             const body = {
-                title,
-                category,
-                description,
-                alt: alt || title,
+                title: data.title,
+                category: data.category,
+                description: data.description,
+                alt: data.alt || data.title,
                 ...(imageUrl && { image: imageUrl })
             };
 
@@ -155,25 +180,21 @@ const AdminPortfolio = () => {
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
-        } finally {
-            setIsSubmitting(false);
         }
     };
+    // ***** FIM DAS MODIFICAÇÕES *****
 
     const handleDelete = async () => {
         if (selectedItems.size === 0) return;
         setIsDeleting(true);
-
         try {
             const token = localStorage.getItem('authToken');
             const ids = Array.from(selectedItems);
-
             const response = await fetch('/api/portfolio', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ itemIds: ids }),
             });
-
             if (!response.ok) throw new Error('Falha ao excluir.');
             toast({ title: 'Sucesso', variant: "success", description: `${ids.length} item(ns) excluído(s).` });
             fetchItems();
@@ -188,11 +209,8 @@ const AdminPortfolio = () => {
 
     const handleSelectionChange = (id: string, checked: boolean) => {
         const newSet = new Set(selectedItems);
-        if (checked) {
-            newSet.add(id);
-        } else {
-            newSet.delete(id);
-        }
+        if (checked) newSet.add(id);
+        else newSet.delete(id);
         setSelectedItems(newSet);
     };
 
@@ -206,11 +224,7 @@ const AdminPortfolio = () => {
 
         if (items.length === 0) {
             return (
-                <TableRow>
-                    <TableCell colSpan={5} className="text-center text-white/60 pt-12">
-                        Nenhum item encontrado. Adicione o primeiro!
-                    </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</TableCell></TableRow>
             );
         }
 
@@ -222,11 +236,7 @@ const AdminPortfolio = () => {
                     <div className="flex-1 flex flex-col justify-center">
                         <h3 className="font-semibold text-white text-lg">{item.title}</h3>
                         <p className="text-sm text-white/80 capitalize">{item.category}</p>
-                        <div className="mt-2 flex space-x-2">
-                            <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}>
-                                <Edit className="h-4 w-4" />
-                            </Button>
-                        </div>
+                        <div className="mt-2 flex space-x-2"><Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button></div>
                     </div>
                 </div>
             ));
@@ -234,151 +244,78 @@ const AdminPortfolio = () => {
 
         return items.map((item) => (
             <TableRow key={item._id} className="border-white/10">
-                <TableCell className="w-12">
-                    <input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedItems.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} />
-                </TableCell>
+                <TableCell className="w-12"><input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedItems.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} /></TableCell>
                 <TableCell><img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={item.alt || item.title} className="h-16 w-16 object-cover rounded-xl" /></TableCell>
                 <TableCell className="font-medium text-white">{item.title}</TableCell>
                 <TableCell className="capitalize text-white/80">{item.category}</TableCell>
-                <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                        <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button>
-                    </div>
-                </TableCell>
+                <TableCell className="text-right"><div className="flex gap-2 justify-end"><Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button></div></TableCell>
             </TableRow>
         ));
     };
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            {/* CABEÇALHO */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Gerir Portfólio</h1>
-                    <p className="text-white/80">Adicione, edite e remova os trabalhos do seu portfólio.</p>
-                </div>
+                <div><h1 className="text-3xl font-bold text-white">Gerir Portfólio</h1><p className="text-white/80">Adicione, edite e remova os trabalhos do seu portfólio.</p></div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                    {selectedItems.size > 0 && (
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsDeleteModalOpen(true)}
-                            className="border border-red-500/80 text-red-500 hover:bg-red-500/20 bg-transparent rounded-xl font-semibold transition-all w-full sm:w-auto"
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedItems.size})
-                        </Button>
-                    )}
+                    {selectedItems.size > 0 && (<Button variant="outline" onClick={() => setIsDeleteModalOpen(true)} className="border border-red-500/80 text-red-500 hover:bg-red-500/20 bg-transparent rounded-xl font-semibold transition-all w-full sm:w-auto"><Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedItems.size})</Button>)}
                 </div>
             </div>
 
-            {/* CONTEÚDO */}
             <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
-                {isMobile ? renderContent() : (
-                    <div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="border-white/10 hover:bg-transparent">
-                                    <TableHead className="w-12"></TableHead>
-                                    <TableHead className="w-[100px] text-white">Imagem</TableHead>
-                                    <TableHead className="text-white">Título</TableHead>
-                                    <TableHead className="text-white">Categoria</TableHead>
-                                    <TableHead className="text-right text-white">Ações</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>{renderContent()}</TableBody>
-                        </Table>
-                    </div>
-                )}
+                {isMobile ? renderContent() : (<div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2"><Table><TableHeader><TableRow className="border-white/10 hover:bg-transparent"><TableHead className="w-12"></TableHead><TableHead className="w-[100px] text-white">Imagem</TableHead><TableHead className="text-white">Título</TableHead><TableHead className="text-white">Categoria</TableHead><TableHead className="text-right text-white">Ações</TableHead></TableRow></TableHeader><TableBody>{renderContent()}</TableBody></Table></div>)}
                 {isMobile && items.length === 0 && <div className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</div>}
             </div>
 
-            {/* Botão flutuante de adicionar */}
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild>
-                    <Button
-                        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
-                        onClick={() => handleOpenDialog()}
-                    >
-                        <Plus className="h-12 w-12" />
-                    </Button>
-                </DialogTrigger>
+                <DialogTrigger asChild><Button className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" onClick={() => handleOpenDialog()}><Plus className="h-12 w-12" /></Button></DialogTrigger>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-white">{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
-                        <DialogDescription className="text-white/80">
-                            {editingId ? "Altere as informações abaixo." : "Preencha os detalhes e faça o upload da imagem."}
-                        </DialogDescription>
+                        <DialogDescription className="text-white/80">{editingId ? "Altere as informações abaixo." : "Preencha os detalhes e faça o upload da imagem."}</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <Label htmlFor="title" className="text-white mb-1 font-semibold">Título</Label>
-                            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl h-12" />
-                        </div>
-                        <div>
-                            <Label htmlFor="category" className="text-white mb-1 font-semibold">Categoria</Label>
-                            <Select onValueChange={setCategory} value={category}>
-                                <SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                                <SelectContent className="bg-black/90 text-white border-white/20">
-                                    <SelectItem value="portrait">Retratos</SelectItem>
-                                    <SelectItem value="wedding">Casamentos</SelectItem>
-                                    <SelectItem value="maternity">Maternidade</SelectItem>
-                                    <SelectItem value="family">Família</SelectItem>
-                                    <SelectItem value="events">Eventos</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <Label htmlFor="description" className="text-white mb-1 font-semibold">Descrição</Label>
-                            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required className="bg-black/70 border-white/20 rounded-xl" />
-                        </div>
-                        <div>
-                            <Label htmlFor="alt" className="text-white mb-1 font-semibold">
-                                Texto Alternativo (ALT)
-                                <span className="text-white/60 text-xs ml-2">(Opcional - melhora acessibilidade e SEO)</span>
-                            </Label>
-                            <Input
-                                id="alt"
-                                value={alt}
-                                onChange={(e) => setAlt(e.target.value)}
-                                placeholder={title || "Descreva a imagem para acessibilidade"}
-                                className="bg-black/70 border-white/20 rounded-xl h-12"
-                            />
-                            <p className="text-xs text-white/50 mt-1">
-                                Se deixado em branco, usaremos o título como texto alternativo
-                            </p>
-                        </div>
-                        <div>
-                            <Label htmlFor="file" className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
-                            <Input id="file" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
-                        </div>
-                        <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary" className="rounded-xl h-12 px-6">
-                                    Cancelar
+
+                    {/* ***** INÍCIO DAS MODIFICAÇÕES NO JSX ***** */}
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField control={form.control} name="title" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Título</Label><FormControl><Input required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
+                            </FormItem>)} />
+                            <FormField control={form.control} name="category" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Categoria</Label>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
+                                    <SelectContent className="bg-black/90 text-white border-white/20"><SelectItem value="portrait">Retratos</SelectItem><SelectItem value="wedding">Casamentos</SelectItem><SelectItem value="maternity">Maternidade</SelectItem><SelectItem value="family">Família</SelectItem><SelectItem value="events">Eventos</SelectItem></SelectContent>
+                                </Select><FormMessage />
+                            </FormItem>)} />
+                            <FormField control={form.control} name="description" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Descrição</Label><FormControl><Textarea required className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage />
+                            </FormItem>)} />
+                            <FormField control={form.control} name="alt" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Texto Alternativo (ALT)<span className="text-white/60 text-xs ml-2">(Opcional)</span></Label>
+                                <FormControl><Input placeholder={form.watch('title') || "Descreva a imagem"} className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
+                                <p className="text-xs text-white/50 mt-1">Se deixado em branco, usaremos o título.</p><FormMessage />
+                            </FormItem>)} />
+                            <div>
+                                <Label className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
+                                <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                            </div>
+                            <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
+                                <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12 px-6">Cancelar</Button></DialogClose>
+                                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6">
+                                    {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Guardar'}
                                 </Button>
-                            </DialogClose>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6"
-                            >
-                                {isSubmitting ? 'A guardar...' : 'Guardar'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                    {/* ***** FIM DAS MODIFICAÇÕES NO JSX ***** */}
                 </DialogContent>
             </Dialog>
 
-            {/* DIÁLOGO DE EXCLUSÃO */}
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
-                    <DialogHeader>
-                        <DialogTitle>Confirmar exclusão</DialogTitle>
-                        <DialogDescription className="text-white/80">Tem a certeza que deseja excluir <strong>{selectedItems.size} item(ns)</strong>? Esta ação não pode ser desfeita.</DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="!mt-6">
-                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button></DialogClose>
-                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={isDeleting}><Trash2 className="h-4 w-4 mr-2" />{isDeleting ? 'A excluir...' : 'Excluir'}</Button>
-                    </DialogFooter>
+                    <DialogHeader><DialogTitle>Confirmar exclusão</DialogTitle><DialogDescription className="text-white/80">Tem a certeza que deseja excluir <strong>{selectedItems.size} item(ns)</strong>? Esta ação não pode ser desfeita.</DialogDescription></DialogHeader>
+                    <DialogFooter className="!mt-6"><DialogClose asChild><Button variant="secondary" className="rounded-xl h-12" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button></DialogClose><Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={isDeleting}><Trash2 className="h-4 w-4 mr-2" />{isDeleting ? 'A excluir...' : 'Excluir'}</Button></DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

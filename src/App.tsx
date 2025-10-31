@@ -12,6 +12,9 @@ import FloatingContact from "./components/FloatingContact.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
 
+// ***** NOVO IMPORT *****
+import PublicLayout from "./pages/PublicLayout.tsx";
+
 // --- Páginas com Lazy Loading ---
 const Index = lazy(() => import("./pages/Index.tsx"));
 const BlogPage = lazy(() => import("./pages/BlogPage.tsx"));
@@ -49,14 +52,7 @@ const PageLoader = () => (
     </div>
 );
 
-// 2. Criar um componente interno para acessar useLocation
-const AppContent = () => {
-    const location = useLocation();
-    const isAdminRoute = location.pathname.startsWith('/admin');
-
-    // Renderizar FloatingContact apenas se NÃO for uma rota admin
-    return !isAdminRoute ? <FloatingContact /> : null;
-};
+// Este componente foi removido pois a nova abordagem com PublicLayout o torna desnecessário.
 
 const App = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -69,7 +65,7 @@ const App = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const currentLocation = window.location; // Usado apenas para o ShutterPreloader
+    const currentLocation = window.location;
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -82,15 +78,20 @@ const App = () => {
                         <BrowserRouter>
                             <ScrollToTop />
                             <Suspense fallback={<PageLoader />}>
-                                {/* Envolve as rotas com MessagesProvider para o contexto */}
                                 <MessagesProvider>
                                     <Routes>
-                                        {/* --- Rotas Públicas --- */}
-                                        <Route path="/" element={<Index />} />
-                                        <Route path="/blog" element={<BlogPage />} />
-                                        <Route path="/blog/:slug" element={<BlogPostPage />} />
+                                        {/* ***** INÍCIO DAS MODIFICAÇÕES ***** */}
 
-                                        {/* --- Rotas Clientes --- */}
+                                        {/* --- Rotas Públicas agrupadas sob o PublicLayout --- */}
+                                        <Route element={<PublicLayout />}>
+                                            <Route path="/" element={<Index />} />
+                                            <Route path="/blog" element={<BlogPage />} />
+                                            <Route path="/blog/:slug" element={<BlogPostPage />} />
+                                        </Route>
+
+                                        {/* ***** FIM DAS MODIFICAÇÕES ***** */}
+
+                                        {/* --- Rotas Clientes (Estrutura original mantida) --- */}
                                         <Route path="/portal/login" element={<ClientLoginPage />} />
                                         <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
                                         <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
@@ -99,7 +100,7 @@ const App = () => {
                                             <Route path="reset-password" element={<ClientResetPasswordPage />} />
                                         </Route>
 
-                                        {/* --- Rotas Admin (agora dentro do MessagesProvider) --- */}
+                                        {/* --- Rotas Admin (Estrutura original mantida) --- */}
                                         <Route path="/admin/login" element={<AdminLogin />} />
                                         <Route path="/admin" element={<AdminLayout />}>
                                             <Route index element={<AdminDashboard />} />
@@ -115,13 +116,12 @@ const App = () => {
                                             <Route path="availability" element={<AdminAvailability />} />
                                         </Route>
 
-                                        {/* --- Rota Not Found --- */}
+                                        {/* --- Rota Not Found (Estrutura original mantida) --- */}
                                         <Route path="*" element={<NotFound />} />
                                     </Routes>
                                 </MessagesProvider>
                             </Suspense>
-                            {/* 3. Renderizar AppContent que decide se mostra FloatingContact */}
-                            <AppContent />
+                            {/* O FloatingContact foi movido para o PublicLayout e removido daqui */}
                         </BrowserRouter>
                     </div>
 
@@ -132,4 +132,3 @@ const App = () => {
 };
 
 export default App;
-
