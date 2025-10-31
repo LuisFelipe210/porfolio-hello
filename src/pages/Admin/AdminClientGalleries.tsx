@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -53,8 +54,7 @@ const GalleryImage = ({ src, lqipSrc, alt }: { src: string; lqipSrc?: string; al
 
 const AdminClientGalleries = () => {
     const { clientId, clientName } = useParams<{ clientId: string; clientName: string }>();
-    const [galleries, setGalleries] = useState<Gallery[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const { toast } = useToast();
     const isMobile = useIsMobile();
@@ -73,27 +73,18 @@ const AdminClientGalleries = () => {
         defaultValues: { name: "" },
     });
 
-    const fetchGalleries = async () => {
-        if (!clientId) return;
-        setIsLoading(true);
-        try {
+    const { data: galleries = [], isLoading } = useQuery<Gallery[], Error>({
+        queryKey: ['clientGalleries', clientId],
+        queryFn: async () => {
+            if (!clientId) return [];
             const token = localStorage.getItem('authToken');
             const response = await fetch(`/api/admin/portal?action=getGalleries&clientId=${clientId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` },
             });
-            if (!response.ok) throw new Error("Falha ao carregar galerias.");
-            const data = await response.json();
-            setGalleries(data);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as galerias.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchGalleries();
-    }, [clientId, toast]);
+            if (!response.ok) throw new Error('Falha ao carregar galerias.');
+            return response.json();
+        },
+    });
 
     const onSubmit = async (data: z.infer<typeof galleryFormSchema>) => {
         try {
@@ -108,7 +99,7 @@ const AdminClientGalleries = () => {
             toast({ title: 'Sucesso!', variant: "success", description: `Galeria "${data.name}" criada.` });
             form.reset();
             setIsCreateDialogOpen(false);
-            fetchGalleries();
+            queryClient.invalidateQueries({ queryKey: ['clientGalleries', clientId] });
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
@@ -129,7 +120,7 @@ const AdminClientGalleries = () => {
             if (!response.ok) throw new Error('Falha ao excluir as galerias.');
 
             toast({ title: 'Sucesso', variant: "success", description: `${ids.length} galeria(s) excluída(s).` });
-            fetchGalleries();
+            queryClient.invalidateQueries({ queryKey: ['clientGalleries', clientId] });
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir as galerias.' });
         } finally {
@@ -158,12 +149,20 @@ const AdminClientGalleries = () => {
 
     const renderContent = () => {
         if (isLoading) {
-            return isMobile ?
-                Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />) :
-                Array.from({ length: 2 }).map((_, i) => <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>);
+            return isMobile
+                ? Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />)
+                : Array.from({ length: 2 }).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell colSpan={5}>
+                            <Skeleton className="h-20 w-full bg-black/60 rounded-2xl" />
+                        </TableCell>
+                    </TableRow>
+                  ));
         }
         if (galleries.length === 0) {
-            return isMobile ? <div className="text-center text-white/60 pt-12">Nenhuma galeria encontrada.</div> : <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhuma galeria encontrada.</TableCell></TableRow>;
+            return isMobile
+                ? <div className="text-center text-white/60 pt-12">Nenhuma galeria encontrada.</div>
+                : <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhuma galeria encontrada.</TableCell></TableRow>;
         }
         if (isMobile) {
             return galleries.map((gallery) => (
@@ -241,7 +240,7 @@ const AdminClientGalleries = () => {
                 </DialogContent>
             </Dialog>
 
-            {selectedGallery && (<UploadPhotosDialog galleryId={selectedGallery._id} existingImages={selectedGallery.images} open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen} onUploadComplete={fetchGalleries} />)}
+            {selectedGallery && (<UploadPhotosDialog galleryId={selectedGallery._id} existingImages={selectedGallery.images} open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen} onUploadComplete={() => queryClient.invalidateQueries({ queryKey: ['clientGalleries', clientId] })} />)}
             {selectedGallery && (<ViewSelectionsDialog galleryName={selectedGallery.name} selectedImages={selectedGallery.selections} open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen} />)}
 
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

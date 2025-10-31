@@ -21,9 +21,21 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { MdDashboard } from 'react-icons/md';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMessages } from '@/context/MessagesContext';
+// Supondo que existe um contexto de disponibilidade:
+// import { useAvailability } from '@/context/AvailabilityContext';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 const HAMSTER_URL = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1761845385/fifi_y0nden.png";
+
+// Adicione um hook ou uma prop para obter o contador de datas ocupadas (eventsCount)
+// Aqui está um exemplo fictício, ajuste conforme seu contexto real:
+const useEventsCount = () => {
+    // Substitua por lógica real de obtenção do número de datas ocupadas
+    // Por exemplo, usando um contexto de disponibilidade
+    // const { occupiedDates } = useAvailability();
+    // return occupiedDates.length;
+    return 3; // Exemplo estático
+};
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -33,6 +45,7 @@ const AdminLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const { hasUnreadMessages } = useMessages();
+    const eventsCount = useEventsCount();
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
@@ -55,7 +68,7 @@ const AdminLayout = () => {
     };
 
 
-    const NavLinks = ({ className }: { className?: string }) => (
+    const NavLinks = ({ className, eventsCount }: { className?: string, eventsCount: number }) => (
         <nav className={`flex flex-col gap-2 p-4 min-w-full ${className}`}>
             <Link to="/admin" onClick={() => setSheetOpen(false)}>
                 <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
@@ -78,8 +91,18 @@ const AdminLayout = () => {
             <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos</Button></Link>
             <Link to="/admin/blog" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Rss className="mr-3 h-5 w-5" /> Blog</Button></Link>
             <Link to="/admin/availability" onClick={() => setSheetOpen(false)}>
-                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
+                <Button
+                    variant="secondary"
+                    size="default"
+                    aria-label="Disponibilidade"
+                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                >
                     <CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade
+                    {eventsCount > 0 && (
+                        <span className="ml-1 text-white font-semibold text-sm">
+                            {eventsCount}
+                        </span>
+                    )}
                 </Button>
             </Link>
             <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
@@ -111,7 +134,7 @@ const AdminLayout = () => {
                         <MdDashboard className="text-orange-500 text-2xl" />
                         <span className="text-xl font-semibold text-white">Painel</span>
                     </div>
-                    <NavLinks className="flex-1" />
+                    <NavLinks className="flex-1" eventsCount={eventsCount} />
                     <div className="mt-auto p-4 border-t border-white/10">
                         <Button
                             variant="outline"

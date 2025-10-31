@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -9,6 +9,8 @@ import { ptBR } from 'date-fns/locale';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 interface Post {
     _id: string;
@@ -17,37 +19,42 @@ interface Post {
     coverImage: string;
     createdAt: string;
     alt?: string;
-    summary?: string; // adicionada para SEO
+    summary?: string;
 }
 
+// --- Função de API (Helper) ---
+const fetchPostBySlugAPI = async (slug: string): Promise<Post> => {
+    const response = await fetch(`/api/blog?slug=${slug}`);
+    if (!response.ok) throw new Error('Artigo não encontrado');
+    return response.json();
+};
+
+
 const BlogPostPage = () => {
-    const [post, setPost] = useState<Post | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    // const [post, setPost] = useState<Post | null>(null); // <<< REMOVIDO
+    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
     const { slug } = useParams<{ slug: string }>();
+    const { toast } = useToast(); // <<< Adicionado
 
     useEffect(() => {
-        // Rolagem para o topo ao carregar a página
         window.scrollTo(0, 0);
-
-        if (!slug) return;
-
-        const fetchPost = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch(`/api/blog?slug=${slug}`);
-                if (!response.ok) throw new Error('Artigo não encontrado');
-                const data = await response.json();
-                setPost(data);
-            } catch (error) {
-                console.error("Erro ao buscar artigo:", error);
-                setPost(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchPost();
     }, [slug]);
+
+    // --- Refatoração: useQuery ---
+    const { data: post, isLoading, isError, error } = useQuery<Post, Error>({
+        // A 'queryKey' inclui o 'slug' para ser única
+        queryKey: ['blogPost', slug],
+        queryFn: () => fetchPostBySlugAPI(slug!), // O '!' é seguro por causa do 'enabled'
+        enabled: !!slug, // Só executa a query se o 'slug' existir
+    });
+
+    // Efeito para lidar com erros do useQuery
+    useEffect(() => {
+        if (isError) {
+            console.error("Erro ao buscar artigo:", error);
+            toast({ variant: 'destructive', title: 'Erro', description: (error as Error).message || 'Não foi possível carregar o artigo.' });
+        }
+    }, [isError, error, toast]);
 
     return (
         <div className="relative min-h-screen bg-white text-black dark:bg-black dark:text-white overflow-hidden">
@@ -57,7 +64,8 @@ const BlogPostPage = () => {
                     <title>Hellô Borges Fotografia | {post.title}</title>
                     <meta
                         name="description"
-                        content={post.summary || post.content.substring(0, 160)}
+                        // O 'post.content' é HTML, então limpamos para o sumário
+                        content={post.summary || post.content.replace(/<[^>]+>/g, '').substring(0, 160)}
                     />
                 </Helmet>
             )}
@@ -94,9 +102,11 @@ const BlogPostPage = () => {
                         {/* CONTEÚDO DO ARTIGO */}
                         <div className="relative bg-white dark:bg-black/60 border-t border-black/10 dark:border-white/10 backdrop-blur-lg">
                             <div className="container mx-auto max-w-3xl px-6 py-16 md:py-24">
-                                <div className="prose prose-lg max-w-none leading-relaxed text-black/90 dark:text-white/90 [&_a]:text-orange-600 dark:[&_a]:text-orange-500 [&_a:hover]:text-orange-500 dark:[&_a:hover]:text-orange-400 [&_strong]:text-black dark:[&_strong]:text-white">
-                                    {post.content}
-                                </div>
+                                {/* O seu 'prose' tailwind vai formatar o HTML que vem da API */}
+                                <div
+                                    className="prose prose-lg max-w-none leading-relaxed text-black/90 dark:text-white/90 [&_a]:text-orange-600 dark:[&_a]:text-orange-500 [&_a:hover]:text-orange-500 dark:[&_a:hover]:text-orange-400 [&_strong]:text-black dark:[&_strong]:text-white"
+                                    dangerouslySetInnerHTML={{ __html: post.content }}
+                                />
 
                                 <div className="mt-16 text-center">
                                     <Button
@@ -113,9 +123,10 @@ const BlogPostPage = () => {
                         </div>
                     </article>
                 ) : (
+                    // Este 'else' agora apanha o 'isError' ou se o 'post' for undefined
                     <div className="text-center py-32 container mx-auto">
                         <h1 className="text-4xl font-bold">Artigo não encontrado</h1>
-                        <p className="text-black/80 mt-4">
+                        <p className="text-black/80 dark:text-white/80 mt-4">
                             O link que você seguiu pode estar quebrado ou o artigo foi removido.
                         </p>
                         <Button asChild className="mt-8 bg-orange-500 hover:bg-orange-600 rounded-xl">

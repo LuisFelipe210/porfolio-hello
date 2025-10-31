@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMessages } from '@/context/MessagesContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -17,9 +18,6 @@ interface Message { _id: string; name: string; email: string; phone?: string; se
 interface Selection { _id: string; name: string; selections: string[]; selectionDate: string; clientInfo: { name: string }; read: boolean; }
 
 const AdminMessages = () => {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [selections, setSelections] = useState<Selection[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
     const [selectedGallery, setSelectedGallery] = useState<Selection | null>(null);
     const { toast } = useToast();
@@ -30,27 +28,30 @@ const AdminMessages = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const { refreshMessages } = useMessages();
 
-    const fetchData = async () => {
-        setIsLoading(true);
-        try {
+    const queryClient = useQueryClient();
+    const query = useQuery<{ messages: Message[]; selections: Selection[] }, Error>({
+        queryKey: ['adminMessages'],
+        queryFn: async () => {
             const token = localStorage.getItem('authToken');
             const response = await fetch('/api/messages?action=getGalleries', { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!response.ok) throw new Error("Falha ao carregar dados.");
-            const data = await response.json();
-            setMessages(data.messages || []);
-            setSelections(data.selections || []);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar a caixa de entrada.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+            if (!response.ok) throw new Error('Falha ao carregar dados.');
+            return response.json();
+        },
+    });
+    const data = query.data;
+    const isLoading = query.isLoading;
 
-    useEffect(() => { fetchData(); }, [toast]);
+    useEffect(() => {
+        if (query.isError) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar a caixa de entrada.' });
+        }
+    }, [query.isError, toast]);
+
+    const messages = data?.messages || [];
+    const selections = data?.selections || [];
 
     const handleMarkAsRead = async (id: string, type: 'message' | 'selection') => {
         if (!id) return;
-
         let item;
         let url = '';
         if (type === 'message') {
@@ -62,17 +63,14 @@ const AdminMessages = () => {
             if (item?.read) return;
             url = `/api/messages?action=markSelectionRead&selectionId=${id}`;
         }
-
         try {
             const token = localStorage.getItem('authToken');
             await fetch(url, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-            if (type === 'message') {
-                setMessages(prev => prev.map(msg => msg._id === id ? { ...msg, read: true } : msg));
-            } else {
-                setSelections(prev => prev.map(sel => sel._id === id ? { ...sel, read: true } : sel));
-            }
+            await queryClient.invalidateQueries({ queryKey: ['adminMessages'] });
             await refreshMessages();
-        } catch (error) { console.error("Erro ao marcar como lida:", error); }
+        } catch (error) {
+            console.error("Erro ao marcar como lida:", error);
+        }
     };
 
     const handleDelete = async () => {
@@ -83,7 +81,7 @@ const AdminMessages = () => {
             if (itemToDelete.type === 'message') {
                 await fetch(`/api/messages?id=${itemToDelete.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 toast({ title: 'Sucesso', variant: "success", description: 'Mensagem excluída.' });
-                setMessages(prev => prev.filter(msg => msg._id !== itemToDelete.id));
+                await queryClient.invalidateQueries({ queryKey: ['adminMessages'] });
             }
             await refreshMessages();
         } catch (error) {

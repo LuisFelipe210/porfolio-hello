@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +9,8 @@ import Footer from '@/components/Footer';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import { useQuery } from '@tanstack/react-query'; // <<< Importado
+import { useToast } from '@/hooks/use-toast'; // <<< Importado
 
 interface Post {
     _id: string;
@@ -20,33 +22,43 @@ interface Post {
     alt?: string;
 }
 
-const BlogPage = () => {
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+// --- Função de API (Helper) ---
+const fetchPostsAPI = async (): Promise<Post[]> => {
+    const response = await fetch('/api/blog');
+    if (!response.ok) throw new Error("Falha ao carregar artigos.");
+    return response.json();
+};
 
+const BlogPage = () => {
+    // const [posts, setPosts] = useState<Post[]>([]); // <<< REMOVIDO
+    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
+    const { toast } = useToast(); // <<< Adicionado
+
+    // --- Refatoração: useQuery ---
+    const { data: posts = [], isLoading, isError, error } = useQuery<Post[], Error>({
+        queryKey: ['blogPosts'],
+        queryFn: fetchPostsAPI,
+        initialData: [], // Garante que 'posts' é sempre um array
+    });
+
+    // Efeito para lidar com erros
     useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const response = await fetch('/api/blog');
-                if (!response.ok) throw new Error("Falha ao carregar artigos.");
-                const data = await response.json();
-                setPosts(data);
-            } catch (error) {
-                console.error("Erro ao buscar artigos:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchPosts();
-    }, []);
+        if (isError) {
+            console.error("Erro ao buscar artigos:", error);
+            toast({ variant: 'destructive', title: 'Erro', description: (error as Error).message || 'Não foi possível carregar os artigos.' });
+        }
+    }, [isError, error, toast]);
+
 
     const featuredPost = posts[0];
     const otherPosts = posts.slice(1);
 
     const truncateText = (text: string, length: number) => {
         if (!text) return '';
-        if (text.length <= length) return text;
-        return text.substring(0, length) + '...';
+        // Remove HTML simples para uma pré-visualização mais limpa (opcional mas recomendado)
+        const plainText = text.replace(/<[^>]+>/g, '');
+        if (plainText.length <= length) return plainText;
+        return plainText.substring(0, length) + '...';
     };
 
     return (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
@@ -136,38 +137,61 @@ const ImageColumn = ({
 };
 
 const AdminAbout = () => {
-    const [content, setContent] = useState<AboutContent | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingSection, setEditingSection] = useState<'text' | 'images' | null>(null);
-
     const [isUploading, setIsUploading] = useState<'column1' | 'column2' | null>(null);
     const [editingImage, setEditingImage] = useState<{ column: 'imagesColumn1' | 'imagesColumn2', index: number } | null>(null);
     const [tempAlt, setTempAlt] = useState('');
     const { toast } = useToast();
+    const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof aboutFormSchema>>({
         resolver: zodResolver(aboutFormSchema),
     });
 
-    const fetchContent = useCallback(async () => {
-        setIsLoading(true);
-        try {
+    // React Query: GET
+    const {
+        data: content,
+        isLoading,
+    } = useQuery<AboutContent, Error>({
+        queryKey: ['about'],
+        queryFn: async () => {
             const response = await fetch('/api/about');
             if (!response.ok) throw new Error("Falha ao carregar conteúdo.");
-            const data = await response.json();
-            setContent(data);
-            form.reset(data);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar o conteúdo.' });
-        } finally {
-            setIsLoading(false);
+            return response.json();
         }
-    }, [toast, form]);
+    });
 
+    // Reset form when content is loaded
     useEffect(() => {
-        fetchContent();
-    }, [fetchContent]);
+        if (content) {
+            form.reset(content);
+        }
+    }, [content, form]);
+
+    // React Query: PUT
+    const mutation = useMutation({
+        mutationFn: async (data: z.infer<typeof aboutFormSchema> & { _id: string }) => {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/about', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data),
+            });
+            if (!response.ok) throw new Error('Falha ao salvar as alterações.');
+            return response.json();
+        },
+        onSuccess: (data) => {
+            toast({ title: 'Sucesso!', variant: "success", description: 'A sua secção "Sobre Mim" foi atualizada.' });
+            queryClient.invalidateQueries({ queryKey: ['about'] });
+            setIsDialogOpen(false);
+            setEditingSection(null);
+            form.reset(data);
+        },
+        onError: () => {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });
+        },
+    });
 
     const handleOpenDialog = (section: 'text' | 'images') => {
         setEditingSection(section);
@@ -195,11 +219,8 @@ const AdminAbout = () => {
     ) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        // Map para o estado de upload
         const uploadingColumn = column === 'imagesColumn1' ? 'column1' : 'column2';
         setIsUploading(uploadingColumn);
-
         try {
             const uploadedUrl = await handleCloudinaryUpload(file);
             const newImage: Image = { src: uploadedUrl, alt: 'Imagem da seção sobre mim' };
@@ -240,23 +261,7 @@ const AdminAbout = () => {
 
     const onSubmit = async (data: z.infer<typeof aboutFormSchema>) => {
         if (!content) return;
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/about', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ ...data, _id: content._id }),
-            });
-            if (!response.ok) throw new Error('Falha ao salvar as alterações.');
-
-            toast({ title: 'Sucesso!', variant: "success", description: 'A sua secção "Sobre Mim" foi atualizada.' });
-            setContent({ ...content, ...data });
-            setIsDialogOpen(false);
-            setEditingSection(null);
-            form.reset(data);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });
-        }
+        mutation.mutate({ ...data, _id: content._id });
     };
 
     if (isLoading || !content) {
@@ -320,8 +325,16 @@ const AdminAbout = () => {
                                 </div>
                             )}
                             <DialogFooter className="!mt-6">
-                                <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Guardar'}</Button>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button>
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    disabled={form.formState.isSubmitting || mutation.isPending}
+                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12"
+                                >
+                                    {(form.formState.isSubmitting || mutation.isPending) ? <Loader2 className="animate-spin" /> : 'Guardar'}
+                                </Button>
                             </DialogFooter>
                         </form>
                     </Form>

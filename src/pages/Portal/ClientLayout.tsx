@@ -5,8 +5,9 @@ import { LogOut, ArrowLeft } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import React from 'react';
 import { optimizeCloudinaryUrl } from "@/lib/utils.ts";
-import { Toaster } from "@/components/ui/toaster";
+// Toaster não é mais necessário aqui, já que o layout não chama o toast
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from '@tanstack/react-query'; // <<< Importado
 
 interface Gallery {
     _id: string;
@@ -17,52 +18,100 @@ interface Gallery {
     updatedAt?: string;
 }
 
+interface ClientInfo {
+    name: string;
+}
+
+// --- Funções de API (Helpers) ---
+
+const fetchClientGalleriesAPI = async (): Promise<Gallery[]> => {
+    const token = localStorage.getItem('clientAuthToken');
+    if (!token) throw new Error('Token não encontrado.');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const response = await fetch('/api/portal?action=getGalleries', { headers });
+    // Adiciona verificação de status 403 (Token inválido)
+    if (response.status === 403) throw new Error('Sessão inválida.');
+    if (!response.ok) throw new Error('Falha ao buscar galerias.');
+    return response.json();
+};
+
+const fetchClientInfoAPI = async (): Promise<ClientInfo> => {
+    const token = localStorage.getItem('clientAuthToken');
+    if (!token) throw new Error('Token não encontrado.');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const response = await fetch('/api/portal?action=getClientInfo', { headers });
+    if (response.status === 403) throw new Error('Sessão inválida.');
+    if (!response.ok) throw new Error('Falha ao buscar informações do cliente.');
+    return response.json();
+};
+
+// --- Componente Principal ---
+
 const ClientLayout = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
+    const queryClient = useQueryClient();
     const [headerBackAction, setHeaderBackAction] = useState<(() => void) | null>(null);
 
+    // Mantido para compatibilidade com o Outlet context (ClientGalleryPage usa setGalleries)
     const [galleries, setGalleries] = useState<Gallery[]>([]);
-    const [clientName, setClientName] = useState<string>('');
-    const [isLoading, setIsLoading] = useState(true);
 
-    const fetchData = useCallback(async (forceRefresh = false) => {
-        if (!forceRefresh && galleries.length > 0) {
-            setIsLoading(false);
-            return;
+    // --- Refatoração: Gestão de Erros ---
+    const handleAuthError = useCallback((error: Error) => {
+        toast({ variant: 'destructive', title: 'Erro de Sessão', description: `${error.message} Por favor, faça login novamente.` });
+        localStorage.removeItem('clientAuthToken');
+        navigate('/portal/login');
+    }, [navigate, toast]);
+
+    // --- Refatoração: useQuery para Galerias ---
+    // <<< CORREÇÃO (TS2769): 'onError' removido >>>
+    const { data: galleriesData, isLoading: isLoadingGalleries, isError: isGalleriesError, error: galleriesError } = useQuery<Gallery[], Error>({
+        queryKey: ['clientGalleries'],
+        queryFn: fetchClientGalleriesAPI,
+        staleTime: 5 * 60 * 1000,
+        retry: (failureCount, error) => {
+            // Não tenta de novo se for um erro de autenticação
+            return error.message !== 'Sessão inválida.' && failureCount < 2;
         }
+    });
 
-        setIsLoading(true);
-        try {
-            const token = localStorage.getItem('clientAuthToken');
-            if (!token) {
-                navigate('/portal/login');
-                return;
-            }
-            const headers = { 'Authorization': `Bearer ${token}` };
-            const [galleriesResponse, clientInfoResponse] = await Promise.all([
-                fetch('/api/portal?action=getGalleries', { headers }),
-                fetch('/api/portal?action=getClientInfo', { headers })
-            ]);
-
-            if (galleriesResponse.ok) setGalleries(await galleriesResponse.json());
-            else throw new Error('Falha ao buscar galerias.');
-
-            if (clientInfoResponse.ok) setClientName((await clientInfoResponse.json()).name || '');
-            else throw new Error('Falha ao buscar informações do cliente.');
-
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro de Sessão', description: 'Não foi possível carregar os seus dados. Por favor, faça login novamente.' });
-            localStorage.removeItem('clientAuthToken');
-            navigate('/portal/login');
-        } finally {
-            setIsLoading(false);
+    // --- Refatoração: useQuery para Info do Cliente ---
+    // <<< CORREÇÃO (TS2769): 'onError' removido >>>
+    const { data: clientInfo, isLoading: isLoadingClientInfo, isError: isClientInfoError, error: clientInfoError } = useQuery<ClientInfo, Error>({
+        queryKey: ['clientInfo'],
+        queryFn: fetchClientInfoAPI,
+        staleTime: 5 * 60 * 1000,
+        retry: (failureCount, error) => {
+            return error.message !== 'Sessão inválida.' && failureCount < 2;
         }
-    }, [navigate, toast, galleries.length]);
+    });
 
+    // <<< CORREÇÃO (TS2345): Adicionado 'if (galleriesData)' >>>
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (galleriesData) {
+            setGalleries(galleriesData);
+        }
+    }, [galleriesData]);
+
+    // <<< CORREÇÃO: Novo useEffect para lidar com erros (substitui 'onError') >>>
+    useEffect(() => {
+        if (isGalleriesError && galleriesError) {
+            handleAuthError(galleriesError);
+        } else if (isClientInfoError && clientInfoError) {
+            handleAuthError(clientInfoError);
+        }
+    }, [isGalleriesError, galleriesError, isClientInfoError, clientInfoError, handleAuthError]);
+
+
+    const isLoading = isLoadingGalleries || isLoadingClientInfo;
+    // <<< CORREÇÃO (TS2339): 'clientInfo' agora é do tipo correto >>>
+    const clientName = clientInfo?.name || '';
+
+    const refetchData = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ['clientGalleries'] });
+        queryClient.invalidateQueries({ queryKey: ['clientInfo'] });
+    }, [queryClient]);
+
 
     const handleLogout = () => {
         localStorage.removeItem('clientAuthToken');
@@ -71,12 +120,8 @@ const ClientLayout = () => {
 
     const getGreeting = () => {
         const hour = new Date().getHours();
-        if (hour >= 5 && hour < 12) {
-            return "Bom dia";
-        }
-        if (hour >= 12 && hour < 18) {
-            return "Boa tarde";
-        }
+        if (hour >= 5 && hour < 12) return "Bom dia";
+        if (hour >= 12 && hour < 18) return "Boa tarde";
         return "Boa noite";
     };
 
@@ -108,11 +153,9 @@ const ClientLayout = () => {
                     )}
                 </div>
 
-                {/* ***** INÍCIO DAS MODIFICAÇÕES ***** */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
                     <div className="flex items-center gap-4">
                         <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
-                        {/* A saudação agora aparece assim que o nome do cliente estiver disponível, independentemente do botão "Voltar" */}
                         {!isLoading && clientName && (
                             <h1 className="hidden sm:block text-xl sm:text-2xl font-light text-white whitespace-nowrap animate-fade-in">
                                 {getGreeting()}, <span className="font-semibold text-orange-500">{clientName.split(' ')[0]}</span>
@@ -120,10 +163,8 @@ const ClientLayout = () => {
                         )}
                     </div>
                 </div>
-                {/* ***** FIM DAS MODIFICAÇÕES ***** */}
 
                 <div className="w-28 flex justify-end">
-                    {/* O botão de sair só aparece se o de voltar não estiver visível */}
                     {!headerBackAction && (
                         <Button
                             variant="ghost"
@@ -144,7 +185,7 @@ const ClientLayout = () => {
                     clientName,
                     isLoading,
                     setGalleries,
-                    refetchData: () => fetchData(true)
+                    refetchData: refetchData
                 }} />
             </main>
         </div>

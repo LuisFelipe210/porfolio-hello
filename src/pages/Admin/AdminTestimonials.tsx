@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card'; // CardContent removido
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,15 +12,16 @@ import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDashboardData } from '@/hooks/useDashboardData';
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
+// Schema (sem alteração)
 const testimonialSchema = z.object({
     author: z.string().min(3, { message: "O nome do autor é obrigatório." }),
     role: z.string().min(3, { message: "O cargo/serviço é obrigatório." }),
@@ -28,6 +29,7 @@ const testimonialSchema = z.object({
     alt: z.string().optional(),
 });
 
+// Interface (sem alteração)
 interface Testimonial {
     _id: string;
     author: string;
@@ -37,17 +39,72 @@ interface Testimonial {
     alt?: string;
 }
 
+// --- Funções de API (Helpers) ---
+
+const fetchTestimonialsAPI = async (): Promise<Testimonial[]> => {
+    const response = await fetch('/api/testimonials');
+    if (!response.ok) throw new Error("Falha ao carregar depoimentos.");
+    return response.json();
+};
+
+const handleCloudinaryUpload = async (fileToUpload: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', fileToUpload);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', 'borges-captures/testimonials');
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
+    if (!uploadResponse.ok) throw new Error('Falha no upload para o Cloudinary.');
+    const uploadData = await uploadResponse.json();
+    return uploadData.secure_url;
+};
+
+const saveTestimonialAPI = async (data: {
+    formData: z.infer<typeof testimonialSchema>,
+    imageUrl: string | null,
+    editingId: string | null
+}) => {
+    const { formData, imageUrl, editingId } = data;
+    const token = localStorage.getItem('authToken');
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `/api/testimonials?id=${editingId}` : '/api/testimonials';
+    const bodyPayload = {
+        ...formData,
+        alt: formData.alt || `Foto de ${formData.author}`,
+        ...(imageUrl && { imageUrl })
+    };
+
+    const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(bodyPayload),
+    });
+    if (!response.ok) throw new Error('Falha ao salvar o depoimento.');
+    return response.json();
+};
+
+const deleteTestimonialsAPI = async (testimonialIds: string[]) => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`/api/testimonials`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ testimonialIds }),
+    });
+    if (!response.ok) throw new Error('Falha ao excluir os depoimentos.');
+    return response.json();
+};
+
+// --- Componente Principal ---
+
 const AdminTestimonials = () => {
-    const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { toast } = useToast();
     const isMobile = useIsMobile();
-    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
+    const { refetch: refetchDashboard } = useDashboardData();
+    const queryClient = useQueryClient();
 
     const [selectedTestimonials, setSelectedTestimonials] = useState<Set<string>>(new Set());
     const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
@@ -57,23 +114,21 @@ const AdminTestimonials = () => {
         defaultValues: { author: "", role: "", text: "", alt: "" },
     });
 
-    const fetchTestimonials = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/testimonials');
-            if (!response.ok) throw new Error("Falha ao carregar depoimentos.");
-            const data = await response.json();
-            setTestimonials(data);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar os depoimentos.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // --- Refatoração: useQuery ---
+    // <<< CORREÇÃO: Removido o '_' (underscore) no final da linha abaixo >>>
+    const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[], Error>({
+        queryKey: ['testimonials'],
+        queryFn: fetchTestimonialsAPI,
+        initialData: [], // Garante que 'testimonials' é sempre um array
+    });
 
+    // Efeito para lidar com erros do useQuery
     useEffect(() => {
-        fetchTestimonials();
-    }, []);
+        if (isError) {
+            toast({ variant: 'destructive', title: 'Erro', description: (error as Error).message || 'Não foi possível carregar os depoimentos.' });
+        }
+    }, [isError, error, toast]);
+
 
     const resetForm = () => {
         form.reset();
@@ -95,17 +150,20 @@ const AdminTestimonials = () => {
         setIsDialogOpen(true);
     };
 
-    const handleCloudinaryUpload = async (fileToUpload: File): Promise<string> => {
-        const formData = new FormData();
-        formData.append('file', fileToUpload);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        formData.append('folder', 'borges-captures/testimonials');
-        const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-        const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
-        if (!uploadResponse.ok) throw new Error('Falha no upload para o Cloudinary.');
-        const uploadData = await uploadResponse.json();
-        return uploadData.secure_url;
-    };
+    // --- Refatoração: useMutation (Salvar) ---
+    const saveMutation = useMutation({
+        mutationFn: saveTestimonialAPI,
+        onSuccess: (data, variables) => {
+            toast({ title: 'Sucesso!', variant: "success", description: `Depoimento ${variables.editingId ? 'atualizado' : 'adicionado'} com sucesso.` });
+            resetForm();
+            setIsDialogOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+            refetchDashboard();
+        },
+        onError: (error: Error) => {
+            toast({ variant: 'destructive', title: 'Erro', description: error.message });
+        }
+    });
 
     const onSubmit = async (data: z.infer<typeof testimonialSchema>) => {
         if (!editingId && !file) {
@@ -113,63 +171,38 @@ const AdminTestimonials = () => {
             return;
         }
 
-        try {
-            let imageUrl = '';
-            if (file) {
+        let imageUrl: string | null = null;
+        if (file) {
+            try {
                 imageUrl = await handleCloudinaryUpload(file);
+            } catch (error: unknown) {
+                const msg = error instanceof Error ? error.message : 'Erro no upload';
+                toast({ variant: 'destructive', title: 'Erro no Upload', description: msg });
+                return;
             }
-
-            const token = localStorage.getItem('authToken');
-            const method = editingId ? 'PUT' : 'POST';
-            const url = editingId ? `/api/testimonials?id=${editingId}` : '/api/testimonials';
-            const bodyPayload = {
-                author: data.author,
-                role: data.role,
-                text: data.text,
-                alt: data.alt || `Foto de ${data.author}`,
-                ...(imageUrl && { imageUrl })
-            };
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(bodyPayload),
-            });
-
-            if (!response.ok) throw new Error('Falha ao salvar o depoimento.');
-
-            toast({ title: 'Sucesso!', variant: "success", description: `Depoimento ${editingId ? 'atualizado' : 'adicionado'} com sucesso.` });
-            resetForm();
-            setIsDialogOpen(false);
-            fetchTestimonials();
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
-            toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
         }
+
+        saveMutation.mutate({ formData: data, imageUrl, editingId });
     };
 
-    const handleDeleteSelected = async () => {
-        if (selectedTestimonials.size === 0) return;
-        setIsDeleting(true);
-        try {
-            const token = localStorage.getItem('authToken');
-            const ids = Array.from(selectedTestimonials);
-            const response = await fetch(`/api/testimonials`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ testimonialIds: ids }),
-            });
-            if (!response.ok) throw new Error('Falha ao excluir os depoimentos.');
+    // --- Refatoração: useMutation (Apagar) ---
+    const deleteMutation = useMutation({
+        mutationFn: deleteTestimonialsAPI,
+        onSuccess: (data, ids) => {
             toast({ title: 'Sucesso!', variant: "success", description: `${ids.length} depoimento(s) excluído(s) com sucesso.` });
             setSelectedTestimonials(new Set());
             setIsBulkDeleteDialogOpen(false);
-            fetchTestimonials();
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
-            toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
-        } finally {
-            setIsDeleting(false);
+            queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+            refetchDashboard();
+        },
+        onError: (error: Error) => {
+            toast({ variant: 'destructive', title: 'Erro', description: error.message });
         }
+    });
+
+    const handleDeleteSelected = async () => {
+        if (selectedTestimonials.size === 0) return;
+        deleteMutation.mutate(Array.from(selectedTestimonials));
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,7 +272,7 @@ const AdminTestimonials = () => {
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     {selectedTestimonials.size > 0 && (
-                        <Button onClick={() => setIsBulkDeleteDialogOpen(true)} disabled={isDeleting} variant="outline" className="border border-red-500/80 hover:bg-red-500/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent w-full sm:w-auto">
+                        <Button onClick={() => setIsBulkDeleteDialogOpen(true)} disabled={deleteMutation.isPending} variant="outline" className="border border-red-500/80 hover:bg-red-500/20 text-red-500 rounded-xl font-semibold transition-all bg-transparent w-full sm:w-auto">
                             <Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedTestimonials.size})
                         </Button>
                     )}
@@ -280,8 +313,8 @@ const AdminTestimonials = () => {
                             </FormItem>)} />
                             <DialogFooter className="!mt-6">
                                 <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">
-                                    {form.formState.isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> A guardar...</> : 'Guardar'}
+                                <Button type="submit" disabled={saveMutation.isPending} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">
+                                    {saveMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> A guardar...</> : 'Guardar'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -295,8 +328,8 @@ const AdminTestimonials = () => {
                     <p className="text-white/80">Tem a certeza que deseja excluir {selectedTestimonials.size} depoimento(s) selecionado(s)? Esta ação não pode ser desfeita.</p>
                     <DialogFooter className="flex justify-end gap-2 !mt-6">
                         <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                        <Button onClick={handleDeleteSelected} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12">
-                            {isDeleting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> A excluir...</> : <><Trash2 className="h-4 w-4 mr-2" /> Excluir</>}
+                        <Button onClick={handleDeleteSelected} disabled={deleteMutation.isPending} className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12">
+                            {deleteMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> A excluir...</> : <><Trash2 className="h-4 w-4 mr-2" /> Excluir</>}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

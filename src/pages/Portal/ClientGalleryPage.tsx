@@ -1,7 +1,18 @@
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import { useState, useEffect, useRef, useCallback } from 'react';
-// --- GalleryPreviewImage with lazy loading and skeleton ---
+import { createPortal } from 'react-dom';
+import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Heart, Check, CheckCircle, Send, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import Logo from '@/assets/logo.svg';
+import { useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
+
+// --- GalleryPreviewImage (Sem alteração) ---
 const GalleryPreviewImage = ({ src, alt }: { src: string; alt?: string }) => {
     const [loaded, setLoaded] = useState(false);
     return (
@@ -17,17 +28,8 @@ const GalleryPreviewImage = ({ src, alt }: { src: string; alt?: string }) => {
         </div>
     );
 };
-import { createPortal } from 'react-dom';
-import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, Check, CheckCircle, Send, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { optimizeCloudinaryUrl } from '@/lib/utils';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import Logo from '@/assets/logo.svg';
 
-// --- Interfaces ---
+// --- Interfaces (Sem alteração) ---
 interface Gallery {
     _id: string;
     name: string;
@@ -50,17 +52,13 @@ interface LayoutContext {
     refetchData: () => void;
 }
 
-// Componente ImageModal (sem alterações)
+// --- Componente ImageModal (Sem alterações) ---
 const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages, toggleSelection, isSelectionComplete }: { images: string[]; currentIndex: number; onClose: () => void; onNavigate: (direction: 'prev' | 'next') => void; selectedImages: Set<string>; toggleSelection: (imageUrl: string) => void; isSelectionComplete: boolean; }) => {
-    // ... (código existente sem alterações)
     const [isImageLoading, setIsImageLoading] = useState(true);
     const currentImage = images[currentIndex];
     const isSelected = selectedImages.has(currentImage);
 
-    useEffect(() => {
-        setIsImageLoading(true);
-    }, [currentIndex]);
-
+    useEffect(() => { setIsImageLoading(true); }, [currentIndex]);
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight') onNavigate('next');
@@ -70,7 +68,6 @@ const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages,
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onNavigate, onClose]);
-
     useEffect(() => {
         if (currentIndex < images.length - 1) new Image().src = optimizeCloudinaryUrl(images[currentIndex + 1], "f_auto,q_auto,w_1920");
         if (currentIndex > 0) new Image().src = optimizeCloudinaryUrl(images[currentIndex - 1], "f_auto,q_auto,w_1920");
@@ -80,9 +77,7 @@ const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages,
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fade-in" onClick={onClose}>
             <div className="relative w-full h-full flex items-center justify-center group" onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="absolute top-3 right-3 sm:top-5 sm:right-5 text-white z-50 h-12 w-12 rounded-full hover:bg-white/10" onClick={onClose} aria-label="Fechar"><X className="h-7 w-7" /></Button>
-
                 {currentIndex > 0 && <Button variant="ghost" size="icon" className="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 text-white z-50 h-14 w-14 rounded-full hover:bg-white/10" onClick={() => onNavigate('prev')} aria-label="Anterior"><ChevronLeft className="h-10 w-10" /></Button>}
-
                 <div className="w-full h-full flex items-center justify-center p-4">
                     <div className="w-full h-full flex items-center justify-center relative">
                         {isImageLoading && <Loader2 className="h-10 w-10 text-white animate-spin absolute" />}
@@ -103,7 +98,6 @@ const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages,
                         )}
                     </div>
                 </div>
-
                 {currentIndex < images.length - 1 && <Button variant="ghost" size="icon" className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 text-white z-50 h-14 w-14 rounded-full hover:bg-white/10" onClick={() => onNavigate('next')} aria-label="Próxima"><ChevronRight className="h-10 w-10" /></Button>}
             </div>
         </div>,
@@ -111,13 +105,39 @@ const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages,
     );
 };
 
-// --- Componente GallerySelectionView (sem alterações) ---
+
+// --- Funções de API (Helpers para Mutations) ---
+
+const autoSaveSelectionAPI = async (data: { galleryId: string, selectedImages: string[] }) => {
+    const token = localStorage.getItem('clientAuthToken');
+    const response = await fetch('/api/portal?action=updateSelection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Falha no auto-save.');
+    return response.json();
+};
+
+const submitSelectionAPI = async (data: { galleryId: string, selectedImages: string[] }) => {
+    const token = localStorage.getItem('clientAuthToken');
+    const response = await fetch('/api/portal?action=submitSelection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Falha ao enviar a seleção.');
+    return response.json();
+};
+
+
+// --- Componente GallerySelectionView (Refatorado com Mutations) ---
 const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }: { gallery: Gallery; onSelectionSubmit: () => void; onSelectionChange: (galleryId: string, selections: string[]) => void; }) => {
     const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
         const saved = localStorage.getItem(`gallerySelection_${gallery._id}`);
         return saved ? new Set(JSON.parse(saved)) : new Set(gallery.selections || []);
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    // const [isSubmitting, setIsSubmitting] = useState(false); // <<< REMOVIDO
     const [modalImageIndex, setModalImageIndex] = useState<number | null>(null);
     const { toast } = useToast();
     const isSelectionComplete = gallery.status === 'selection_complete';
@@ -125,29 +145,52 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
     const [lastInteractedImage, setLastInteractedImage] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isSelectionComplete || saveStatus !== 'saving') return;
-        const selectionsArray = Array.from(selectedImages);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(async () => {
-            try {
-                const token = localStorage.getItem('clientAuthToken');
-                await fetch('/api/portal?action=updateSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: selectionsArray }) });
-                setSaveStatus('saved');
-                setTimeout(() => {
-                    setSaveStatus('idle');
-                    setLastInteractedImage(null);
-                }, 1500);
-            } catch (error) {
-                console.error("[AUTOSAVE] Erro:", error);
+    // --- Refatoração: useMutation (Auto-Save) ---
+    const autoSaveMutation = useMutation({
+        mutationFn: autoSaveSelectionAPI,
+        onSuccess: () => {
+            setSaveStatus('saved');
+            setTimeout(() => {
                 setSaveStatus('idle');
                 setLastInteractedImage(null);
-            }
-        }, 1500);
-        return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
-    }, [selectedImages, gallery._id, isSelectionComplete, onSelectionChange, saveStatus]);
+            }, 1500);
+        },
+        onError: (error) => {
+            console.error("[AUTOSAVE] Erro:", error);
+            setSaveStatus('idle');
+            setLastInteractedImage(null);
+            // Poderia adicionar um toast de erro aqui se desejado
+        }
+    });
 
-    // Persist selectedImages in localStorage whenever it changes
+    // --- Refatoração: useMutation (Submit Final) ---
+    const submitMutation = useMutation({
+        mutationFn: submitSelectionAPI,
+        onSuccess: () => {
+            localStorage.removeItem(`gallerySelection_${gallery._id}`);
+            toast({ title: 'Seleção Enviada!', variant: 'success' ,description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
+            onSelectionSubmit();
+        },
+        onError: (error) => {
+            toast({ variant: 'destructive', title: 'Erro', description: (error as Error).message || 'Não foi possível enviar a sua seleção.' });
+        }
+    });
+
+    // useEffect de Auto-Save (agora chama o mutation)
+    useEffect(() => {
+        if (isSelectionComplete || saveStatus !== 'saving') return;
+
+        const selectionsArray = Array.from(selectedImages);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+        timeoutRef.current = setTimeout(() => {
+            autoSaveMutation.mutate({ galleryId: gallery._id, selectedImages: selectionsArray });
+        }, 1500);
+
+        return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+    }, [selectedImages, gallery._id, isSelectionComplete, saveStatus, autoSaveMutation]); // autoSaveMutation adicionado
+
+    // useEffect de Persistência no localStorage (sem alteração)
     useEffect(() => {
         localStorage.setItem(`gallerySelection_${gallery._id}`, JSON.stringify(Array.from(selectedImages)));
     }, [selectedImages, gallery._id]);
@@ -156,7 +199,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         if (isSelectionComplete) return;
         event?.stopPropagation();
         setLastInteractedImage(imageUrl);
-        setSaveStatus('saving');
+        setSaveStatus('saving'); // Define o estado para 'saving' para acionar o useEffect
         const newSet = new Set(selectedImages);
         if (newSet.has(imageUrl)) {
             newSet.delete(imageUrl);
@@ -167,18 +210,10 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         onSelectionChange(gallery._id, Array.from(newSet));
     };
 
+    // handleSubmitSelection (agora chama o mutation)
     const handleSubmitSelection = async () => {
-        setIsSubmitting(true);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        try {
-            const token = localStorage.getItem('clientAuthToken');
-            const response = await fetch('/api/portal?action=submitSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }) });
-            if (!response.ok) throw new Error('Falha ao enviar a seleção.');
-            // Limpa o localStorage após envio com sucesso
-            localStorage.removeItem(`gallerySelection_${gallery._id}`);
-            toast({ title: 'Seleção Enviada!', variant: 'success' ,description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
-            onSelectionSubmit();
-        } catch (error) { toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar a sua seleção.' }); } finally { setIsSubmitting(false); }
+        if (timeoutRef.current) clearTimeout(timeoutRef.current); // Cancela qualquer auto-save pendente
+        submitMutation.mutate({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) });
     };
 
     const handleNavigateModal = (direction: 'prev' | 'next') => {
@@ -189,7 +224,9 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 
     return (
         <div className="animate-fade-in">
-            {isSubmitting && (<div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-xl"><div className="flex flex-col items-center gap-6 p-8 rounded-3xl bg-black/70 border border-white/10 max-w-sm text-center"><img src={Logo} alt="Logo" className="h-10 w-auto" /><Loader2 className="h-12 w-12 text-orange-500 animate-spin" /><h2 className="text-2xl font-bold text-white">A enviar a sua seleção...</h2><p className="text-white/80">Por favor, aguarde.</p></div></div>)}
+            {/* O overlay de loading agora usa o 'isPending' do submitMutation */}
+            {submitMutation.isPending && (<div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-xl"><div className="flex flex-col items-center gap-6 p-8 rounded-3xl bg-black/70 border border-white/10 max-w-sm text-center"><img src={Logo} alt="Logo" className="h-10 w-auto" /><Loader2 className="h-12 w-12 text-orange-500 animate-spin" /><h2 className="text-2xl font-bold text-white">A enviar a sua seleção...</h2><p className="text-white/80">Por favor, aguarde.</p></div></div>)}
+
             {modalImageIndex !== null && <ImageModal images={gallery.images} currentIndex={modalImageIndex} onClose={() => setModalImageIndex(null)} onNavigate={handleNavigateModal} selectedImages={selectedImages} toggleSelection={toggleSelection} isSelectionComplete={isSelectionComplete} />}
 
             <div className="mb-12 text-center text-white"><h2 className="text-4xl font-bold tracking-tight">{gallery.name}</h2><p className="text-lg text-white/80 mt-2">{isSelectionComplete ? "Seleção finalizada e enviada." : "Clique numa imagem para a ver em detalhe e selecionar as suas favoritas."}</p></div>
@@ -240,7 +277,12 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                             </AlertDialogTrigger>
                             <AlertDialogContent className="bg-black/80 border-white/10 text-white backdrop-blur-lg rounded-3xl">
                                 <AlertDialogHeader><AlertDialogTitle>Confirmar Envio</AlertDialogTitle><AlertDialogDescription className="text-white/80">Tem a certeza que deseja finalizar a sua seleção de {selectedImages.size} fotos? Não poderá fazer alterações após o envio.</AlertDialogDescription></AlertDialogHeader>
-                                <AlertDialogFooter><AlertDialogCancel className="rounded-xl h-12">Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleSubmitSelection} disabled={isSubmitting} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12">{isSubmitting ? 'A enviar...' : 'Sim, enviar'}</AlertDialogAction></AlertDialogFooter>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel className="rounded-xl h-12">Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleSubmitSelection} disabled={submitMutation.isPending} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12">
+                                        {submitMutation.isPending ? 'A enviar...' : 'Sim, enviar'}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
                     </div>
@@ -251,7 +293,8 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
 };
 
 
-// --- Componente Principal ClientGalleryPage ---
+// --- Componente Principal ClientGalleryPage (Consumidor do Context) ---
+// (Esta parte consome os dados do useQuery que virá do ClientLayout.tsx)
 const ClientGalleryPage = () => {
     const { galleries, clientName, isLoading, setGalleries, refetchData, setHeaderBackAction } = useOutletContext<LayoutContext>();
     const navigate = useNavigate();
@@ -287,7 +330,6 @@ const ClientGalleryPage = () => {
 
     return (
         <div className="animate-fade-in">
-            {/* ***** TÍTULO REMOVIDO DAQUI ***** */}
             <div className="text-center mb-12">
                 <p className="text-lg text-white/70 max-w-2xl mx-auto">Clique numa galeria para ver as fotos e fazer a sua seleção.</p>
             </div>

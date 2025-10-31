@@ -23,7 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit, Plus, Loader2, GripVertical } from 'lucide-react';
+import { Plus, Loader2, GripVertical, Trash2, Edit } from 'lucide-react';
 // dnd-kit imports
 import {
     DndContext,
@@ -40,7 +40,44 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-// SortablePortfolioItem component
+
+// ***** INÍCIO DAS NOVAS IMPORTAÇÕES *****
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// ***** FIM DAS NOVAS IMPORTAÇÕES *****
+
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { optimizeCloudinaryUrl } from '@/lib/utils';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+
+// Esquema Zod (sem alteração)
+const portfolioItemSchema = z.object({
+    title: z.string().min(3, { message: "O título é obrigatório." }),
+    category: z.string().min(1, { message: "Selecione uma categoria." }),
+    description: z.string().min(1, { message: "A descrição é obrigatória." }),
+    alt: z.string().optional(),
+});
+
+// Interface (sem alteração)
+interface PortfolioItem {
+    _id: string;
+    title: string;
+    category: string;
+    description: string;
+    image: string;
+    alt?: string;
+}
+
+// Constantes (sem alteração)
+const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
+const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
+
+
+// --- Componente SortablePortfolioItem (Sem alterações) ---
 const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
     item: PortfolioItem,
     selected: boolean,
@@ -64,7 +101,6 @@ const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
     };
 
     if (isMobile) {
-        // Mobile: GripVertical vai junto do checkbox no canto esquerdo (como AdminServices)
         return (
             <div
                 ref={setNodeRef}
@@ -109,7 +145,6 @@ const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
         );
     }
 
-    // Desktop: GripVertical como primeira célula da tabela, antes do checkbox
     return (
         <TableRow
             ref={setNodeRef}
@@ -158,86 +193,120 @@ const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
         </TableRow>
     );
 };
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useDashboardData } from '@/hooks/useDashboardData';
-import { Skeleton } from '@/components/ui/skeleton';
-import { optimizeCloudinaryUrl } from '@/lib/utils';
-
-// ***** INÍCIO DAS MODIFICAÇÕES *****
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-
-// 1. Esquema de validação com Zod
-const portfolioItemSchema = z.object({
-    title: z.string().min(3, { message: "O título é obrigatório." }),
-    category: z.string().min(1, { message: "Selecione uma categoria." }),
-    description: z.string().min(1, { message: "A descrição é obrigatória." }),
-    alt: z.string().optional(),
-});
-// ***** FIM DAS MODIFICAÇÕES *****
 
 
-interface PortfolioItem {
-    _id: string;
-    title: string;
-    category: string;
-    description: string;
-    image: string;
-    alt?: string;
-}
+// ***** FUNÇÕES DE API (Helpers) - Sem alterações *****
+const fetchPortfolioItems = async (): Promise<PortfolioItem[]> => {
+    const response = await fetch('/api/portfolio');
+    if (!response.ok) throw new Error("Falha ao carregar itens.");
+    return response.json();
+};
 
-const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
-const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
+const savePortfolioItem = async (data: {
+    formData: z.infer<typeof portfolioItemSchema>,
+    imageUrl: string | null,
+    editingId: string | null
+}) => {
+    const { formData, imageUrl, editingId } = data;
+    const token = localStorage.getItem('authToken');
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `/api/portfolio?id=${editingId}` : '/api/portfolio';
+    const body = {
+        ...formData,
+        alt: formData.alt || formData.title,
+        ...(imageUrl && { image: imageUrl })
+    };
+    const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new Error('Falha ao salvar o item.');
+    return response.json();
+};
+
+const deletePortfolioItems = async (itemIds: string[]) => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/portfolio', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ itemIds }),
+    });
+    if (!response.ok) throw new Error('Falha ao excluir.');
+    return response.json();
+};
+
+const reorderPortfolioItems = async (itemIds: string[]) => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/portfolio/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ itemIds }),
+    });
+    if (!response.ok) throw new Error('Não foi possível atualizar a ordem.');
+    return response.json();
+};
+
+const handleCloudinaryUpload = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', 'borges-captures/portfolio');
+
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
+
+    if (!uploadResponse.ok) {
+        console.error("Erro no Cloudinary:", await uploadResponse.json());
+        throw new Error('Falha no upload para Cloudinary.');
+    }
+    const uploadData = await uploadResponse.json();
+    return uploadData.secure_url;
+};
+
 
 const AdminPortfolio = () => {
     const [items, setItems] = useState<PortfolioItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { toast } = useToast();
     const isMobile = useIsMobile();
+    const queryClient = useQueryClient();
 
-    const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
+    const { refetch: refetchDashboard } = useDashboardData();
 
-    // Os useState para campos de formulário foram removidos.
     const [file, setFile] = useState<File | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
-
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-    const [isDeleting, setIsDeleting] = useState(false);
 
-    // ***** INÍCIO DAS MODIFICAÇÕES *****
-    // 2. O formulário agora é controlado pelo React Hook Form
     const form = useForm<z.infer<typeof portfolioItemSchema>>({
         resolver: zodResolver(portfolioItemSchema),
-        defaultValues: {
-            title: "",
-            category: "",
-            description: "",
-            alt: "",
-        },
+        defaultValues: { title: "", category: "", description: "", alt: "" },
     });
-    // ***** FIM DAS MODIFICAÇÕES *****
 
-    const fetchItems = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/portfolio');
-            if (!response.ok) throw new Error("Falha ao carregar itens.");
-            const data = await response.json();
-            setItems(data);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar os itens do portfólio.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // ***** CORREÇÃO: useQuery (TS2769) *****
+    // 'onError' foi removido e a tipagem de Erro foi adicionada
+    const { data: portfolioData, isLoading, isError, error } = useQuery<PortfolioItem[], Error>({
+        queryKey: ['portfolioItems'],
+        queryFn: fetchPortfolioItems,
+        // O onError foi removido daqui
+    });
 
+    // ***** CORREÇÃO: useEffect (TS2345) *****
+    // Adicionada a verificação 'if (portfolioData)'
     useEffect(() => {
-        fetchItems();
-    }, []);
+        if (portfolioData) {
+            setItems(portfolioData);
+        }
+    }, [portfolioData]);
+
+    // ***** CORREÇÃO: Novo useEffect para lidar com erros do useQuery *****
+    useEffect(() => {
+        if (isError && error) {
+            toast({ variant: 'destructive', title: 'Erro', description: error.message });
+        }
+    }, [isError, error, toast]);
+
 
     const resetForm = () => {
         form.reset({ title: "", category: "", description: "", alt: "" });
@@ -249,7 +318,6 @@ const AdminPortfolio = () => {
         resetForm();
         if (item) {
             setEditingId(item._id);
-            // Popula o formulário com dados do item para edição
             form.reset({
                 title: item.title,
                 category: item.category,
@@ -260,89 +328,67 @@ const AdminPortfolio = () => {
         setIsDialogOpen(true);
     };
 
-    const handleCloudinaryUpload = async (file: File): Promise<string> => {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        formData.append('folder', 'borges-captures/portfolio');
-
-        const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-        const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
-
-        if (!uploadResponse.ok) {
-            console.error("Erro no Cloudinary:", await uploadResponse.json());
-            throw new Error('Falha no upload para Cloudinary.');
+    // ***** CORREÇÃO: useMutation (Salvar) *****
+    // 'isPending' é o estado de loading correto
+    const saveMutation = useMutation({
+        mutationFn: savePortfolioItem,
+        onSuccess: (data, variables) => {
+            toast({ title: 'Sucesso!', variant: "success", description: `Item ${variables.editingId ? 'atualizado' : 'adicionado'}.` });
+            resetForm();
+            setIsDialogOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
+            refetchDashboard();
+        },
+        onError: (error: Error) => {
+            toast({ variant: 'destructive', title: 'Erro', description: error.message });
         }
-        const uploadData = await uploadResponse.json();
-        return uploadData.secure_url;
-    };
+    });
 
-    // ***** INÍCIO DAS MODIFICAÇÕES *****
-    // 3. A função de submit é adaptada para o React Hook Form
     const onSubmit = async (data: z.infer<typeof portfolioItemSchema>) => {
         if (!editingId && !file) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem para um novo item.' });
             return;
         }
 
-        try {
-            let imageUrl = '';
-            if (file) {
+        let imageUrl: string | null = null;
+        if (file) {
+            try {
                 imageUrl = await handleCloudinaryUpload(file);
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    toast({ variant: 'destructive', title: 'Erro no Upload', description: error.message });
+                } else {
+                    toast({ variant: 'destructive', title: 'Erro no Upload', description: 'Ocorreu um erro desconhecido.' });
+                }
+                return;
             }
-
-            const token = localStorage.getItem('authToken');
-            const method = editingId ? 'PUT' : 'POST';
-            const url = editingId ? `/api/portfolio?id=${editingId}` : '/api/portfolio';
-            const body = {
-                title: data.title,
-                category: data.category,
-                description: data.description,
-                alt: data.alt || data.title,
-                ...(imageUrl && { image: imageUrl })
-            };
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(body),
-            });
-
-            if (!response.ok) throw new Error('Falha ao salvar o item.');
-            toast({ title: 'Sucesso!', variant: "success", description: `Item ${editingId ? 'atualizado' : 'adicionado'}.` });
-
-            resetForm();
-            setIsDialogOpen(false);
-            fetchItems();
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
-            toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
         }
+
+        saveMutation.mutate({ formData: data, imageUrl, editingId });
     };
-    // ***** FIM DAS MODIFICAÇÕES *****
+
+    // ***** CORREÇÃO: useMutation (Apagar) *****
+    const deleteMutation = useMutation({
+        mutationFn: deletePortfolioItems,
+        onSuccess: (data, itemIds) => {
+            toast({ title: 'Sucesso', variant: "success", description: `${itemIds.length} item(ns) excluído(s).` });
+            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
+            refetchDashboard();
+        },
+        onError: (error: Error) => {
+            toast({ variant: 'destructive', title: 'Erro', description: error.message });
+        },
+        onSettled: () => {
+            setIsDeleteModalOpen(false);
+            setSelectedItems(new Set());
+        }
+    });
 
     const handleDelete = async () => {
         if (selectedItems.size === 0) return;
-        setIsDeleting(true);
-        try {
-            const token = localStorage.getItem('authToken');
-            const ids = Array.from(selectedItems);
-            const response = await fetch('/api/portfolio', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ itemIds: ids }),
-            });
-            if (!response.ok) throw new Error('Falha ao excluir.');
-            toast({ title: 'Sucesso', variant: "success", description: `${ids.length} item(ns) excluído(s).` });
-            fetchItems();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir o(s) item(ns).' });
-        } finally {
-            setIsDeleteModalOpen(false);
-            setSelectedItems(new Set());
-            setIsDeleting(false);
-        }
+        deleteMutation.mutate(Array.from(selectedItems));
     };
+
 
     const handleSelectionChange = (id: string, checked: boolean) => {
         const newSet = new Set(selectedItems);
@@ -351,50 +397,54 @@ const AdminPortfolio = () => {
         setSelectedItems(newSet);
     };
 
-    // Drag and Drop handlers
+    // ***** CORREÇÃO: useMutation (Reordenar) (TS2353 e ESLint) *****
+    // 'context' foi removido e 'variables' foi tipado
+    const reorderMutation = useMutation({
+        mutationFn: reorderPortfolioItems,
+        onError: (error: Error, variables: string[]) => {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a ordem. Sincronizando...' });
+            // Apenas invalida. O "snap-back" virá do refetch.
+            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
+        }
+    });
+
     const sensors = useSensors(useSensor(PointerSensor));
 
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
+
         const oldIndex = items.findIndex(i => i._id === active.id);
         const newIndex = items.findIndex(i => i._id === over.id);
         if (oldIndex === -1 || newIndex === -1) return;
+
         const newItems = arrayMove(items, oldIndex, newIndex);
-        setItems(newItems);
-        // Persist order to backend
-        try {
-            const token = localStorage.getItem('authToken');
-            await fetch('/api/portfolio/reorder', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    itemIds: newItems.map(i => i._id),
-                }),
-            });
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a ordem.' });
-        }
+
+        setItems(newItems); // Atualização otimista
+
+        // ***** CORREÇÃO: Chamada do Mutate (TS2353) *****
+        // O segundo argumento foi removido
+        reorderMutation.mutate(newItems.map(i => i._id));
     };
+
 
     const renderContent = () => {
         if (isLoading) {
             return Array.from({ length: 4 }).map((_, i) =>
                 isMobile
                     ? <Skeleton key={i} className="h-32 w-full bg-black/60 rounded-3xl" />
-                    : <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>
+                    : <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>
             );
         }
         if (items.length === 0) {
             return isMobile
                 ? null
-                : (<TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</TableCell></TableRow>);
+                : (<TableRow><TableCell colSpan={6} className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</TableCell></TableRow>);
         }
 
-        // dnd-kit: wrap with SortableContext
         if (isMobile) {
             return (
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -413,7 +463,7 @@ const AdminPortfolio = () => {
                 </DndContext>
             );
         }
-        // Desktop
+
         return (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={items.map(i => i._id)} strategy={verticalListSortingStrategy}>
@@ -446,7 +496,7 @@ const AdminPortfolio = () => {
                     ? (
                         <>
                             {renderContent()}
-                            {items.length === 0 && <div className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</div>}
+                            {items.length === 0 && !isLoading && <div className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</div>}
                         </>
                     )
                     : (
@@ -479,7 +529,6 @@ const AdminPortfolio = () => {
                         <DialogDescription className="text-white/80">{editingId ? "Altere as informações abaixo." : "Preencha os detalhes e faça o upload da imagem."}</DialogDescription>
                     </DialogHeader>
 
-                    {/* ***** INÍCIO DAS MODIFICAÇÕES NO JSX ***** */}
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField control={form.control} name="title" render={({ field }) => (<FormItem>
@@ -487,9 +536,16 @@ const AdminPortfolio = () => {
                             </FormItem>)} />
                             <FormField control={form.control} name="category" render={({ field }) => (<FormItem>
                                 <Label className="text-white mb-1 font-semibold">Categoria</Label>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                     <FormControl><SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                                    <SelectContent className="bg-black/90 text-white border-white/20"><SelectItem value="portrait">Retratos</SelectItem><SelectItem value="wedding">Casamentos</SelectItem><SelectItem value="maternity">Maternidade</SelectItem><SelectItem value="family">Família</SelectItem><SelectItem value="events">Eventos</SelectItem></SelectContent>
+                                    <SelectContent className="bg-black/90 text-white border-white/20">
+                                        <SelectItem value="portrait">Retratos</SelectItem>
+                                        <SelectItem value="wedding">Casamentos</SelectItem>
+                                        {/* ***** CORREÇÃO: Erro de digitação (TS2322) ***** */}
+                                        <SelectItem value="maternity">Maternidade</SelectItem>
+                                        <SelectItem value="family">Família</SelectItem>
+                                        <SelectItem value="events">Eventos</SelectItem>
+                                    </SelectContent>
                                 </Select><FormMessage />
                             </FormItem>)} />
                             <FormField control={form.control} name="description" render={({ field }) => (<FormItem>
@@ -506,20 +562,25 @@ const AdminPortfolio = () => {
                             </div>
                             <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
                                 <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12 px-6">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6">
-                                    {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Guardar'}
+                                <Button type="submit" disabled={saveMutation.isPending} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6">
+                                    {saveMutation.isPending ? <Loader2 className="animate-spin" /> : 'Guardar'}
                                 </Button>
                             </DialogFooter>
                         </form>
                     </Form>
-                    {/* ***** FIM DAS MODIFICAÇÕES NO JSX ***** */}
                 </DialogContent>
             </Dialog>
 
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
                     <DialogHeader><DialogTitle>Confirmar exclusão</DialogTitle><DialogDescription className="text-white/80">Tem a certeza que deseja excluir <strong>{selectedItems.size} item(ns)</strong>? Esta ação não pode ser desfeita.</DialogDescription></DialogHeader>
-                    <DialogFooter className="!mt-6"><DialogClose asChild><Button variant="secondary" className="rounded-xl h-12" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button></DialogClose><Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={isDeleting}><Trash2 className="h-4 w-4 mr-2" />{isDeleting ? 'A excluir...' : 'Excluir'}</Button></DialogFooter>
+                    <DialogFooter className="!mt-6">
+                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button></DialogClose>
+                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={deleteMutation.isPending}>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {deleteMutation.isPending ? 'A excluir...' : 'Excluir'}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

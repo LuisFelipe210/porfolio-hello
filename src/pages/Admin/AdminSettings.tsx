@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react'; // useCallback foi removido
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card'; // CardDescription removido (não usado)
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +12,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
 
+// Schema (sem alteração)
 const settingsSchema = z.object({
     heroTitle: z.string().min(1, "O título é obrigatório."),
     heroSubtitle: z.string().min(1, "O subtítulo é obrigatório."),
@@ -31,12 +33,40 @@ const settingsSchema = z.object({
 
 type Settings = z.infer<typeof settingsSchema> & { _id: string };
 
-const AdminSettings = () => {
-    const [settings, setSettings] = useState<Settings | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const { toast } = useToast();
+// --- Funções de API (Helpers) ---
 
-    // Controlo do pop-up de edição
+const fetchSettingsAPI = async (): Promise<Settings> => {
+    const response = await fetch('/api/settings');
+    if (!response.ok) throw new Error("Falha ao carregar configurações.");
+    const data = await response.json();
+    // Garante que todos os campos do formulário existem, mesmo que vazios
+    return {
+        horarioSeg: '', horarioTer: '', horarioQua: '', horarioQui: '',
+        horarioSex: '', horarioSab: '', horarioDom: '',
+        ...data
+    };
+};
+
+const saveSettingsAPI = async (data: { formData: z.infer<typeof settingsSchema>, settingsId: string }): Promise<Settings> => {
+    const { formData, settingsId } = data;
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...formData, _id: settingsId }),
+    });
+    if (!response.ok) throw new Error('Falha ao salvar as configurações.');
+    return response.json();
+};
+
+// --- Componente Principal ---
+
+const AdminSettings = () => {
+    // const [settings, setSettings] = useState<Settings | null>(null); // <<< REMOVIDO
+    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
+    const { toast } = useToast();
+    const queryClient = useQueryClient(); // <<< Adicionado
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingSection, setEditingSection] = useState<'hero' | 'contacts' | 'hours' | null>(null);
 
@@ -44,25 +74,44 @@ const AdminSettings = () => {
         resolver: zodResolver(settingsSchema),
     });
 
-    const fetchSettings = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/settings');
-            if (!response.ok) throw new Error("Falha ao carregar configurações.");
-            const data = await response.json();
-            const fullSettings = { horarioSeg: '', horarioTer: '', horarioQua: '', horarioQui: '', horarioSex: '', horarioSab: '', horarioDom: '', ...data };
-            setSettings(fullSettings);
-            form.reset(fullSettings);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as configurações.' });
-        } finally {
-            setIsLoading(false);
-        }
-    }, [toast, form]);
+    // --- Refatoração: useQuery para buscar os dados ---
+    const { data: settings, isLoading, isError, error } = useQuery<Settings, Error>({
+        queryKey: ['settings'],
+        queryFn: fetchSettingsAPI,
+    });
 
+    // Efeito para popular o formulário quando os dados chegam
     useEffect(() => {
-        fetchSettings();
-    }, [fetchSettings]);
+        if (settings) {
+            form.reset(settings);
+        }
+    }, [settings, form]);
+
+    // Efeito para mostrar erro ao carregar
+    useEffect(() => {
+        if (isError) {
+            toast({ variant: 'destructive', title: 'Erro', description: error?.message || 'Não foi possível carregar as configurações.' });
+        }
+    }, [isError, error, toast]);
+
+    // --- Refatoração: useMutation para salvar os dados ---
+    const saveMutation = useMutation({
+        mutationFn: saveSettingsAPI,
+        onSuccess: (updatedData) => {
+            toast({ title: 'Sucesso!', variant: "success", description: 'As configurações foram atualizadas.' });
+            setIsDialogOpen(false);
+            setEditingSection(null);
+
+            // Invalida o cache, o que faz o useQuery buscar os dados novos
+            queryClient.invalidateQueries({ queryKey: ['settings'] });
+
+            // Reseta o formulário com os novos dados para limpar o estado 'dirty'
+            form.reset(updatedData);
+        },
+        onError: (error: Error) => {
+            toast({ variant: 'destructive', title: 'Erro', description: error.message || 'Não foi possível salvar as alterações.' });
+        }
+    });
 
     const handleOpenDialog = (section: 'hero' | 'contacts' | 'hours') => {
         setEditingSection(section);
@@ -72,27 +121,13 @@ const AdminSettings = () => {
         setIsDialogOpen(true);
     };
 
-    const onSubmit = async (data: z.infer<typeof settingsSchema>) => {
+    // onSubmit agora apenas chama a mutação
+    const onSubmit = (data: z.infer<typeof settingsSchema>) => {
         if (!settings) return;
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ ...data, _id: settings._id }),
-            });
-            if (!response.ok) throw new Error('Falha ao salvar as configurações.');
-
-            toast({ title: 'Sucesso!', variant: "success", description: 'As configurações foram atualizadas.' });
-            setSettings({ ...settings, ...data }); // Atualiza o estado local para refletir as mudanças
-            setIsDialogOpen(false);
-            setEditingSection(null);
-            form.reset(data); // Reseta o estado 'dirty' do formulário
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });
-        }
+        saveMutation.mutate({ formData: data, settingsId: settings._id });
     };
 
+    // O ecrã de loading agora usa o 'isLoading' do useQuery
     if (isLoading || !settings) {
         return <Skeleton className="h-[500px] w-full bg-black/60 rounded-3xl" />;
     }
@@ -182,7 +217,10 @@ const AdminSettings = () => {
                             )}
                             <DialogFooter className="!mt-6">
                                 <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Guardar'}</Button>
+                                {/* O 'disabled' e o ícone de loading agora vêm do 'useMutation' */}
+                                <Button type="submit" disabled={saveMutation.isPending} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">
+                                    {saveMutation.isPending ? <Loader2 className="animate-spin" /> : 'Guardar'}
+                                </Button>
                             </DialogFooter>
                         </form>
                     </Form>

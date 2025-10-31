@@ -37,7 +37,7 @@ const AdminLogin = () => {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            username: "",
+            username: localStorage.getItem('lastUsername') || "",
             password: "",
         },
     });
@@ -61,6 +61,7 @@ const AdminLogin = () => {
 
             const { token } = await response.json();
             localStorage.setItem('authToken', token);
+            localStorage.setItem('lastUsername', data.username);
 
             toast({
                 title: 'Login bem-sucedido!',

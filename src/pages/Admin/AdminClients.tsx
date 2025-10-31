@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from 'react-router-dom';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 
 import { useForm } from "react-hook-form";
@@ -39,8 +40,19 @@ interface Client {
 }
 
 const AdminClients = () => {
-    const [clients, setClients] = useState<Client[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
+
+    const { data: clients = [], isLoading } = useQuery<Client[], Error>({
+        queryKey: ['clients'],
+        queryFn: async () => {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/admin/portal?action=getClients', {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) throw new Error('Falha ao carregar os clientes.');
+            return response.json();
+        },
+    });
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [currentClient, setCurrentClient] = useState<Client | null>(null);
@@ -85,24 +97,6 @@ const AdminClients = () => {
     }, [form]);
 
 
-    const fetchClients = async () => {
-        setIsLoading(true);
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/portal?action=getClients', { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!response.ok) throw new Error("Falha ao buscar clientes.");
-            const data = await response.json();
-            setClients(data);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar os clientes.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchClients();
-    }, []);
 
 
 
@@ -159,7 +153,7 @@ const AdminClients = () => {
             toast({ title: 'Sucesso!', variant: "success" ,description: `Cliente ${data.name} ${isEditing ? 'atualizado' : 'adicionado'}.` });
             resetForm();
             setIsDialogOpen(false);
-            fetchClients();
+            queryClient.invalidateQueries({ queryKey: ['clients'] });
         } catch (error: unknown) {
             toast({ variant: 'destructive', title: 'Erro', description: error instanceof Error ? error.message : 'Ocorreu um erro.' });
         }
@@ -175,7 +169,7 @@ const AdminClients = () => {
             if (!response.ok) throw new Error('Falha ao excluir os clientes.');
             toast({ title: 'Sucesso', variant: "success" ,description: `${ids.length} cliente(s) excluído(s).` });
             setSelectedClients(new Set());
-            fetchClients();
+            queryClient.invalidateQueries({ queryKey: ['clients'] });
             setIsDeleteDialogOpen(false);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir os clientes.' });

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
@@ -39,8 +40,6 @@ const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
 const AdminBlog = () => {
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -61,29 +60,22 @@ const AdminBlog = () => {
         defaultValues: { title: "", content: "", alt: "" },
     });
 
+    // React Query integration
+    const queryClient = useQueryClient();
+    const { data: posts = [], isLoading } = useQuery<Post[], Error>({
+        queryKey: ['blogPosts'],
+        queryFn: async () => {
+            const response = await fetch('/api/blog');
+            if (!response.ok) throw new Error('Falha ao carregar artigos.');
+            return response.json();
+        },
+    });
+
     const filteredPosts = posts
         .filter((post) => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => sortOrder === 'recent'
             ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-
-    const fetchPosts = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/blog');
-            if (!response.ok) throw new Error("Falha ao carregar artigos.");
-            const data = await response.json();
-            setPosts(data);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar os artigos.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchPosts();
-    }, []);
 
     const resetForm = () => {
         form.reset();
@@ -166,7 +158,8 @@ const AdminBlog = () => {
 
             resetForm();
             setIsDialogOpen(false);
-            fetchPosts();
+            // Refetch posts using React Query
+            queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
@@ -186,7 +179,8 @@ const AdminBlog = () => {
             });
             if (!response.ok) throw new Error('Falha ao excluir o(s) artigo(s).');
             toast({ title: 'Sucesso', variant: "success", description: `${ids.length} artigo(s) excluído(s) com sucesso.` });
-            fetchPosts();
+            // Refetch posts using React Query
+            queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });

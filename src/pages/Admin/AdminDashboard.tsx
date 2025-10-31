@@ -14,8 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
-import { useDashboardData } from '@/hooks/useDashboardData';
-// import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -71,7 +70,18 @@ const AdminDashboard = () => {
     const [greeting, setGreeting] = useState('');
     const { toast } = useToast();
 
-    const { data, isLoading, refetch } = useDashboardData();
+    const queryClient = useQueryClient();
+    const { data, isLoading } = useQuery<DashboardData, Error>({
+        queryKey: ['dashboardData'],
+        queryFn: async () => {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/admin/dashboard', {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) throw new Error('Falha ao carregar dados do dashboard.');
+            return response.json();
+        },
+    });
 
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
 
@@ -119,7 +129,7 @@ const AdminDashboard = () => {
             toast({ title: 'Sucesso!', variant: "success", description: `Cliente ${formData.name} adicionado.` });
             clientForm.reset();
             setIsClientDialogOpen(false);
-            refetch(); // 3. Forçar a atualização dos dados do dashboard
+            queryClient.invalidateQueries({ queryKey: ['dashboardData'] }); // 3. Forçar a atualização dos dados do dashboard
         } catch (error: unknown) {
             toast({ variant: 'destructive', title: 'Erro', description: error instanceof Error ? error.message : 'Ocorreu um erro.' });
         }
@@ -164,7 +174,7 @@ const AdminDashboard = () => {
             portfolioForm.reset();
             setPFile(null);
             setIsPortfolioDialogOpen(false);
-            refetch(); // 3. Forçar a atualização dos dados do dashboard
+            queryClient.invalidateQueries({ queryKey: ['dashboardData'] }); // 3. Forçar a atualização dos dados do dashboard
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });

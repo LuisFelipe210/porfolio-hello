@@ -1,17 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react'; // useCallback foi removido
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CalendarDays, Save } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { format } from 'date-fns';
-
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
 
-// Tipo de evento para o calendário
+// Tipo de evento (sem alteração)
 interface ReservedEvent {
     title: string;
     start: Date;
@@ -20,81 +19,99 @@ interface ReservedEvent {
     resource?: any;
 }
 
-const AdminAvailability = () => {
-    const [events, setEvents] = useState<ReservedEvent[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const { toast } = useToast();
+// Funções utilitárias (movidas para fora para clareza)
+const formatDateString = (date: Date) => format(date, 'yyyy-MM-dd');
 
+const datesToReservedEvents = (dates: Date[]): ReservedEvent[] => {
+    return dates.map(date => ({
+        title: 'OCUPADO',
+        start: date,
+        end: date,
+        allDay: true,
+    }));
+};
+
+// --- Funções de API (Helpers) ---
+
+const fetchAvailabilityAPI = async (): Promise<ReservedEvent[]> => {
+    const response = await fetch('/api/blog?api=availability');
+    if (!response.ok) throw new Error('Falha ao carregar as datas.');
+    const result: { reservedDates?: string[] } = await response.json();
+    const data: string[] = result.reservedDates || [];
+    const dates = data.map((d: string) => {
+        const parts = d.split('-');
+        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    });
+    return datesToReservedEvents(dates);
+};
+
+const saveAvailabilityAPI = async (eventsToSave: ReservedEvent[]) => {
+    const datesToSave = eventsToSave.map(e => formatDateString(e.start));
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/blog?api=availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ dates: datesToSave }),
+    });
+    if (!response.ok) throw new Error('Falha ao salvar as datas.');
+    return response.json();
+};
+
+
+// --- Componente Principal ---
+
+const AdminAvailability = () => {
+    // Este estado local é MANTIDO para permitir edições offline antes de salvar
+    const [events, setEvents] = useState<ReservedEvent[]>([]);
+    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
+    // const [isSubmitting, setIsSubmitting] = useState(false); // <<< REMOVIDO
+    const { toast } = useToast();
+    const queryClient = useQueryClient(); // <<< Adicionado
+
+    // O useDashboardData não está a ser usado, mas mantenho-o
     const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
-    // Função utilitária para formatar datas (YYYY-MM-DD)
-    const formatDateString = (date: Date) => format(date, 'yyyy-MM-dd');
 
-    // Mapeia os eventos do calendário (objetos Date) para strings (para a API)
-    const datesToReservedEvents = (dates: Date[]): ReservedEvent[] => {
-        return dates.map(date => ({
-            title: 'OCUPADO',
-            start: date,
-            end: date,
-            allDay: true,
-        }));
-    };
+    // --- Refatoração: useQuery ---
+    const { data: eventsData, isLoading, isError, error } = useQuery<ReservedEvent[], Error>({
+        queryKey: ['availability'],
+        queryFn: fetchAvailabilityAPI,
+    });
 
-    // 1. CARREGAR DATAS
-    const fetchDates = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/blog?api=availability');
-            if (!response.ok) throw new Error('Falha ao carregar as datas.');
-
-            const result: { reservedDates?: string[] } = await response.json();
-            const data: string[] = result.reservedDates || [];
-
-            const dates = data.map((d: string) => {
-                const parts = d.split('-');
-                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-            });
-
-            setEvents(datesToReservedEvents(dates));
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar as datas.' });
-        } finally {
-            setIsLoading(false);
-        }
-    }, [toast]);
-
+    // Sincroniza os dados do servidor (do query) para o estado local 'events'
     useEffect(() => {
-        fetchDates();
-    }, [fetchDates]);
-
-    // 2. SALVAR DATAS
-    const handleSave = async () => {
-        setIsSubmitting(true);
-        try {
-            const datesToSave = events.map(e => formatDateString(e.start));
-            const token = localStorage.getItem('authToken');
-
-            const response = await fetch('/api/blog?api=availability', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ dates: datesToSave }),
-            });
-
-            if (!response.ok) throw new Error('Falha ao salvar as datas.');
-
-            toast({ title: 'Sucesso!', variant: "success", description: 'Disponibilidade atualizada.' });
-
-            await fetchDates();
-
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar.' });
-        } finally {
-            setIsSubmitting(false);
+        if (eventsData) {
+            setEvents(eventsData);
         }
+    }, [eventsData]);
+
+    // Lida com erros do query
+    useEffect(() => {
+        if (isError) {
+            toast({ variant: 'destructive', title: 'Erro', description: (error as Error).message || 'Não foi possível carregar as datas.' });
+        }
+    }, [isError, error, toast]);
+
+
+    // --- Refatoração: useMutation ---
+    const saveMutation = useMutation({
+        mutationFn: saveAvailabilityAPI,
+        onSuccess: () => {
+            toast({ title: 'Sucesso!', variant: "success", description: 'Disponibilidade atualizada.' });
+            queryClient.invalidateQueries({ queryKey: ['availability'] });
+            refetchDashboard(); // Mantém a sua lógica de refresh do dashboard
+        },
+        onError: (error: Error) => {
+            toast({ variant: 'destructive', title: 'Erro', description: error.message || 'Não foi possível salvar.' });
+        }
+    });
+
+    // handleSave agora apenas chama a mutação
+    const handleSave = async () => {
+        saveMutation.mutate(events);
     };
 
-    // 3. SELECIONAR/REMOVER DATA (Toggle)
+    // handleDateClick (Sem alteração - funciona perfeitamente com o estado local 'events')
     const handleDateClick = (date: Date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -115,7 +132,7 @@ const AdminAvailability = () => {
         }
     };
 
-    // Função para customizar o estilo das tiles do calendário
+    // tileClassName (Sem alteração)
     const tileClassName = ({ date, view }: { date: Date; view: string }) => {
         if (view === 'month') {
             const dateString = formatDateString(date);
@@ -141,15 +158,15 @@ const AdminAvailability = () => {
                 </div>
                 <Button
                     onClick={handleSave}
-                    disabled={isLoading || isSubmitting}
+                    disabled={isLoading || saveMutation.isPending} // <<< Alterado
                     title="Salvar disponibilidade"
                     className={`fixed bottom-6 right-6 z-50 flex items-center justify-center rounded-full h-12 w-12 p-3 transition-all
-                        ${isLoading || isSubmitting
+                        ${isLoading || saveMutation.isPending // <<< Alterado
                         ? 'bg-orange-700/50 cursor-not-allowed'
                         : 'bg-orange-500 hover:bg-orange-600 shadow-lg'
                     }`}
                 >
-                    {isSubmitting ? (
+                    {saveMutation.isPending ? ( // <<< Alterado
                         <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                         <Save className="h-8 w-8 text-white" />
@@ -157,7 +174,7 @@ const AdminAvailability = () => {
                 </Button>
             </div>
 
-            {/* BOTÃO E MODAL DE DATAS OCUPADAS */}
+            {/* BOTÃO E MODAL DE DATAS OCUPADAS (Sem alteração) */}
             <Dialog>
                 <DialogTrigger asChild>
                     <Button
@@ -205,9 +222,9 @@ const AdminAvailability = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* CONTEÚDO */}
+            {/* CONTEÚDO (Alterado para usar o 'isLoading' do query) */}
             <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                {isLoading ? (
+                {isLoading ? ( // <<< Alterado
                     <Skeleton className="h-[600px] w-full bg-black/60 rounded-3xl" />
                 ) : (
                     <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10 p-4 sm:p-6">
@@ -227,7 +244,7 @@ const AdminAvailability = () => {
                 )}
             </div>
 
-            {/* ESTILOS CSS */}
+            {/* ESTILOS CSS (Sem alteração) */}
             <style>{`
                 .react-calendar {
                     width: 100%;
