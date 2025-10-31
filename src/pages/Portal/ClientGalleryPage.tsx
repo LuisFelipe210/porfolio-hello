@@ -113,7 +113,10 @@ const ImageModal = ({ images, currentIndex, onClose, onNavigate, selectedImages,
 
 // --- Componente GallerySelectionView (sem alterações) ---
 const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }: { gallery: Gallery; onSelectionSubmit: () => void; onSelectionChange: (galleryId: string, selections: string[]) => void; }) => {
-    const [selectedImages, setSelectedImages] = useState<Set<string>>(() => new Set(gallery.selections || []));
+    const [selectedImages, setSelectedImages] = useState<Set<string>>(() => {
+        const saved = localStorage.getItem(`gallerySelection_${gallery._id}`);
+        return saved ? new Set(JSON.parse(saved)) : new Set(gallery.selections || []);
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalImageIndex, setModalImageIndex] = useState<number | null>(null);
     const { toast } = useToast();
@@ -144,6 +147,11 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
         return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
     }, [selectedImages, gallery._id, isSelectionComplete, onSelectionChange, saveStatus]);
 
+    // Persist selectedImages in localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem(`gallerySelection_${gallery._id}`, JSON.stringify(Array.from(selectedImages)));
+    }, [selectedImages, gallery._id]);
+
     const toggleSelection = (imageUrl: string, event?: React.MouseEvent) => {
         if (isSelectionComplete) return;
         event?.stopPropagation();
@@ -166,6 +174,8 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
             const token = localStorage.getItem('clientAuthToken');
             const response = await fetch('/api/portal?action=submitSelection', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ galleryId: gallery._id, selectedImages: Array.from(selectedImages) }) });
             if (!response.ok) throw new Error('Falha ao enviar a seleção.');
+            // Limpa o localStorage após envio com sucesso
+            localStorage.removeItem(`gallerySelection_${gallery._id}`);
             toast({ title: 'Seleção Enviada!', variant: 'success' ,description: 'A sua seleção foi enviada com sucesso. Obrigado!' });
             onSelectionSubmit();
         } catch (error) { toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar a sua seleção.' }); } finally { setIsSubmitting(false); }

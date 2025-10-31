@@ -5,7 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Upload, Plus, Loader2, Save, Trash2 } from 'lucide-react';
+import { Edit, Upload, Plus, Loader2, Save, Trash2, GripVertical } from 'lucide-react';
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
@@ -62,6 +77,15 @@ const AdminServices = () => {
     const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // DnD-kit sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        })
+    );
 
     const form = useForm<z.infer<typeof serviceSchema>>({
         resolver: zodResolver(serviceSchema),
@@ -178,41 +202,164 @@ const AdminServices = () => {
         setSelectedServices(newSet);
     };
 
-    const renderContent = () => {
-        if (isLoading) {
-            return isMobile ?
-                Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />) :
-                Array.from({ length: 4 }).map((_, i) => <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>);
-        }
-        if (services.length === 0) {
-            return isMobile ? <div className="text-center text-white/60 pt-12 col-span-full">Nenhum serviço encontrado.</div> : <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum serviço encontrado.</TableCell></TableRow>;
-        }
-        if (isMobile) {
-            return services.map(service => (
-                <Card key={service._id} className="bg-black/70 backdrop-blur-md rounded-3xl p-4 flex gap-4 border border-white/10 relative">
-                    {/* Checkbox comentado por agora */}
-                    {/* <input type="checkbox" className="absolute top-4 left-4 w-5 h-5 accent-orange-500 bg-transparent rounded" checked={selectedServices.has(service._id)} onChange={(e) => handleSelectionChange(service._id, e.target.checked)} /> */}
-                    <img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={service.alt || service.title} className="h-24 w-24 object-cover rounded-2xl flex-shrink-0" />
-                    <div className="flex-1 flex flex-col justify-center">
-                        <h3 className="font-semibold text-white text-lg">{service.title}</h3>
-                        <p className="text-sm text-orange-400 font-semibold">{service.price}</p>
-                        <div className="mt-2 flex space-x-2">
-                            <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(service)}><Edit className="h-4 w-4" /></Button>
-                        </div>
-                    </div>
-                </Card>
-            ));
-        }
-        return services.map(service => (
-            <TableRow key={service._id} className="border-white/10">
-                {/* Checkbox comentado por agora */}
-                {/* <TableCell className="w-12"><input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedServices.has(service._id)} onChange={(e) => handleSelectionChange(service._id, e.target.checked)} /></TableCell> */}
-                <TableCell><img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={service.alt || service.title} className="h-16 w-16 object-cover rounded-xl" /></TableCell>
+
+    // Sortable Service Item for Table (desktop)
+    function SortableServiceItem({ service, onEdit }: { service: Service, onEdit: (service: Service) => void }) {
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({ id: service._id });
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            opacity: isDragging ? 0.5 : 1,
+            background: isDragging ? 'rgba(255,255,255,0.04)' : undefined,
+        };
+        return (
+            <TableRow
+                ref={setNodeRef}
+                style={style}
+                className="border-white/10"
+                {...attributes}
+            >
+                <TableCell className="w-10 align-middle cursor-grab select-none" {...listeners}>
+                    <GripVertical className="text-white/70 mx-auto" />
+                </TableCell>
+                <TableCell>
+                    <img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={service.alt || service.title} className="h-16 w-16 object-cover rounded-xl" />
+                </TableCell>
                 <TableCell className="font-medium text-white">{service.title}</TableCell>
                 <TableCell className="text-white/80">{service.price}</TableCell>
-                <TableCell className="text-right"><Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(service)}><Edit className="h-4 w-4" /></Button></TableCell>
+                <TableCell className="text-right">
+                    <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => onEdit(service)}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                </TableCell>
             </TableRow>
-        ));
+        );
+    }
+
+    // Sortable Service Item for Card (mobile)
+    function SortableServiceCard({ service, onEdit }: { service: Service, onEdit: (service: Service) => void }) {
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({ id: service._id });
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            opacity: isDragging ? 0.5 : 1,
+            background: isDragging ? 'rgba(255,255,255,0.04)' : undefined,
+        };
+        return (
+            <Card
+                ref={setNodeRef}
+                style={style}
+                className="bg-black/70 backdrop-blur-md rounded-3xl p-4 flex gap-4 border border-white/10 relative"
+                {...attributes}
+            >
+                <div className="flex flex-col items-center justify-center cursor-grab select-none" {...listeners}>
+                    <GripVertical className="text-white/70" />
+                </div>
+                <img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={service.alt || service.title} className="h-24 w-24 object-cover rounded-2xl flex-shrink-0" />
+                <div className="flex-1 flex flex-col justify-center">
+                    <h3 className="font-semibold text-white text-lg">{service.title}</h3>
+                    <p className="text-sm text-orange-400 font-semibold">{service.price}</p>
+                    <div className="mt-2 flex space-x-2">
+                        <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(service)}><Edit className="h-4 w-4" /></Button>
+                    </div>
+                </div>
+            </Card>
+        );
+    }
+
+    // Drag end handler
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = services.findIndex(s => s._id === active.id);
+        const newIndex = services.findIndex(s => s._id === over.id);
+        if (oldIndex === -1 || newIndex === -1) return;
+        const newOrder = arrayMove(services, oldIndex, newIndex);
+        setServices(newOrder);
+        // Send new order to backend
+        try {
+            const token = localStorage.getItem('authToken');
+            await fetch('/api/services/reorder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ serviceIds: newOrder.map(s => s._id) }),
+            });
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível reordenar os serviços.' });
+        }
+    };
+
+    const renderContent = () => {
+        if (isLoading) {
+            return isMobile
+                ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />)
+                : Array.from({ length: 4 }).map((_, i) => <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>);
+        }
+        if (services.length === 0) {
+            return isMobile
+                ? <div className="text-center text-white/60 pt-12 col-span-full">Nenhum serviço encontrado.</div>
+                : <TableRow><TableCell colSpan={6} className="text-center text-white/60 pt-12">Nenhum serviço encontrado.</TableCell></TableRow>;
+        }
+        // DnD list
+        if (isMobile) {
+            return (
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext
+                        items={services.map(s => s._id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {services.map(service => (
+                            <SortableServiceCard
+                                key={service._id}
+                                service={service}
+                                onEdit={handleOpenDialog}
+                            />
+                        ))}
+                    </SortableContext>
+                </DndContext>
+            );
+        }
+        return (
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext
+                    items={services.map(s => s._id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    {services.map(service => (
+                        <SortableServiceItem
+                            key={service._id}
+                            service={service}
+                            onEdit={handleOpenDialog}
+                        />
+                    ))}
+                </SortableContext>
+            </DndContext>
+        );
     };
 
     return (
@@ -231,10 +378,25 @@ const AdminServices = () => {
             </div>
 
             <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
-                {isMobile ? renderContent() : (<div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2"><Table><TableHeader><TableRow className="border-white/10 hover:bg-transparent">
-                    {/* Cabeçalho do checkbox comentado */}
-                    {/* <TableHead className="w-12"></TableHead> */}
-                    <TableHead className="w-[100px] text-white">Imagem</TableHead><TableHead className="text-white">Título</TableHead><TableHead className="text-white">Preço</TableHead><TableHead className="text-right text-white">Ações</TableHead></TableRow></TableHeader><TableBody>{renderContent()}</TableBody></Table></div>)}
+                {isMobile ? (
+                    renderContent()
+                ) : (
+                    <div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="border-white/10 hover:bg-transparent">
+                                    {/* <TableHead className="w-12"></TableHead> */}
+                                    <TableHead className="w-10"></TableHead>
+                                    <TableHead className="w-[100px] text-white">Imagem</TableHead>
+                                    <TableHead className="text-white">Título</TableHead>
+                                    <TableHead className="text-white">Preço</TableHead>
+                                    <TableHead className="text-right text-white">Ações</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>{renderContent()}</TableBody>
+                        </Table>
+                    </div>
+                )}
             </div>
 
             {/* Botão de Adicionar comentado por agora */}

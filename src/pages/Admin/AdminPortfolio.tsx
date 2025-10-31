@@ -23,7 +23,141 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit, Plus, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Plus, Loader2, GripVertical } from 'lucide-react';
+// dnd-kit imports
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+// SortablePortfolioItem component
+const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
+    item: PortfolioItem,
+    selected: boolean,
+    onSelect: (id: string, checked: boolean) => void,
+    onEdit: (item: PortfolioItem) => void,
+    isMobile: boolean,
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: item._id });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 99 : undefined,
+        opacity: isDragging ? 0.7 : 1,
+    };
+
+    if (isMobile) {
+        // Mobile: GripVertical vai junto do checkbox no canto esquerdo (como AdminServices)
+        return (
+            <div
+                ref={setNodeRef}
+                style={style}
+                className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-4 flex gap-4 border border-white/10 relative"
+            >
+                <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                    <span
+                        {...attributes}
+                        {...listeners}
+                        className="cursor-grab text-white/60 hover:text-orange-400"
+                        aria-label="Arrastar para reordenar"
+                    >
+                        <GripVertical className="h-5 w-5" />
+                    </span>
+                    <input
+                        type="checkbox"
+                        className="w-5 h-5 accent-orange-500 bg-transparent rounded"
+                        checked={selected}
+                        onChange={e => onSelect(item._id, e.target.checked)}
+                    />
+                </div>
+                <img
+                    src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")}
+                    alt={item.alt || item.title}
+                    className="h-24 w-24 object-cover rounded-2xl flex-shrink-0 ml-16"
+                />
+                <div className="flex-1 flex flex-col justify-center">
+                    <h3 className="font-semibold text-white text-lg">{item.title}</h3>
+                    <p className="text-sm text-white/80 capitalize">{item.category}</p>
+                    <div className="mt-2 flex space-x-2">
+                        <Button
+                            size="icon"
+                            className="bg-white/10 text-white rounded-xl hover:bg-white/20"
+                            onClick={() => onEdit(item)}
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Desktop: GripVertical como primeira célula da tabela, antes do checkbox
+    return (
+        <TableRow
+            ref={setNodeRef}
+            style={style}
+            className={`border-white/10 ${isDragging ? "bg-white/10" : ""}`}
+        >
+            <TableCell className="w-10">
+                <span
+                    {...attributes}
+                    {...listeners}
+                    className="cursor-grab text-white/60 hover:text-orange-400 flex items-center justify-center"
+                    aria-label="Arrastar para reordenar"
+                >
+                    <GripVertical className="h-5 w-5" />
+                </span>
+            </TableCell>
+            <TableCell className="w-12">
+                <input
+                    type="checkbox"
+                    className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded"
+                    checked={selected}
+                    onChange={e => onSelect(item._id, e.target.checked)}
+                />
+            </TableCell>
+            <TableCell>
+                <img
+                    src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")}
+                    alt={item.alt || item.title}
+                    className="h-16 w-16 object-cover rounded-xl"
+                />
+            </TableCell>
+            <TableCell className="font-medium text-white">{item.title}</TableCell>
+            <TableCell className="capitalize text-white/80">{item.category}</TableCell>
+            <TableCell className="text-right">
+                <div className="flex gap-2 justify-end">
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        className="bg-white/10 rounded-xl hover:bg-white/20"
+                        onClick={() => onEdit(item)}
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                </div>
+            </TableCell>
+        </TableRow>
+    );
+};
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -217,43 +351,85 @@ const AdminPortfolio = () => {
         setSelectedItems(newSet);
     };
 
+    // Drag and Drop handlers
+    const sensors = useSensors(useSensor(PointerSensor));
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = items.findIndex(i => i._id === active.id);
+        const newIndex = items.findIndex(i => i._id === over.id);
+        if (oldIndex === -1 || newIndex === -1) return;
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        setItems(newItems);
+        // Persist order to backend
+        try {
+            const token = localStorage.getItem('authToken');
+            await fetch('/api/portfolio/reorder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    itemIds: newItems.map(i => i._id),
+                }),
+            });
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a ordem.' });
+        }
+    };
+
     const renderContent = () => {
         if (isLoading) {
-            return Array.from({ length: 4 }).map((_, i) => (
-                isMobile ? <Skeleton key={i} className="h-32 w-full bg-black/60 rounded-3xl" />
+            return Array.from({ length: 4 }).map((_, i) =>
+                isMobile
+                    ? <Skeleton key={i} className="h-32 w-full bg-black/60 rounded-3xl" />
                     : <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>
-            ));
-        }
-
-        if (items.length === 0) {
-            return (
-                <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</TableCell></TableRow>
             );
         }
-
-        if (isMobile) {
-            return items.map((item) => (
-                <div key={item._id} className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-4 flex gap-4 border border-white/10 relative">
-                    <input type="checkbox" className="absolute top-4 left-4 w-5 h-5 accent-orange-500 bg-transparent rounded" checked={selectedItems.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} />
-                    <img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={item.alt || item.title} className="h-24 w-24 object-cover rounded-2xl flex-shrink-0 ml-8" />
-                    <div className="flex-1 flex flex-col justify-center">
-                        <h3 className="font-semibold text-white text-lg">{item.title}</h3>
-                        <p className="text-sm text-white/80 capitalize">{item.category}</p>
-                        <div className="mt-2 flex space-x-2"><Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button></div>
-                    </div>
-                </div>
-            ));
+        if (items.length === 0) {
+            return isMobile
+                ? null
+                : (<TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</TableCell></TableRow>);
         }
 
-        return items.map((item) => (
-            <TableRow key={item._id} className="border-white/10">
-                <TableCell className="w-12"><input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedItems.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} /></TableCell>
-                <TableCell><img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={item.alt || item.title} className="h-16 w-16 object-cover rounded-xl" /></TableCell>
-                <TableCell className="font-medium text-white">{item.title}</TableCell>
-                <TableCell className="capitalize text-white/80">{item.category}</TableCell>
-                <TableCell className="text-right"><div className="flex gap-2 justify-end"><Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button></div></TableCell>
-            </TableRow>
-        ));
+        // dnd-kit: wrap with SortableContext
+        if (isMobile) {
+            return (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={items.map(i => i._id)} strategy={verticalListSortingStrategy}>
+                        {items.map(item =>
+                            <SortablePortfolioItem
+                                key={item._id}
+                                item={item}
+                                selected={selectedItems.has(item._id)}
+                                onSelect={handleSelectionChange}
+                                onEdit={handleOpenDialog}
+                                isMobile={true}
+                            />
+                        )}
+                    </SortableContext>
+                </DndContext>
+            );
+        }
+        // Desktop
+        return (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={items.map(i => i._id)} strategy={verticalListSortingStrategy}>
+                    {items.map(item =>
+                        <SortablePortfolioItem
+                            key={item._id}
+                            item={item}
+                            selected={selectedItems.has(item._id)}
+                            onSelect={handleSelectionChange}
+                            onEdit={handleOpenDialog}
+                            isMobile={false}
+                        />
+                    )}
+                </SortableContext>
+            </DndContext>
+        );
     };
 
     return (
@@ -266,8 +442,33 @@ const AdminPortfolio = () => {
             </div>
 
             <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
-                {isMobile ? renderContent() : (<div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2"><Table><TableHeader><TableRow className="border-white/10 hover:bg-transparent"><TableHead className="w-12"></TableHead><TableHead className="w-[100px] text-white">Imagem</TableHead><TableHead className="text-white">Título</TableHead><TableHead className="text-white">Categoria</TableHead><TableHead className="text-right text-white">Ações</TableHead></TableRow></TableHeader><TableBody>{renderContent()}</TableBody></Table></div>)}
-                {isMobile && items.length === 0 && <div className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</div>}
+                {isMobile
+                    ? (
+                        <>
+                            {renderContent()}
+                            {items.length === 0 && <div className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</div>}
+                        </>
+                    )
+                    : (
+                        <div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="border-white/10 hover:bg-transparent">
+                                        <TableHead className="w-10"></TableHead>
+                                        <TableHead className="w-12"></TableHead>
+                                        <TableHead className="w-[100px] text-white">Imagem</TableHead>
+                                        <TableHead className="text-white">Título</TableHead>
+                                        <TableHead className="text-white">Categoria</TableHead>
+                                        <TableHead className="text-right text-white">Ações</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {renderContent()}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )
+                }
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
