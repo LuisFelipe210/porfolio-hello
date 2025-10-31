@@ -48,7 +48,7 @@ const BlogPostPage = () => {
     }, [slug]);
 
     return (
-        <div className="relative min-h-screen bg-white dark:bg-black text-black dark:text-white overflow-hidden">
+        <div className="relative min-h-screen bg-white text-black dark:bg-black dark:text-white overflow-hidden">
             <Header />
 
             <main>
@@ -66,7 +66,7 @@ const BlogPostPage = () => {
                                     alt={post.alt || post.title}
                                     className="w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 border-b border-white/10" />
                             </div>
                             <div className="relative z-10 max-w-3xl animate-fade-in">
                                 <h1 className="text-4xl md:text-5xl font-bold leading-tight text-white drop-shadow-lg">
@@ -82,19 +82,18 @@ const BlogPostPage = () => {
                         </div>
 
                         {/* CONTEÚDO DO ARTIGO */}
-                        <div className="relative bg-black">
+                        <div className="relative bg-white dark:bg-black/60 border-t border-black/10 dark:border-white/10 backdrop-blur-lg">
                             <div className="container mx-auto max-w-3xl px-6 py-16 md:py-24">
-                                <div className="prose prose-lg dark:prose-invert max-w-none whitespace-pre-wrap leading-relaxed text-white/90">
+                                <div className="prose prose-lg max-w-none leading-relaxed text-black/90 dark:text-white/90 [&_a]:text-orange-600 dark:[&_a]:text-orange-500 [&_a:hover]:text-orange-500 dark:[&_a:hover]:text-orange-400 [&_strong]:text-black dark:[&_strong]:text-white">
                                     {post.content}
                                 </div>
 
                                 <div className="mt-16 text-center">
                                     <Button
                                         asChild
-                                        variant="outline"
-                                        className="rounded-xl border-white/20 bg-white/10 hover:bg-white/20"
+                                        className="rounded-xl border border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition"
                                     >
-                                        <Link to="/blog" className="inline-flex items-center text-white no-underline">
+                                        <Link to="/blog" className="inline-flex items-center no-underline">
                                             <ArrowLeft className="h-4 w-4 mr-2" />
                                             Voltar para todos os artigos
                                         </Link>
@@ -106,7 +105,7 @@ const BlogPostPage = () => {
                 ) : (
                     <div className="text-center py-32 container mx-auto">
                         <h1 className="text-4xl font-bold">Artigo não encontrado</h1>
-                        <p className="text-white/80 dark:text-white/80 mt-4">
+                        <p className="text-black/80 mt-4">
                             O link que você seguiu pode estar quebrado ou o artigo foi removido.
                         </p>
                         <Button asChild className="mt-8 bg-orange-500 hover:bg-orange-600 rounded-xl">
