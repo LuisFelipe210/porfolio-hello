@@ -19,6 +19,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
+
 const galleryFormSchema = z.object({
     name: z.string().min(3, { message: "O nome da galeria é obrigatório." }),
 });
@@ -30,6 +33,23 @@ interface Gallery {
     selections: string[];
     status: 'selection_pending' | 'selection_complete';
 }
+
+const GalleryImage = ({ src, lqipSrc, alt }: { src: string; lqipSrc?: string; alt?: string }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-40 bg-black/20 rounded-2xl overflow-hidden">
+            {!loaded && <Skeleton className="absolute inset-0 w-full h-full" />}
+            <LazyLoadImage
+                src={src}
+                alt={alt}
+                effect="opacity"
+                afterLoad={() => setLoaded(true)}
+                placeholderSrc={lqipSrc}
+                className={`w-full h-full object-cover ${loaded ? 'opacity-100 transition-opacity duration-500' : 'opacity-0'}`}
+            />
+        </div>
+    );
+};
 
 const AdminClientGalleries = () => {
     const { clientId, clientName } = useParams<{ clientId: string; clientName: string }>();
@@ -151,7 +171,8 @@ const AdminClientGalleries = () => {
                     <input type="checkbox" className="absolute top-4 left-4 w-5 h-5 accent-orange-500 bg-transparent rounded" checked={selectedGalleries.has(gallery._id)} onChange={(e) => handleSelectionChange(gallery._id, e.target.checked)} />
                     <div className="pl-8">
                         <h3 className="font-semibold text-white text-lg">{gallery.name}</h3>
-                        <p className="text-sm text-white/70">{gallery.images.length} fotos | {gallery.selections.length} selecionadas</p>
+                        <GalleryImage src={gallery.images[0]} lqipSrc={gallery.images[0]} alt={`${gallery.name} preview`} />
+                        <p className="text-sm text-white/70 mt-2">{gallery.images.length} fotos | {gallery.selections.length} selecionadas</p>
                     </div>
                     <div className="flex gap-2 justify-end">
                         <Button onClick={() => openUploadDialog(gallery)} disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-semibold flex-1"><Upload className="mr-2 h-4 w-4" />Adicionar</Button>
@@ -163,7 +184,10 @@ const AdminClientGalleries = () => {
         return galleries.map((gallery) => (
             <TableRow key={gallery._id} className="border-white/10">
                 <TableCell className="w-12"><input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedGalleries.has(gallery._id)} onChange={(e) => handleSelectionChange(gallery._id, e.target.checked)} /></TableCell>
-                <TableCell className="font-medium text-white">{gallery.name}</TableCell>
+                <TableCell className="font-medium text-white flex items-center gap-4">
+                    <GalleryImage src={gallery.images[0]} lqipSrc={gallery.images[0]} alt={`${gallery.name} preview`} />
+                    {gallery.name}
+                </TableCell>
                 <TableCell className="text-white/80">{gallery.images.length} fotos</TableCell>
                 <TableCell className="text-white/80">{gallery.selections.length} selecionadas</TableCell>
                 <TableCell className="text-right">

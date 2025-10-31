@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { Skeleton } from "./ui/skeleton";
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import React from "react";
 import Masonry from 'react-masonry-css';
 import { Loader2 } from "lucide-react";
 
+// 1. Interface PortfolioItem separada
 interface PortfolioItem {
     id: string;
     title: string;
@@ -15,7 +18,24 @@ interface PortfolioItem {
     alt?: string;
 }
 
-// Componente MobileSwipeCard (sem alterações)
+// 2. Componente PortfolioImage fora da interface
+const PortfolioImage = ({ src, alt }: { src: string; alt?: string }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full bg-black/10 overflow-hidden rounded-lg">
+            {!loaded && <Skeleton className="absolute inset-0 w-full h-full" />}
+            <LazyLoadImage
+                src={src}
+                alt={alt}
+                effect="opacity"
+                afterLoad={() => setLoaded(true)}
+                className={`w-full h-auto object-cover ${loaded ? 'opacity-100 transition-opacity duration-500' : 'opacity-0'}`}
+            />
+        </div>
+    );
+};
+
+// Componente MobileSwipeCard
 const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenModal: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const startX = useRef<number>(0);
@@ -87,12 +107,8 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
-            <img
-                src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")}
-                alt={item.alt || item.title}
-                loading="lazy"
-                className="w-full h-auto object-cover"
-            />
+            {/* 4. Usando PortfolioImage */}
+            <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")} alt={item.alt || item.title} />
 
             <div className={fullOverlayClasses}>
                 <div className="p-0 w-full transition-all duration-300 translate-y-4 h-full flex flex-col">
@@ -123,20 +139,15 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
     );
 };
 
-// Componente para o layout Masonry (sem alterações)
+// Componente para o layout Masonry
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
     return (
         <div
             className={`relative group cursor-pointer rounded-none overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg w-full mb-4`}
             onClick={() => setSelectedIndex(index)}
         >
-            <img
-                src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")}
-                alt={item.alt || item.title}
-                loading="lazy"
-                className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105 group-hover:brightness-110"
-                style={{ transitionProperty: "transform, filter" }}
-            />
+            {/* 4. Usando PortfolioImage */}
+            <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")} alt={item.alt || item.title} />
 
             <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
                 <div className="p-0 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0 h-full flex flex-col">

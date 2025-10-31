@@ -1,4 +1,22 @@
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 import { useState, useEffect, useRef, useCallback } from 'react';
+// --- GalleryPreviewImage with lazy loading and skeleton ---
+const GalleryPreviewImage = ({ src, alt }: { src: string; alt?: string }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full rounded-3xl overflow-hidden bg-black/20">
+            {!loaded && <Skeleton className="absolute inset-0 w-full h-full" />}
+            <LazyLoadImage
+                src={optimizeCloudinaryUrl(src, 'f_auto,q_auto,w_600')}
+                alt={alt}
+                effect="opacity"
+                afterLoad={() => setLoaded(true)}
+                className={`w-full h-full object-cover ${loaded ? 'opacity-100 transition-opacity duration-500' : 'opacity-0'}`}
+            />
+        </div>
+    );
+};
 import { createPortal } from 'react-dom';
 import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -267,12 +285,24 @@ const ClientGalleryPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {galleries.map((gallery) => (
                         <div key={gallery._id} onClick={() => navigate(`/portal/gallery/${gallery._id}`)} className="relative aspect-[4/3] bg-black/70 group rounded-3xl overflow-hidden shadow-2xl cursor-pointer transition-all duration-300 border border-white/10 hover:border-orange-500/80 hover:scale-[1.02] hover:shadow-orange-500/10">
-                            {gallery.images[0] ? <img src={optimizeCloudinaryUrl(gallery.images[0], 'f_auto,q_auto,w_600')} alt={gallery.name} className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110" /> : <div className="w-full h-full bg-black/70 flex items-center justify-center text-white/70">Sem imagem</div>}
+                            {gallery.images[0] ? (
+                                <GalleryPreviewImage src={gallery.images[0]} alt={gallery.name} />
+                            ) : (
+                                <div className="w-full h-full bg-black/70 flex items-center justify-center text-white/70">Sem imagem</div>
+                            )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
                             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                                 <h2 className="text-2xl font-bold">{gallery.name}</h2>
                                 <div className="flex items-center text-sm text-white/80 mt-2">
-                                    {gallery.status === 'selection_complete' ? (<><CheckCircle className="h-4 w-4 mr-2 text-green-400" /><span>Seleção Finalizada</span></>) : (<><Heart className="h-4 w-4 mr-2" /><span>{gallery.selections.length} / {gallery.images.length} selecionadas</span></>)}
+                                    {gallery.status === 'selection_complete' ? (
+                                        <>
+                                            <CheckCircle className="h-4 w-4 mr-2 text-green-400" /><span>Seleção Finalizada</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Heart className="h-4 w-4 mr-2" /><span>{gallery.selections.length} / {gallery.images.length} selecionadas</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
