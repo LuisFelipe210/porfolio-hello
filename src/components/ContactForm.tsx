@@ -14,6 +14,77 @@ type ContactFormProps = {
     handleSubmit: (e: React.FormEvent) => void;
 };
 
+type FormFieldProps = {
+    id: string;
+    name: string;
+    label: string;
+    placeholder?: string;
+    type?: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    required?: boolean;
+    disabled?: boolean;
+    textarea?: boolean;
+    rows?: number;
+    className?: string;
+};
+
+function FormField({
+    id,
+    name,
+    label,
+    placeholder,
+    type = "text",
+    value,
+    onChange,
+    required = false,
+    disabled = false,
+    textarea = false,
+    rows,
+    className
+}: FormFieldProps) {
+    return (
+        <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor={id} className="text-right">
+                {label}
+            </Label>
+            {textarea ? (
+                <Textarea
+                    id={id}
+                    name={name}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    required={required}
+                    disabled={disabled}
+                    rows={rows}
+                    className={className || "col-span-3"}
+                />
+            ) : (
+                <Input
+                    id={id}
+                    name={name}
+                    type={type}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    required={required}
+                    disabled={disabled}
+                    className={className || "col-span-3"}
+                />
+            )}
+        </div>
+    );
+}
+
+const serviceOptions = [
+    { value: "retrato", label: "Ensaio/Retrato" },
+    { value: "casamento", label: "Casamento" },
+    { value: "evento", label: "Evento" },
+    { value: "maternidade", label: "Maternidade" },
+    { value: "outro", label: "Outro" }
+];
+
 export function ContactForm({
                                 formData,
                                 isSubmitting,
@@ -21,59 +92,59 @@ export function ContactForm({
                                 handleServiceChange,
                                 handleSubmit
                             }: ContactFormProps) {
+
+    function renderButtonContent() {
+        if (isSubmitting) {
+            return (
+                <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Enviando...
+                </>
+            );
+        }
+        return (
+            <>
+                <Send className="w-4 h-4 mr-2" />
+                Enviar Mensagem
+            </>
+        );
+    }
+
     return (
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-            {/* Campo Nome */}
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                    Nome
-                </Label>
-                <Input
-                    id="name"
-                    name="name"
-                    placeholder="Seu nome completo"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="col-span-3"
-                />
-            </div>
+            <FormField
+                id="name"
+                name="name"
+                label="Nome"
+                placeholder="Seu nome completo"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+            />
 
-            {/* Campo Email */}
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                    Email
-                </Label>
-                <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="col-span-3"
-                />
-            </div>
+            <FormField
+                id="email"
+                name="email"
+                label="Email"
+                type="email"
+                placeholder="seu@email.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+            />
 
-            {/* Campo Telefone */}
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">
-                    Telefone
-                </Label>
-                <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="(Opcional)"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                    className="col-span-3"
-                />
-            </div>
+            <FormField
+                id="phone"
+                name="phone"
+                label="Telefone"
+                type="tel"
+                placeholder="(Opcional)"
+                value={formData.phone}
+                onChange={handleChange}
+                disabled={isSubmitting}
+            />
 
             {/* Campo Tipo de Sessão (agora com componente temático) */}
             <div className="grid grid-cols-4 items-center gap-4">
@@ -91,45 +162,31 @@ export function ContactForm({
                         <SelectValue placeholder="Selecione o tipo de sessão" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="retrato">Ensaio/Retrato</SelectItem>
-                        <SelectItem value="casamento">Casamento</SelectItem>
-                        <SelectItem value="evento">Evento</SelectItem>
-                        <SelectItem value="maternidade">Maternidade</SelectItem>
-                        <SelectItem value="outro">Outro</SelectItem>
+                        {serviceOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>
 
-            {/* Campo Mensagem */}
-            <div className="grid gap-2">
-                <Label htmlFor="message">
-                    Sua Mensagem
-                </Label>
-                <Textarea
-                    id="message"
-                    name="message"
-                    placeholder="Conte-me sobre sua ideia e expectativas..."
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={4}
-                    disabled={isSubmitting}
-                />
-            </div>
+            <FormField
+                id="message"
+                name="message"
+                label="Sua Mensagem"
+                placeholder="Conte-me sobre sua ideia e expectativas..."
+                value={formData.message}
+                onChange={handleChange}
+                required
+                textarea
+                rows={4}
+                disabled={isSubmitting}
+            />
 
             {/* Botão de Envio com indicador de carregamento */}
             <Button type="submit" disabled={isSubmitting} className="w-full mt-2">
-                {isSubmitting ? (
-                    <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Enviando...
-                    </>
-                ) : (
-                    <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Enviar Mensagem
-                    </>
-                )}
+                {renderButtonContent()}
             </Button>
         </form>
     );

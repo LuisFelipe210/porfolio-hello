@@ -1,38 +1,27 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowDown } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 
+interface HeroSettings {
+    heroTitle: string;
+    heroSubtitle: string;
+}
+
+const fetchSettings = async () => {
+    const response = await fetch("/api/settings");
+    if (!response.ok) {
+        throw new Error("Erro ao buscar configurações");
+    }
+    return response.json();
+};
+
 const HeroSection = () => {
-    const [settings, setSettings] = useState<{ heroTitle?: string; heroSubtitle?: string }>({});
-    const [isReady, setIsReady] = useState(false);
-
-    useEffect(() => {
-        const cached = sessionStorage.getItem("settings");
-
-        if (cached) {
-            setSettings(JSON.parse(cached));
-            setIsReady(true);
-        }
-
-        const fetchSettings = async () => {
-            try {
-                const response = await fetch("/api/settings");
-                const data = await response.json();
-
-                if (data) {
-                    setSettings(data);
-                    sessionStorage.setItem("settings", JSON.stringify(data));
-                    setIsReady(true);
-                }
-            } catch (error) {
-                console.error("Erro ao buscar configurações:", error);
-            }
-        };
-
-        fetchSettings();
-    }, []);
+    const { data: settings, isLoading } = useQuery<HeroSettings, Error>({
+        queryKey: ["settings"],
+        queryFn: fetchSettings,
+    });
 
     const scrollToPortfolio = () => {
         document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" });
@@ -48,7 +37,7 @@ const HeroSection = () => {
 
             {/* CONTAINER PRINCIPAL: Centralizado */}
             <div className="relative z-10 text-left text-white px-12 max-w-6xl mx-auto w-full">
-                {isReady && (
+                {!isLoading && (
                     <div className="flex flex-col items-center justify-center w-full">
 
                         {/* GRUPO LOGO + TÍTULOS: Alinhado à base (items-end). Removendo justify-start para que o wrapper o centre */}
@@ -65,7 +54,7 @@ const HeroSection = () => {
                             <div className="flex flex-col">
                                 {/* TITULO: Hellô Borges */}
                                 <h1 className="text-4xl sm:text-6xl md:text-8xl font-title leading-none text-white">
-                                    {settings.heroTitle}
+                                    {settings?.heroTitle}
                                 </h1>
                                 {/* FOTOGRAFIA: Peso leve e geométrica */}
                                 <p className="text-xs sm:text-2xl md:text-4xl font-sans font-light tracking-[0.4em] uppercase leading-tight -mt-1 md:-mt-3 text-white">
@@ -79,7 +68,7 @@ const HeroSection = () => {
                             className="text-[8px] md:text-xl font-extralight mb-8 mt-2 max-w-2xl mx-auto text-center animate-fade-in-up text-white"
                             style={{ animationDelay: "0.2s" }}
                         >
-                            {settings.heroSubtitle}
+                            {settings?.heroSubtitle}
                         </p>
                     </div>
                 )}

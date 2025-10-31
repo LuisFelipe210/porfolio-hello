@@ -5,6 +5,7 @@ import { TooltipProvider } from "./components/ui/tooltip.tsx";
 import { Toaster } from "./components/ui/toaster.tsx";
 import { ThemeProvider } from "./components/ThemeProvider.tsx";
 import { MessagesProvider } from "./context/MessagesContext.tsx";
+import { HelmetProvider } from 'react-helmet-async';
 
 // Componentes Globais e Utilitários
 import ShutterPreloader from "./components/ShutterPreloader.tsx";
@@ -54,8 +55,9 @@ const PageLoader = () => (
 
 // Este componente foi removido pois a nova abordagem com PublicLayout o torna desnecessário.
 
-const App = () => {
+const AppContent = () => {
     const [isLoading, setIsLoading] = useState(true);
+    const location = useLocation();
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -65,66 +67,73 @@ const App = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const currentLocation = window.location;
+    return (
+        <>
+            {isLoading && location.pathname === '/' && <ShutterPreloader />}
 
+            <div className="site-content">
+                <ScrollToTop />
+                <Suspense fallback={<PageLoader />}>
+                    <MessagesProvider>
+                        <Routes>
+                            {/* ***** INÍCIO DAS MODIFICAÇÕES ***** */}
+
+                            {/* --- Rotas Públicas agrupadas sob o PublicLayout --- */}
+                            <Route element={<PublicLayout />}>
+                                <Route path="/" element={<Index />} />
+                                <Route path="/blog" element={<BlogPage />} />
+                                <Route path="/blog/:slug" element={<BlogPostPage />} />
+                            </Route>
+
+                            {/* ***** FIM DAS MODIFICAÇÕES ***** */}
+
+                            {/* --- Rotas Clientes (Estrutura original mantida) --- */}
+                            <Route path="/portal/login" element={<ClientLoginPage />} />
+                            <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
+                            <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
+                            <Route path="/portal" element={<ClientLayout />}>
+                                <Route path="gallery/:galleryId?" element={<ClientGalleryPage />} />
+                                <Route path="reset-password" element={<ClientResetPasswordPage />} />
+                            </Route>
+
+                            {/* --- Rotas Admin (Estrutura original mantida) --- */}
+                            <Route path="/admin/login" element={<AdminLogin />} />
+                            <Route path="/admin" element={<AdminLayout />}>
+                                <Route index element={<AdminDashboard />} />
+                                <Route path="portfolio" element={<AdminPortfolio />} />
+                                <Route path="services" element={<AdminServices />} />
+                                <Route path="about" element={<AdminAbout />} />
+                                <Route path="settings" element={<AdminSettings />} />
+                                <Route path="testimonials" element={<AdminTestimonials />} />
+                                <Route path="messages" element={<AdminMessages />} />
+                                <Route path="blog" element={<AdminBlog />} />
+                                <Route path="clients" element={<AdminClients />} />
+                                <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
+                                <Route path="availability" element={<AdminAvailability />} />
+                            </Route>
+
+                            {/* --- Rota Not Found (Estrutura original mantida) --- */}
+                            <Route path="*" element={<NotFound />} />
+                        </Routes>
+                    </MessagesProvider>
+                </Suspense>
+                {/* O FloatingContact foi movido para o PublicLayout e removido daqui */}
+            </div>
+        </>
+    );
+};
+
+const App = () => {
     return (
         <QueryClientProvider client={queryClient}>
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
                 <TooltipProvider>
                     <Toaster />
-                    {isLoading && currentLocation.pathname === '/' && <ShutterPreloader />}
-
-                    <div className="site-content">
+                    <HelmetProvider>
                         <BrowserRouter>
-                            <ScrollToTop />
-                            <Suspense fallback={<PageLoader />}>
-                                <MessagesProvider>
-                                    <Routes>
-                                        {/* ***** INÍCIO DAS MODIFICAÇÕES ***** */}
-
-                                        {/* --- Rotas Públicas agrupadas sob o PublicLayout --- */}
-                                        <Route element={<PublicLayout />}>
-                                            <Route path="/" element={<Index />} />
-                                            <Route path="/blog" element={<BlogPage />} />
-                                            <Route path="/blog/:slug" element={<BlogPostPage />} />
-                                        </Route>
-
-                                        {/* ***** FIM DAS MODIFICAÇÕES ***** */}
-
-                                        {/* --- Rotas Clientes (Estrutura original mantida) --- */}
-                                        <Route path="/portal/login" element={<ClientLoginPage />} />
-                                        <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
-                                        <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
-                                        <Route path="/portal" element={<ClientLayout />}>
-                                            <Route path="gallery/:galleryId?" element={<ClientGalleryPage />} />
-                                            <Route path="reset-password" element={<ClientResetPasswordPage />} />
-                                        </Route>
-
-                                        {/* --- Rotas Admin (Estrutura original mantida) --- */}
-                                        <Route path="/admin/login" element={<AdminLogin />} />
-                                        <Route path="/admin" element={<AdminLayout />}>
-                                            <Route index element={<AdminDashboard />} />
-                                            <Route path="portfolio" element={<AdminPortfolio />} />
-                                            <Route path="services" element={<AdminServices />} />
-                                            <Route path="about" element={<AdminAbout />} />
-                                            <Route path="settings" element={<AdminSettings />} />
-                                            <Route path="testimonials" element={<AdminTestimonials />} />
-                                            <Route path="messages" element={<AdminMessages />} />
-                                            <Route path="blog" element={<AdminBlog />} />
-                                            <Route path="clients" element={<AdminClients />} />
-                                            <Route path="clients/:clientId/:clientName" element={<AdminClientGalleries />} />
-                                            <Route path="availability" element={<AdminAvailability />} />
-                                        </Route>
-
-                                        {/* --- Rota Not Found (Estrutura original mantida) --- */}
-                                        <Route path="*" element={<NotFound />} />
-                                    </Routes>
-                                </MessagesProvider>
-                            </Suspense>
-                            {/* O FloatingContact foi movido para o PublicLayout e removido daqui */}
+                            <AppContent />
                         </BrowserRouter>
-                    </div>
-
+                    </HelmetProvider>
                 </TooltipProvider>
             </ThemeProvider>
         </QueryClientProvider>

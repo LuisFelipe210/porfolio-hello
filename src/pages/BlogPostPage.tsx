@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -16,6 +17,7 @@ interface Post {
     coverImage: string;
     createdAt: string;
     alt?: string;
+    summary?: string; // adicionada para SEO
 }
 
 const BlogPostPage = () => {
@@ -50,7 +52,15 @@ const BlogPostPage = () => {
     return (
         <div className="relative min-h-screen bg-white text-black dark:bg-black dark:text-white overflow-hidden">
             <Header />
-
+            {post && (
+                <Helmet>
+                    <title>Hellô Borges Fotografia | {post.title}</title>
+                    <meta
+                        name="description"
+                        content={post.summary || post.content.substring(0, 160)}
+                    />
+                </Helmet>
+            )}
             <main>
                 {isLoading ? (
                     <div className="container mx-auto max-w-3xl px-6 py-32">

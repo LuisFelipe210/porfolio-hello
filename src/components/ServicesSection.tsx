@@ -2,6 +2,7 @@ import { Camera, Heart, Users, UserPlus, Check, Hand } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
+import { useQuery } from '@tanstack/react-query';
 
 // --- Interface e Mapeamento de Ícones ---
 interface Service {
@@ -129,28 +130,21 @@ const ServiceCard = ({ service }: { service: Service }) => {
 };
 
 // --- Componente Principal da Seção de Serviços ---
+const fetchServices = async (): Promise<Service[]> => {
+    const response = await fetch('/api/services');
+    if (!response.ok) throw new Error('Falha ao buscar serviços');
+    return response.json();
+};
+
 const ServicesSection = () => {
-    const [services, setServices] = useState<Service[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data: services = [], isLoading } = useQuery<Service[], Error>({
+        queryKey: ['services'],
+        queryFn: fetchServices,
+        staleTime: 1000 * 60 * 5, // opcional: cache 5 minutos
+    });
+
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        const fetchServices = async () => {
-            setIsLoading(true);
-            try {
-                const response = await fetch('/api/services');
-                if (!response.ok) throw new Error("Falha ao buscar dados.");
-                const data = await response.json();
-                setServices(data);
-            } catch (error) {
-                console.error("Erro ao buscar serviços:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchServices();
-    }, []);
 
     const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
 

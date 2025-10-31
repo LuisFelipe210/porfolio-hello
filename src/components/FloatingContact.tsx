@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, CalendarDays } from "lucide-react"; // Importado CalendarDays
+import { Mail } from "lucide-react"; // Importado CalendarDays
 import { FaWhatsapp } from "react-icons/fa";
 import { useToast } from "../hooks/use-toast";
 import {
@@ -11,6 +11,45 @@ import {
     DialogTrigger,
 } from "./ui/dialog";
 import { ContactForm } from "./ContactForm";
+
+type FloatingButtonProps = {
+    icon: React.ReactNode;
+    href?: string;
+    onClick?: () => void;
+    bgColor: string;
+    hoverBgColor: string;
+    ariaLabel: string;
+};
+
+const FloatingButton = ({ icon, href, onClick, bgColor, hoverBgColor, ariaLabel }: FloatingButtonProps) => {
+    const commonClasses = `w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg transition-transform hover:scale-110`;
+    const buttonContent = (
+        <button
+            onClick={onClick}
+            className={`${commonClasses} ${bgColor} hover:${hoverBgColor}`}
+            aria-label={ariaLabel}
+            type={onClick ? "button" : undefined}
+        >
+            {icon}
+        </button>
+    );
+
+    if (href) {
+        return (
+            <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${commonClasses} ${bgColor} hover:${hoverBgColor}`}
+                aria-label={ariaLabel}
+            >
+                {icon}
+            </a>
+        );
+    }
+
+    return buttonContent;
+};
 
 const FloatingContact = () => {
     const [formData, setFormData] = useState({
@@ -72,27 +111,25 @@ const FloatingContact = () => {
     return (
         <div className="fixed bottom-6 left-6 z-50 flex flex-col items-center gap-3">
 
-
             {/* Botão do WhatsApp */}
-            <a
+            <FloatingButton
+                icon={<FaWhatsapp size={24} />}
                 href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-green-600 transition-transform hover:scale-110"
-                aria-label="WhatsApp"
-            >
-                <FaWhatsapp size={24} />
-            </a>
+                bgColor="bg-green-500"
+                hoverBgColor="bg-green-600"
+                ariaLabel="WhatsApp"
+            />
 
             {/* Botão de Email que abre o diálogo */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                    <button
-                        className="w-10 h-10 md:w-14 md:h-14 bg-orange-500 rounded-full flex items-center justify-center text-white dark:text-black shadow-lg hover:bg-orange-600 transition-transform hover:scale-110"
-                        aria-label="Email"
-                    >
-                        <Mail size={24} />
-                    </button>
+                    <FloatingButton
+                        icon={<Mail size={24} />}
+                        onClick={() => setIsDialogOpen(true)}
+                        bgColor="bg-orange-500"
+                        hoverBgColor="bg-orange-600"
+                        ariaLabel="Email"
+                    />
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[480px]">
                     <DialogHeader>

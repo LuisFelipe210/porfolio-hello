@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 import TestimonialCard from './TestimonialCard';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
 
 interface TestimonialFromAPI {
     _id: string;
@@ -17,11 +18,25 @@ interface TestimonialFromAPI {
 
 const cardRotations = [3, -1, 2, -3, 2, -3, 3];
 
+const fetchTestimonials = async (): Promise<TestimonialFromAPI[]> => {
+    const response = await fetch('/api/testimonials');
+    if (!response.ok) throw new Error('Falha ao buscar depoimentos.');
+    const data = await response.json();
+    return data.map((item: any) => ({
+        ...item,
+        source: item.role,
+        alt: item.alt || `Foto de ${item.author}` || 'Cliente satisfeito'
+    }));
+};
+
 const TestimonialsSection = () => {
-    const [testimonials, setTestimonials] = useState<TestimonialFromAPI[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'center' });
+
+    const { data: testimonials = [], isLoading } = useQuery<TestimonialFromAPI[], Error>({
+        queryKey: ['testimonials'],
+        queryFn: fetchTestimonials
+    });
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
@@ -41,31 +56,6 @@ const TestimonialsSection = () => {
             emblaApi.off('reInit', onSelect);
         };
     }, [emblaApi, onSelect]);
-
-    useEffect(() => {
-        const fetchTestimonials = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch('/api/testimonials');
-                if (!response.ok) throw new Error('Falha ao buscar depoimentos.');
-                const data = await response.json();
-
-                // Mapeia 'role' para 'source' para manter compatibilidade com TestimonialCard
-                const mappedData = data.map((item: any) => ({
-                    ...item,
-                    source: item.role,
-                    alt: item.alt || `Foto de ${item.author}` || 'Cliente satisfeito'
-                }));
-
-                setTestimonials(mappedData);
-            } catch (error) {
-                console.error("Erro ao buscar depoimentos:", error);
-            } finally {
-                setTimeout(() => setIsLoading(false), 500);
-            }
-        };
-        fetchTestimonials();
-    }, []);
 
     const scrollSnaps = emblaApi ? emblaApi.scrollSnapList() : [];
 

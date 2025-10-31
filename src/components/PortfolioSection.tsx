@@ -14,8 +14,10 @@ interface PortfolioItem {
     title: string;
     description: string;
     image: string;
-    category: string;
+    category: 'portrait' | 'wedding' | 'maternity' | 'family' | 'events' | 'other';
     alt?: string;
+    tags?: string[];       // para futuras filtragens ou buscas
+    createdAt?: string;    // data de criação do item
 }
 
 // 2. Componente PortfolioImage fora da interface

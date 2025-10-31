@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
 import { Camera, Heart, Users } from "lucide-react";
 import { FaHeartbeat } from "react-icons/fa";
 import { Skeleton } from "./ui/skeleton";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
+import { useQuery } from '@tanstack/react-query';
 
 interface Image {
     src: string;
@@ -16,29 +16,17 @@ interface AboutContent {
     imagesColumn2: Image[];
 }
 
-const AboutSection = () => {
-    const [content, setContent] = useState<AboutContent | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+const fetchAboutContent = async (): Promise<AboutContent> => {
+    const response = await fetch('/api/about');
+    if (!response.ok) throw new Error('Falha ao buscar conteúdo da seção "Sobre".');
+    return response.json();
+};
 
-    useEffect(() => {
-        const fetchContent = async () => {
-            try {
-                const response = await fetch('/api/about');
-                if (!response.ok) {
-                    throw new Error('Falha ao buscar conteúdo da seção "Sobre".');
-                }
-                const data = await response.json();
-                if (data) {
-                    setContent(data);
-                }
-            } catch (error) {
-                console.error("Erro ao buscar conteúdo da seção 'Sobre':", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchContent();
-    }, []);
+const AboutSection = () => {
+    const { data: content, isLoading, error } = useQuery<AboutContent, Error>({
+        queryKey: ['aboutContent'],
+        queryFn: fetchAboutContent
+    });
 
     const allImages = content ? [...content.imagesColumn1, ...content.imagesColumn2] : [];
 

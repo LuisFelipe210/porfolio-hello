@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 interface Post {
     _id: string;
@@ -61,6 +62,14 @@ const BlogPage = () => {
                 />
             </div>
             <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/60 to-transparent dark:from-black/80 dark:via-black/60 to-transparent" />
+
+            <Helmet>
+                <title>Hellô Borges Fotografia | Blog</title>
+                <meta
+                    name="description"
+                    content="Confira os últimos artigos, histórias, dicas e bastidores do trabalho criativo da Hellô Borges."
+                />
+            </Helmet>
 
             <main className="relative z-20 pt-24 md:pt-32 container mx-auto section-padding">
                 <section>
