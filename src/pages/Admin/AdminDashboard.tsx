@@ -14,11 +14,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 const clientFormSchema = z.object({
     name: z.string().min(3, { message: "O nome é obrigatório." }),
@@ -33,21 +34,6 @@ const portfolioFormSchema = z.object({
     category: z.string().min(1, { message: "Selecione uma categoria." }),
     description: z.string().min(1, { message: "A descrição é obrigatória." }),
 });
-
-
-interface DashboardData {
-    stats: {
-        clients: number; portfolio: number; posts: number; testimonials: number;
-        portfolioByCategory: { _id: string, count: number }[];
-        galleryStatus: { pending: number; unread: number };
-    };
-    activity: {
-        lastMessage: { name: string, createdAt: string } | null;
-        lastSelection: { clientInfo: { name: string }, selectionDate: string } | null;
-        latestClients: { _id: string, name: string }[];
-        reservedDates: string[];
-    };
-}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -71,17 +57,8 @@ const AdminDashboard = () => {
     const { toast } = useToast();
 
     const queryClient = useQueryClient();
-    const { data, isLoading } = useQuery<DashboardData, Error>({
-        queryKey: ['dashboardData'],
-        queryFn: async () => {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/dashboard', {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Falha ao carregar dados do dashboard.');
-            return response.json();
-        },
-    });
+
+    const { data, isLoading } = useDashboardData();
 
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
 
@@ -129,7 +106,8 @@ const AdminDashboard = () => {
             toast({ title: 'Sucesso!', variant: "success", description: `Cliente ${formData.name} adicionado.` });
             clientForm.reset();
             setIsClientDialogOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['dashboardData'] }); // 3. Forçar a atualização dos dados do dashboard
+            queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
+            queryClient.invalidateQueries({ queryKey: ['clients'] }); // Invalida a lista de clientes
         } catch (error: unknown) {
             toast({ variant: 'destructive', title: 'Erro', description: error instanceof Error ? error.message : 'Ocorreu um erro.' });
         }
@@ -174,7 +152,8 @@ const AdminDashboard = () => {
             portfolioForm.reset();
             setPFile(null);
             setIsPortfolioDialogOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['dashboardData'] }); // 3. Forçar a atualização dos dados do dashboard
+            queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
+            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] }); // Invalida a lista de portfolio
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
@@ -212,7 +191,6 @@ const AdminDashboard = () => {
                 <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6">
                     <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10 mb-6">
                         <CardHeader className="p-3 pb-0">
-                            {/* NÍVEL DE CABEÇALHO CORRIGIDO */}
                             <h2 className="text-white text-base font-semibold px-1">Ações Rápidas</h2>
                         </CardHeader>
                         <CardContent className="p-4 pt-3 grid grid-cols-3 gap-3">
@@ -288,7 +266,6 @@ const AdminDashboard = () => {
         );
     }
 
-    // ----- VERSÃO DESKTOP  -----
     return (
         <div className="flex flex-col h-full animate-fade-in">
             <div className="shrink-0 mb-8">
@@ -533,8 +510,8 @@ const AdminDashboard = () => {
                                 <Label className="text-white mb-1 font-semibold">Descrição</Label><FormControl><Textarea required className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage />
                             </FormItem>)} />
                             <div>
-                                <Label htmlFor="portfolio-file-upload" className="text-white mb-1 font-semibold">Imagem</Label>
-                                <Input id="portfolio-file-upload" type="file" onChange={(e) => setPFile(e.target.files?.[0] || null)} required className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                                <Label htmlFor="portfolio-file-upload-dashboard" className="text-white mb-1 font-semibold">Imagem</Label>
+                                <Input id="portfolio-file-upload-dashboard" type="file" onChange={(e) => setPFile(e.target.files?.[0] || null)} required className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
                             </div>
                             <DialogFooter className="!mt-6"><DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose><Button type="submit" disabled={portfolioForm.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{portfolioForm.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Guardar'}</Button></DialogFooter>
                         </form>
