@@ -12,7 +12,6 @@ interface ViewSelectionsDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-// --- Componente para a Janela de Visualização de uma imagem (Modal Fullscreen) ---
 const SelectionImageModal = ({
                                  images,
                                  currentIndex,
@@ -26,18 +25,16 @@ const SelectionImageModal = ({
 }) => {
     const currentImage = images[currentIndex];
 
-    // Pré-carrega imagens vizinhas para uma navegação mais fluida
     useEffect(() => {
         const preloadImage = (url: string) => {
             const img = new Image();
-            img.src = optimizeCloudinaryUrl(url, "f_auto,q_auto,w_1920"); // Pré-carrega a versão de alta resolução
+            img.src = optimizeCloudinaryUrl(url, "f_auto,q_auto,w_1920");
         };
 
         if (currentIndex < images.length - 1) preloadImage(images[currentIndex + 1]);
         if (currentIndex > 0) preloadImage(images[currentIndex - 1]);
     }, [currentIndex, images]);
 
-    // Adiciona o suporte a teclado (Esc, setas)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight') onNavigate('next');
@@ -48,7 +45,6 @@ const SelectionImageModal = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onNavigate, onClose]);
 
-    // Hook para bloquear o scroll do body enquanto o modal estiver aberto
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => {
@@ -61,12 +57,10 @@ const SelectionImageModal = ({
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[99999] p-4 animate-fade-in" onClick={onClose}>
             <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
 
-                {/* Botão Fechar */}
-                <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white z-20 h-12 w-12 rounded-full hover:bg-white/10" onClick={onClose}>
+                <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white z-20 h-12 w-12 rounded-full hover:bg-white/10" onClick={onClose} aria-label="Fechar">
                     <X className="h-7 w-7" />
                 </Button>
 
-                {/* Botão Anterior */}
                 {currentIndex > 0 && (
                     <Button
                         variant="ghost"
@@ -74,20 +68,18 @@ const SelectionImageModal = ({
                         className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 rounded-full hover:bg-white/10 disabled:opacity-20"
                         onClick={(e) => { e.stopPropagation(); onNavigate('prev'); }}
                         disabled={currentIndex === 0}
+                        aria-label="Anterior"
                     >
                         <ChevronLeft className="h-10 w-10" />
                     </Button>
                 )}
 
-
-                {/* Imagem */}
                 <img
                     src={optimizeCloudinaryUrl(currentImage, "f_auto,q_auto,w_1920")}
                     alt={`Foto ${currentIndex + 1}`}
                     className="max-w-[95vw] max-h-[90vh] object-contain rounded-lg shadow-2xl animate-zoom-in"
                 />
 
-                {/* Botão Próximo */}
                 {currentIndex < images.length - 1 && (
                     <Button
                         variant="ghost"
@@ -95,6 +87,7 @@ const SelectionImageModal = ({
                         className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white z-20 h-16 w-16 rounded-full hover:bg-white/10 disabled:opacity-20"
                         onClick={(e) => { e.stopPropagation(); onNavigate('next'); }}
                         disabled={currentIndex === images.length - 1}
+                        aria-label="Próxima"
                     >
                         <ChevronRight className="h-10 w-10" />
                     </Button>
@@ -120,7 +113,6 @@ export const ViewSelectionsDialog = ({ galleryName, selectedImages, open, onOpen
 
     return (
         <>
-            {/* Modal de visualização de imagem única */}
             {modalImageIndex !== null && (
                 <SelectionImageModal
                     images={selectedImages}
@@ -130,7 +122,6 @@ export const ViewSelectionsDialog = ({ galleryName, selectedImages, open, onOpen
                 />
             )}
 
-            {/* Diálogo Principal (Grade de Fotos) */}
             <Dialog open={open} onOpenChange={(isOpen) => {
                 onOpenChange(isOpen);
                 if (!isOpen) setModalImageIndex(null);

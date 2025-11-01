@@ -9,8 +9,8 @@ import Footer from '@/components/Footer';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { useQuery } from '@tanstack/react-query'; // <<< Importado
-import { useToast } from '@/hooks/use-toast'; // <<< Importado
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 interface Post {
     _id: string;
@@ -22,7 +22,6 @@ interface Post {
     alt?: string;
 }
 
-// --- Função de API (Helper) ---
 const fetchPostsAPI = async (): Promise<Post[]> => {
     const response = await fetch('/api/blog');
     if (!response.ok) throw new Error("Falha ao carregar artigos.");
@@ -30,18 +29,14 @@ const fetchPostsAPI = async (): Promise<Post[]> => {
 };
 
 const BlogPage = () => {
-    // const [posts, setPosts] = useState<Post[]>([]); // <<< REMOVIDO
-    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
     const { toast } = useToast(); // <<< Adicionado
 
-    // --- Refatoração: useQuery ---
     const { data: posts = [], isLoading, isError, error } = useQuery<Post[], Error>({
         queryKey: ['blogPosts'],
         queryFn: fetchPostsAPI,
-        initialData: [], // Garante que 'posts' é sempre um array
+        initialData: [],
     });
 
-    // Efeito para lidar com erros
     useEffect(() => {
         if (isError) {
             console.error("Erro ao buscar artigos:", error);
@@ -55,7 +50,6 @@ const BlogPage = () => {
 
     const truncateText = (text: string, length: number) => {
         if (!text) return '';
-        // Remove HTML simples para uma pré-visualização mais limpa (opcional mas recomendado)
         const plainText = text.replace(/<[^>]+>/g, '');
         if (plainText.length <= length) return plainText;
         return plainText.substring(0, length) + '...';
@@ -111,7 +105,6 @@ const BlogPage = () => {
                         </div>
                     ) : (
                         <div className="space-y-12">
-                            {/* Artigo em Destaque */}
                             {featuredPost && (
                                 <Link to={`/blog/${featuredPost.slug}`} className="group block">
                                     <Card className="overflow-hidden h-full border border-black/10 dark:border-white/10 rounded-3xl bg-white/10 dark:bg-black/50 shadow-lg hover:border-orange-500/50 transition-all duration-300">
@@ -128,9 +121,9 @@ const BlogPage = () => {
                                                 <CardDescription className="text-orange-400 font-semibold mb-2">
                                                     Artigo em Destaque
                                                 </CardDescription>
-                                                <CardTitle className="text-3xl lg:text-4xl font-bold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors">
+                                                <h2 className="text-3xl lg:text-4xl font-bold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors">
                                                     {featuredPost.title}
-                                                </CardTitle>
+                                                </h2>
                                                 <p className="mt-4 text-white/80 dark:text-white/80 line-clamp-3">
                                                     {truncateText(featuredPost.content, 150)}
                                                 </p>
@@ -143,7 +136,6 @@ const BlogPage = () => {
                                 </Link>
                             )}
 
-                            {/* Outros Artigos */}
                             {otherPosts.length > 0 && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {otherPosts.map((post) => (
@@ -158,9 +150,9 @@ const BlogPage = () => {
                                                     />
                                                 </div>
                                                 <CardHeader className="p-6">
-                                                    <CardTitle className="text-xl font-semibold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors line-clamp-2">
+                                                    <h2 className="text-xl font-semibold leading-tight text-white dark:text-white group-hover:text-orange-400 transition-colors line-clamp-2">
                                                         {post.title}
-                                                    </CardTitle>
+                                                    </h2>
                                                     <CardDescription className="pt-2 text-white/70 dark:text-white/70">
                                                         {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
                                                     </CardDescription>

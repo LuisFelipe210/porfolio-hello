@@ -137,15 +137,15 @@ const TestimonialsSection = () => {
                 </div>
 
                 {!isLoading && testimonials.length > 0 && (
-                    <div className="flex justify-center space-x-2 mt-12">
+                    <div className="flex justify-center space-x-3 mt-12">
                         {scrollSnaps.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => scrollTo(index)}
-                                className={`h-2.5 rounded-full transition-all duration-300 ${
+                                className={`rounded-full transition-all duration-300 ${
                                     index === selectedIndex
-                                        ? 'bg-zinc-800 dark:bg-white w-6'
-                                        : 'bg-gray-300 dark:bg-gray-700 w-2.5'
+                                        ? 'bg-zinc-800 dark:bg-white w-6 h-3'
+                                        : 'bg-gray-400 dark:bg-gray-500 w-3 h-3'
                                 }`}
                                 aria-label={`Ir para o depoimento ${index + 1}`}
                             />

@@ -157,7 +157,7 @@ const AdminClientGalleries = () => {
                             <Skeleton className="h-20 w-full bg-black/60 rounded-2xl" />
                         </TableCell>
                     </TableRow>
-                  ));
+                ));
         }
         if (galleries.length === 0) {
             return isMobile
@@ -191,8 +191,8 @@ const AdminClientGalleries = () => {
                 <TableCell className="text-white/80">{gallery.selections.length} selecionadas</TableCell>
                 <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
-                        <Button onClick={() => openUploadDialog(gallery)} disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0} size="sm" className="bg-orange-500 hover:bg-orange-600 rounded-lg text-white font-semibold"><Upload className="mr-2 h-4 w-4" />Fotos</Button>
-                        <Button disabled={gallery.status !== 'selection_complete'} onClick={() => openViewDialog(gallery)} size="sm" className="bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold border border-white/20"><Eye className="mr-2 h-4 w-4" />Seleção</Button>
+                        <Button onClick={() => openUploadDialog(gallery)} disabled={gallery.status === 'selection_complete' || gallery.selections.length > 0} size="sm" className="bg-orange-500 hover:bg-orange-600 rounded-lg text-white font-semibold" aria-label={`Adicionar fotos a ${gallery.name}`}><Upload className="mr-2 h-4 w-4" />Fotos</Button>
+                        <Button disabled={gallery.status !== 'selection_complete'} onClick={() => openViewDialog(gallery)} size="sm" className="bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold border border-white/20" aria-label={`Ver seleção de ${gallery.name}`}><Eye className="mr-2 h-4 w-4" />Seleção</Button>
                     </div>
                 </TableCell>
             </TableRow>
@@ -203,7 +203,11 @@ const AdminClientGalleries = () => {
         <div className="flex flex-col h-full animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
                 <div className="flex items-center gap-4">
-                    <Link to="/admin/clients"><Button variant="outline" size="icon" className="bg-black/70 border-white/20 text-white hover:bg-white/10 rounded-xl"><ArrowLeft className="h-4 w-4" /></Button></Link>
+                    <Link to="/admin/clients">
+                        <Button variant="outline" size="icon" className="bg-black/70 border-white/20 text-white hover:bg-white/10 rounded-xl" aria-label="Voltar para clientes">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                    </Link>
                     <div>
                         <h1 className="text-3xl font-bold text-white">Galerias de {clientName}</h1>
                         <p className="text-white/80">Crie e gira as galerias de fotos para este cliente.</p>
@@ -221,7 +225,11 @@ const AdminClientGalleries = () => {
             </div>
 
             <Dialog open={isCreateDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) form.reset(); setIsCreateDialogOpen(isOpen); }}>
-                <DialogTrigger asChild><Button className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"><Plus className="h-12 w-12 text-white" /></Button></DialogTrigger>
+                <DialogTrigger asChild>
+                    <Button className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" aria-label="Criar Nova Galeria">
+                        <Plus className="h-12 w-12 text-white" />
+                    </Button>
+                </DialogTrigger>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl border-white/10 text-white">
                     <DialogHeader><DialogTitle className="text-white font-bold">Criar Nova Galeria</DialogTitle></DialogHeader>
                     <Form {...form}>

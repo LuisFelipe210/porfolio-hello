@@ -220,7 +220,9 @@ const AdminBlog = () => {
                         <h3 className="font-semibold text-white text-lg line-clamp-2">{post.title}</h3>
                         <p className="text-xs text-white/70">{format(new Date(post.createdAt), "dd/MM/yy", { locale: ptBR })}</p>
                         <div className="mt-2 flex space-x-2">
-                            <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button>
+                            <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(post)} aria-label={`Editar ${post.title}`}>
+                                <Edit className="h-4 w-4" />
+                            </Button>
                         </div>
                     </div>
                 </Card>
@@ -233,7 +235,12 @@ const AdminBlog = () => {
                 <TableCell><img src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200,c_fill,ar_16:9,g_auto")} alt={post.alt || post.title} className="h-16 w-28 object-cover rounded-xl" /></TableCell>
                 <TableCell className="font-medium text-white">{post.title}</TableCell>
                 <TableCell className="text-white/80">{format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</TableCell>
-                <TableCell className="text-right"><Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(post)}><Edit className="h-4 w-4" /></Button></TableCell>
+                {/* RÓTULO DE BOTÃO CORRIGIDO */}
+                <TableCell className="text-right">
+                    <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(post)} aria-label={`Editar ${post.title}`}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                </TableCell>
             </TableRow>
         ));
     };
@@ -253,15 +260,20 @@ const AdminBlog = () => {
                     )}
                 </div>
             </div>
+
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
                 <div className="relative w-full sm:w-1/2 md:w-1/3">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
-                    <Input placeholder="Buscar por título..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
+                    <Label htmlFor="search-blog" className="sr-only">Buscar por título</Label>
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" aria-hidden="true" />
+                    <Input id="search-blog" placeholder="Buscar por título..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
                 </div>
-                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full sm:w-auto">
-                    <option value="recent">Mais recentes</option>
-                    <option value="oldest">Mais antigos</option>
-                </select>
+                <div className="w-full sm:w-auto">
+                    <Label htmlFor="sort-order-blog" className="sr-only">Ordenar por</Label>
+                    <select id="sort-order-blog" value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full">
+                        <option value="recent">Mais recentes</option>
+                        <option value="oldest">Mais antigos</option>
+                    </select>
+                </div>
             </div>
 
             <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
@@ -269,7 +281,11 @@ const AdminBlog = () => {
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild><Button className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" onClick={() => handleOpenDialog()}><Plus className="h-12 w-12" /></Button></DialogTrigger>
+                <DialogTrigger asChild>
+                    <Button className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" onClick={() => handleOpenDialog()} aria-label="Criar Novo Artigo">
+                        <Plus className="h-12 w-12" />
+                    </Button>
+                </DialogTrigger>
                 <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-white font-bold text-xl">{editingId ? "Editar Artigo" : "Criar Novo Artigo"}</DialogTitle>
@@ -280,10 +296,12 @@ const AdminBlog = () => {
                             <FormField control={form.control} name="title" render={({ field }) => (<FormItem>
                                 <Label className="text-white font-bold">Título</Label><FormControl><Input required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
                             </FormItem>)} />
+
                             <div>
-                                <Label className="text-white font-bold">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label>
-                                <Input type="file" accept="image/*" onChange={handleFileChange} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                                <Label htmlFor="blog-file-upload" className="text-white font-bold">Imagem de Capa {editingId ? "(Opcional)" : ""}</Label>
+                                <Input id="blog-file-upload" type="file" accept="image/*" onChange={handleFileChange} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
                             </div>
+
                             <FormField control={form.control} name="alt" render={({ field }) => (<FormItem>
                                 <Label className="text-white font-bold">Texto Alternativo (ALT)<span className="text-white/60 text-xs ml-2 font-normal">(Opcional)</span></Label>
                                 <FormControl><Input placeholder={form.watch('title') || "Descreva a imagem de capa"} className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>

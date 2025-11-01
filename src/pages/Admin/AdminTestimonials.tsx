@@ -21,7 +21,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; /
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
-// Schema (sem alteração)
 const testimonialSchema = z.object({
     author: z.string().min(3, { message: "O nome do autor é obrigatório." }),
     role: z.string().min(3, { message: "O cargo/serviço é obrigatório." }),
@@ -29,7 +28,6 @@ const testimonialSchema = z.object({
     alt: z.string().optional(),
 });
 
-// Interface (sem alteração)
 interface Testimonial {
     _id: string;
     author: string;
@@ -38,8 +36,6 @@ interface Testimonial {
     imageUrl: string;
     alt?: string;
 }
-
-// --- Funções de API (Helpers) ---
 
 const fetchTestimonialsAPI = async (): Promise<Testimonial[]> => {
     const response = await fetch('/api/testimonials');
@@ -94,8 +90,6 @@ const deleteTestimonialsAPI = async (testimonialIds: string[]) => {
     return response.json();
 };
 
-// --- Componente Principal ---
-
 const AdminTestimonials = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { toast } = useToast();
@@ -114,15 +108,12 @@ const AdminTestimonials = () => {
         defaultValues: { author: "", role: "", text: "", alt: "" },
     });
 
-    // --- Refatoração: useQuery ---
-    // <<< CORREÇÃO: Removido o '_' (underscore) no final da linha abaixo >>>
     const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[], Error>({
         queryKey: ['testimonials'],
         queryFn: fetchTestimonialsAPI,
         initialData: [], // Garante que 'testimonials' é sempre um array
     });
 
-    // Efeito para lidar com erros do useQuery
     useEffect(() => {
         if (isError) {
             toast({ variant: 'destructive', title: 'Erro', description: (error as Error).message || 'Não foi possível carregar os depoimentos.' });
@@ -150,7 +141,6 @@ const AdminTestimonials = () => {
         setIsDialogOpen(true);
     };
 
-    // --- Refatoração: useMutation (Salvar) ---
     const saveMutation = useMutation({
         mutationFn: saveTestimonialAPI,
         onSuccess: (data, variables) => {
@@ -185,7 +175,6 @@ const AdminTestimonials = () => {
         saveMutation.mutate({ formData: data, imageUrl, editingId });
     };
 
-    // --- Refatoração: useMutation (Apagar) ---
     const deleteMutation = useMutation({
         mutationFn: deleteTestimonialsAPI,
         onSuccess: (data, ids) => {
@@ -246,7 +235,9 @@ const AdminTestimonials = () => {
                         <h3 className="font-semibold text-white text-lg">{item.author}</h3>
                         <p className="text-sm text-orange-400 font-semibold">{item.role}</p>
                         <div className="mt-2 flex space-x-2">
-                            <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button>
+                            <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)} aria-label={`Editar ${item.author}`}>
+                                <Edit className="h-4 w-4" />
+                            </Button>
                         </div>
                     </div>
                 </Card>
@@ -258,7 +249,12 @@ const AdminTestimonials = () => {
                 <TableCell><img src={optimizeCloudinaryUrl(item.imageUrl, "f_auto,q_auto,w_200,h_200,c_fill,g_auto")} alt={item.alt || `Foto de ${item.author}`} className="h-16 w-16 object-cover rounded-full" /></TableCell>
                 <TableCell className="font-medium text-white">{item.author}</TableCell>
                 <TableCell className="text-white/80">{item.role}</TableCell>
-                <TableCell className="text-right"><Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)}><Edit className="h-4 w-4" /></Button></TableCell>
+                {/* RÓTULO DE BOTÃO CORRIGIDO */}
+                <TableCell className="text-right">
+                    <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)} aria-label={`Editar ${item.author}`}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                </TableCell>
             </TableRow>
         ));
     };
@@ -284,7 +280,11 @@ const AdminTestimonials = () => {
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild><Button className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" onClick={() => handleOpenDialog()}><Plus className="h-12 w-12" /></Button></DialogTrigger>
+                <DialogTrigger asChild>
+                    <Button className="fixed bottom-6 right-6 z-50 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" onClick={() => handleOpenDialog()} aria-label="Adicionar Depoimento">
+                        <Plus className="h-12 w-12" />
+                    </Button>
+                </DialogTrigger>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-white text-xl font-semibold">{editingId ? "Editar Depoimento" : "Adicionar Depoimento"}</DialogTitle>
@@ -299,10 +299,12 @@ const AdminTestimonials = () => {
                             <FormField control={form.control} name="role" render={({ field }) => (<FormItem>
                                 <Label className="text-white mb-1 font-semibold">Cargo / Serviço</Label><FormControl><Input required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
                             </FormItem>)} />
+
                             <div>
-                                <Label className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
-                                <Input type="file" accept="image/*" onChange={handleFileChange} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                                <Label htmlFor="testimonial-image-upload" className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
+                                <Input id="testimonial-image-upload" type="file" accept="image/*" onChange={handleFileChange} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
                             </div>
+
                             <FormField control={form.control} name="alt" render={({ field }) => (<FormItem>
                                 <Label className="text-white mb-1 font-semibold">Texto Alternativo (ALT)<span className="text-white/60 text-xs ml-2">(Opcional)</span></Label>
                                 <FormControl><Input placeholder={form.watch('author') ? `Foto de ${form.watch('author')}` : "Descreva a imagem"} className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>

@@ -58,7 +58,6 @@ export const UploadPhotosDialog = ({ galleryId, existingImages, open, onOpenChan
                 setProgress((completed / files.length) * 100);
             } catch (error) {
                 console.error("Erro no upload para o Cloudinary:", error);
-                // Lança o erro para que o Promise.all possa capturá-lo
                 throw error;
             }
         });

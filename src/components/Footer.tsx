@@ -6,19 +6,18 @@ import { FaWhatsapp } from "react-icons/fa";
 import { Skeleton } from './ui/skeleton';
 
 const Footer = () => {
-    // O estado continua a buscar todos os campos, incluindo os de horário
     const [settings, setSettings] = useState({
         whatsapp: '',
         email: '',
         instagram: '',
         location: '',
-        horarioSeg: '', // Embora não seja exibido, é bom manter para consistência
+        horarioSeg: '',
         horarioTer: '',
         horarioQua: '',
         horarioQui: '',
-        horarioSex: '', // Este será usado para "Segunda a Sexta"
-        horarioSab: '', // Este será usado para "Sábado"
-        horarioDom: '', // Este será usado para "Domingo"
+        horarioSex: '',
+        horarioSab: '',
+        horarioDom: '',
     });
     const [isLoading, setIsLoading] = useState(true);
 
@@ -60,7 +59,6 @@ const Footer = () => {
         <footer id="contact" className="bg-primary text-primary-foreground py-12">
             <div className="container mx-auto px-6 max-w-6xl">
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                    {/* Brand */}
                     <div>
                         <div className="flex items-center mb-4 space-x-3">
                             <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
@@ -72,9 +70,8 @@ const Footer = () => {
                         </p>
                     </div>
 
-                    {/* Quick Links (Navegação) */}
                     <div>
-                        <h4 className="font-light mb-4">Navegação</h4>
+                        <h3 className="font-light mb-4">Navegação</h3>
                         <div className="space-y-2 text-sm">
                             <button onClick={() => scrollToSection("about")} className="block hover:text-accent transition-colors">Sobre</button>
                             <button onClick={() => scrollToSection("portfolio")} className="block hover:text-accent transition-colors">Portfolio</button>
@@ -84,9 +81,8 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* Contact (dinâmico) */}
                     <div>
-                        <h4 className="font-light mb-4">Contato</h4>
+                        <h3 className="font-light mb-4">Contato</h3>
                         {isLoading ? (
                             <div className="space-y-3"><Skeleton className="h-5 w-3/4 bg-white/10" /><Skeleton className="h-5 w-full bg-white/10" /><Skeleton className="h-5 w-4/5 bg-white/10" /></div>
                         ) : (
@@ -107,9 +103,8 @@ const Footer = () => {
                         )}
                     </div>
 
-                    {/* Location and Hours */}
                     <div>
-                        <h4 className="font-light mb-4">Atendimento</h4>
+                        <h3 className="font-light mb-4">Atendimento</h3>
                         <div className="space-y-3 text-sm">
                             {isLoading ? (
                                 <div className="space-y-3"><Skeleton className="h-5 w-3/4 bg-white/10" /><Skeleton className="h-24 w-full bg-white/10" /></div>
@@ -119,7 +114,6 @@ const Footer = () => {
                                         <MapPin className="w-4 h-4 mr-2 text-accent flex-shrink-0 mt-1" />
                                         <span className="break-words">{settings.location}</span>
                                     </div>
-                                    {/* CORREÇÃO: Bloco de horário com estrutura fixa e dados dinâmicos */}
                                     <div className="elegant-border p-3 bg-primary/50">
                                         <div className="space-y-2 text-xs text-primary-foreground/80">
                                             {settings.horarioSex && (
@@ -148,7 +142,6 @@ const Footer = () => {
                     </div>
                 </div>
 
-                {/* Copyright */}
                 <div className="border-t border-primary-foreground/20 pt-8 text-center">
                     <p className="text-sm text-primary-foreground/60">
                         © {new Date().getFullYear()} Hellô Borges Fotografia. Todos os direitos reservados.

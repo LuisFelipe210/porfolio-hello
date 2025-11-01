@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, RefreshCw, Copy, Search, Loader2, Edit, FolderKanban } from 'lucide-react'; // Importar novo ícone
+import { Plus, Trash2, RefreshCw, Copy, Search, Loader2, Edit, FolderKanban } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ClientCard from './components/ClientCard';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -36,7 +36,7 @@ interface Client {
     password?: string;
     phrase?: string;
     createdAt: string;
-    galleryCount: number; // <-- ADICIONADO: Contagem de galerias
+    galleryCount: number;
 }
 
 const AdminClients = () => {
@@ -95,11 +95,6 @@ const AdminClients = () => {
         }
         setIsDialogOpen(true);
     }, [form]);
-
-
-
-
-
 
     const generateRandomEmail = () => {
         const randomString = Math.random().toString(36).substring(2, 10);
@@ -229,7 +224,7 @@ const AdminClients = () => {
                                 <span className="font-bold">{client.galleryCount}</span>
                             </Link>
                         </Button>
-                        <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(client)}>
+                        <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(client)} aria-label={`Editar ${client.name}`}>
                             <Edit className="h-4 w-4" />
                         </Button>
                     </div>
@@ -248,8 +243,15 @@ const AdminClients = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0">
-                <div className="relative w-full sm:w-1/2 md:w-1/3"><Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" /><Input placeholder="Buscar por nome ou email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" /></div>
-                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'a-z' | 'z-a')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full sm:w-auto"><option value="a-z">Ordenar A-Z</option><option value="z-a">Ordenar Z-A</option></select>
+                <div className="relative w-full sm:w-1/2 md:w-1/3">
+                    <Label htmlFor="search-client" className="sr-only">Buscar Cliente</Label>
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" aria-hidden="true" />
+                    <Input id="search-client" placeholder="Buscar por nome ou email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
+                </div>
+                <div className="w-full sm:w-auto">
+                    <Label htmlFor="sort-order" className="sr-only">Ordenar por</Label>
+                    <select id="sort-order" value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'a-z' | 'z-a')} className="border border-white/20 rounded-xl bg-black/70 text-white px-4 py-3 text-sm h-12 w-full"><option value="a-z">Ordenar A-Z</option><option value="z-a">Ordenar Z-A</option></select>
+                </div>
             </div>
 
             <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
@@ -272,6 +274,7 @@ const AdminClients = () => {
                     <Button
                         className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
                         onClick={() => handleOpenDialog(null)}
+                        aria-label="Adicionar Novo Cliente"
                     >
                         <Plus className="h-12 w-12" />
                     </Button>
@@ -289,8 +292,8 @@ const AdminClients = () => {
                                 <Label className="text-white mb-1 font-semibold">Email de Login</Label>
                                 <div className="flex items-center gap-2">
                                     <FormControl><Input type="email" required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
-                                    {!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>}
-                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                    {!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Gerar email aleatório"><RefreshCw className="h-5 w-5" /></Button>}
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Copiar email"><Copy className="h-5 w-5" /></Button>
                                 </div><FormMessage />
                             </FormItem>)} />
                             <FormField control={form.control} name="phone" render={({ field }) => (<FormItem>
@@ -300,8 +303,8 @@ const AdminClients = () => {
                                 <Label className="text-white mb-1 font-semibold">Senha Provisória</Label>
                                 <div className="flex items-center gap-2">
                                     <FormControl><Input type="text" required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
-                                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
-                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Gerar senha aleatória"><RefreshCw className="h-5 w-5" /></Button>
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Copiar senha"><Copy className="h-5 w-5" /></Button>
                                 </div><FormMessage />
                             </FormItem>)} />)}
                             <FormField control={form.control} name="phrase" render={({ field }) => (<FormItem>

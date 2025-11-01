@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { ViewSelectionsDialog } from './components/ViewSelectionsDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Message { _id: string; name: string; email: string; phone?: string; service: string; message: string; createdAt: string; read: boolean; }
 interface Selection { _id: string; name: string; selections: string[]; selectionDate: string; clientInfo: { name: string }; read: boolean; }
@@ -77,7 +78,6 @@ const AdminMessages = () => {
         if (!itemToDelete) return;
         try {
             const token = localStorage.getItem('authToken');
-            // Futuramente, adicionar rota para apagar seleções se necessário
             if (itemToDelete.type === 'message') {
                 await fetch(`/api/messages?id=${itemToDelete.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 toast({ title: 'Sucesso', variant: "success", description: 'Mensagem excluída.' });
@@ -113,7 +113,6 @@ const AdminMessages = () => {
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            {/* CABEÇALHO */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Caixa de Entrada</h1>
@@ -133,14 +132,15 @@ const AdminMessages = () => {
                             {unreadSelectionsCount > 0 && <span className="absolute top-2 right-2 h-2 w-2 bg-white rounded-full animate-pulse"></span>}
                         </TabsTrigger>
                     </TabsList>
+
                     <div className="relative w-full sm:w-1/2 md:w-1/3">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
-                        <Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
+                        <Label htmlFor="search-messages" className="sr-only">Buscar</Label>
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" aria-hidden="true" />
+                        <Input id="search-messages" placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                    {/* ABA DE MENSAGENS */}
                     <TabsContent value="messages" className="mt-0">
                         {isLoading ? <Skeleton className="h-40 w-full mt-4 bg-black/60 rounded-3xl" /> : filteredMessages.length > 0 ? (
                             <Accordion type="single" collapsible className="w-full space-y-4" onValueChange={(id) => handleMarkAsRead(id, 'message')}>
@@ -169,7 +169,7 @@ const AdminMessages = () => {
                                                             <a href={`mailto:${msg.email}`} className="flex items-center gap-2 hover:text-orange-500 transition-colors"><Mail className="h-4 w-4" />{msg.email}</a>
                                                             {msg.phone && <a href={`https://wa.me/${msg.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-orange-500 transition-colors"><Phone className="h-4 w-4" />{msg.phone}</a>}
                                                         </div>
-                                                        <Button size="icon" variant="ghost" onClick={() => { setItemToDelete({ id: msg._id, type: 'message' }); setIsDeleteDialogOpen(true); }} className="border border-red-500/80 text-red-500 hover:bg-red-500/20 rounded-xl">
+                                                        <Button size="icon" variant="ghost" onClick={() => { setItemToDelete({ id: msg._id, type: 'message' }); setIsDeleteDialogOpen(true); }} className="border border-red-500/80 text-red-500 hover:bg-red-500/20 rounded-xl" aria-label={`Excluir mensagem de ${msg.name}`}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -182,7 +182,6 @@ const AdminMessages = () => {
                         ) : <p className="text-center text-white/70 pt-12">Nenhuma mensagem de contato encontrada.</p>}
                     </TabsContent>
 
-                    {/* ABA DE SELEÇÕES */}
                     <TabsContent value="selections" className="mt-0">
                         {isLoading ? <Skeleton className="h-40 w-full mt-4 bg-black/60 rounded-3xl" /> : filteredSelections.length > 0 ? (
                             <div className="space-y-4">
@@ -200,7 +199,7 @@ const AdminMessages = () => {
                                                 <p className="text-xs text-white/70">
                                                     {format(new Date(gallery.selectionDate), "dd/MM/yyyy", { locale: ptBR })}
                                                 </p>
-                                                <Button onClick={() => openViewDialog(gallery)} className="bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold">
+                                                <Button onClick={() => openViewDialog(gallery)} className="bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold" aria-label={`Ver seleção de ${gallery.clientInfo?.name}`}>
                                                     <Eye className="mr-2 h-4 w-4" /> Ver Fotos
                                                 </Button>
                                             </div>
@@ -213,7 +212,6 @@ const AdminMessages = () => {
                 </div>
             </Tabs>
 
-            {/* DIÁLOGOS */}
             {selectedGallery && <ViewSelectionsDialog galleryName={selectedGallery.name} selectedImages={selectedGallery.selections} open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen} />}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl border-white/10 text-white">

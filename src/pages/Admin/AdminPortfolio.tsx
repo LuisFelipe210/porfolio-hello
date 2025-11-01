@@ -24,7 +24,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Loader2, GripVertical, Trash2, Edit } from 'lucide-react';
-// dnd-kit imports
 import {
     DndContext,
     closestCenter,
@@ -41,9 +40,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-// ***** INÍCIO DAS NOVAS IMPORTAÇÕES *****
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// ***** FIM DAS NOVAS IMPORTAÇÕES *****
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -54,7 +51,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 
-// Esquema Zod (sem alteração)
 const portfolioItemSchema = z.object({
     title: z.string().min(3, { message: "O título é obrigatório." }),
     category: z.string().min(1, { message: "Selecione uma categoria." }),
@@ -62,7 +58,6 @@ const portfolioItemSchema = z.object({
     alt: z.string().optional(),
 });
 
-// Interface (sem alteração)
 interface PortfolioItem {
     _id: string;
     title: string;
@@ -72,12 +67,10 @@ interface PortfolioItem {
     alt?: string;
 }
 
-// Constantes (sem alteração)
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
 
-// --- Componente SortablePortfolioItem (Sem alterações) ---
 const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
     item: PortfolioItem,
     selected: boolean,
@@ -136,6 +129,7 @@ const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
                             size="icon"
                             className="bg-white/10 text-white rounded-xl hover:bg-white/20"
                             onClick={() => onEdit(item)}
+                            aria-label={`Editar ${item.title}`}
                         >
                             <Edit className="h-4 w-4" />
                         </Button>
@@ -185,6 +179,7 @@ const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
                         variant="ghost"
                         className="bg-white/10 rounded-xl hover:bg-white/20"
                         onClick={() => onEdit(item)}
+                        aria-label={`Editar ${item.title}`}
                     >
                         <Edit className="h-4 w-4" />
                     </Button>
@@ -195,7 +190,6 @@ const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
 };
 
 
-// ***** FUNÇÕES DE API (Helpers) - Sem alterações *****
 const fetchPortfolioItems = async (): Promise<PortfolioItem[]> => {
     const response = await fetch('/api/portfolio');
     if (!response.ok) throw new Error("Falha ao carregar itens.");
@@ -284,23 +278,17 @@ const AdminPortfolio = () => {
         defaultValues: { title: "", category: "", description: "", alt: "" },
     });
 
-    // ***** CORREÇÃO: useQuery (TS2769) *****
-    // 'onError' foi removido e a tipagem de Erro foi adicionada
     const { data: portfolioData, isLoading, isError, error } = useQuery<PortfolioItem[], Error>({
         queryKey: ['portfolioItems'],
         queryFn: fetchPortfolioItems,
-        // O onError foi removido daqui
     });
 
-    // ***** CORREÇÃO: useEffect (TS2345) *****
-    // Adicionada a verificação 'if (portfolioData)'
     useEffect(() => {
         if (portfolioData) {
             setItems(portfolioData);
         }
     }, [portfolioData]);
 
-    // ***** CORREÇÃO: Novo useEffect para lidar com erros do useQuery *****
     useEffect(() => {
         if (isError && error) {
             toast({ variant: 'destructive', title: 'Erro', description: error.message });
@@ -328,8 +316,6 @@ const AdminPortfolio = () => {
         setIsDialogOpen(true);
     };
 
-    // ***** CORREÇÃO: useMutation (Salvar) *****
-    // 'isPending' é o estado de loading correto
     const saveMutation = useMutation({
         mutationFn: savePortfolioItem,
         onSuccess: (data, variables) => {
@@ -367,7 +353,6 @@ const AdminPortfolio = () => {
         saveMutation.mutate({ formData: data, imageUrl, editingId });
     };
 
-    // ***** CORREÇÃO: useMutation (Apagar) *****
     const deleteMutation = useMutation({
         mutationFn: deletePortfolioItems,
         onSuccess: (data, itemIds) => {
@@ -397,13 +382,10 @@ const AdminPortfolio = () => {
         setSelectedItems(newSet);
     };
 
-    // ***** CORREÇÃO: useMutation (Reordenar) (TS2353 e ESLint) *****
-    // 'context' foi removido e 'variables' foi tipado
     const reorderMutation = useMutation({
         mutationFn: reorderPortfolioItems,
         onError: (error: Error, variables: string[]) => {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a ordem. Sincronizando...' });
-            // Apenas invalida. O "snap-back" virá do refetch.
             queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
         },
         onSuccess: () => {
@@ -423,10 +405,8 @@ const AdminPortfolio = () => {
 
         const newItems = arrayMove(items, oldIndex, newIndex);
 
-        setItems(newItems); // Atualização otimista
+        setItems(newItems);
 
-        // ***** CORREÇÃO: Chamada do Mutate (TS2353) *****
-        // O segundo argumento foi removido
         reorderMutation.mutate(newItems.map(i => i._id));
     };
 
@@ -522,7 +502,15 @@ const AdminPortfolio = () => {
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild><Button className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" onClick={() => handleOpenDialog()}><Plus className="h-12 w-12" /></Button></DialogTrigger>
+                <DialogTrigger asChild>
+                    <Button
+                        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
+                        onClick={() => handleOpenDialog()}
+                        aria-label="Adicionar Novo Item ao Portfólio"
+                    >
+                        <Plus className="h-12 w-12" />
+                    </Button>
+                </DialogTrigger>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-white">{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
@@ -541,7 +529,6 @@ const AdminPortfolio = () => {
                                     <SelectContent className="bg-black/90 text-white border-white/20">
                                         <SelectItem value="portrait">Retratos</SelectItem>
                                         <SelectItem value="wedding">Casamentos</SelectItem>
-                                        {/* ***** CORREÇÃO: Erro de digitação (TS2322) ***** */}
                                         <SelectItem value="maternity">Maternidade</SelectItem>
                                         <SelectItem value="family">Família</SelectItem>
                                         <SelectItem value="events">Eventos</SelectItem>
@@ -557,8 +544,8 @@ const AdminPortfolio = () => {
                                 <p className="text-xs text-white/50 mt-1">Se deixado em branco, usaremos o título.</p><FormMessage />
                             </FormItem>)} />
                             <div>
-                                <Label className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
-                                <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                                <Label htmlFor="portfolio-image-upload" className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
+                                <Input id="portfolio-image-upload" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
                             </div>
                             <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
                                 <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12 px-6">Cancelar</Button></DialogClose>

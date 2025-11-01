@@ -22,7 +22,6 @@ interface Post {
     summary?: string;
 }
 
-// --- Função de API (Helper) ---
 const fetchPostBySlugAPI = async (slug: string): Promise<Post> => {
     const response = await fetch(`/api/blog?slug=${slug}`);
     if (!response.ok) throw new Error('Artigo não encontrado');
@@ -31,24 +30,19 @@ const fetchPostBySlugAPI = async (slug: string): Promise<Post> => {
 
 
 const BlogPostPage = () => {
-    // const [post, setPost] = useState<Post | null>(null); // <<< REMOVIDO
-    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
     const { slug } = useParams<{ slug: string }>();
-    const { toast } = useToast(); // <<< Adicionado
+    const { toast } = useToast();
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [slug]);
 
-    // --- Refatoração: useQuery ---
     const { data: post, isLoading, isError, error } = useQuery<Post, Error>({
-        // A 'queryKey' inclui o 'slug' para ser única
         queryKey: ['blogPost', slug],
-        queryFn: () => fetchPostBySlugAPI(slug!), // O '!' é seguro por causa do 'enabled'
-        enabled: !!slug, // Só executa a query se o 'slug' existir
+        queryFn: () => fetchPostBySlugAPI(slug!),
+        enabled: !!slug,
     });
 
-    // Efeito para lidar com erros do useQuery
     useEffect(() => {
         if (isError) {
             console.error("Erro ao buscar artigo:", error);
@@ -64,7 +58,6 @@ const BlogPostPage = () => {
                     <title>Hellô Borges Fotografia | {post.title}</title>
                     <meta
                         name="description"
-                        // O 'post.content' é HTML, então limpamos para o sumário
                         content={post.summary || post.content.replace(/<[^>]+>/g, '').substring(0, 160)}
                     />
                 </Helmet>
@@ -76,7 +69,6 @@ const BlogPostPage = () => {
                     </div>
                 ) : post ? (
                     <article>
-                        {/* HERO SECTION COM IMAGEM DE CAPA */}
                         <div className="relative h-[60vh] min-h-[400px] w-full flex items-center justify-center text-center p-6">
                             <div className="absolute inset-0 z-0">
                                 <img
@@ -99,10 +91,8 @@ const BlogPostPage = () => {
                             </div>
                         </div>
 
-                        {/* CONTEÚDO DO ARTIGO */}
                         <div className="relative bg-white dark:bg-black/60 border-t border-black/10 dark:border-white/10 backdrop-blur-lg">
                             <div className="container mx-auto max-w-3xl px-6 py-16 md:py-24">
-                                {/* O seu 'prose' tailwind vai formatar o HTML que vem da API */}
                                 <div
                                     className="prose prose-lg max-w-none leading-relaxed text-black/90 dark:text-white/90 [&_a]:text-orange-600 dark:[&_a]:text-orange-500 [&_a:hover]:text-orange-500 dark:[&_a:hover]:text-orange-400 [&_strong]:text-black dark:[&_strong]:text-white"
                                     dangerouslySetInnerHTML={{ __html: post.content }}
@@ -111,7 +101,7 @@ const BlogPostPage = () => {
                                 <div className="mt-16 text-center">
                                     <Button
                                         asChild
-                                        className="rounded-xl border border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition"
+                                        className="rounded-xl bg-orange-500 hover:bg-orange-600 text-black font-semibold transition-all px-6 py-3"
                                     >
                                         <Link to="/blog" className="inline-flex items-center no-underline">
                                             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -123,7 +113,6 @@ const BlogPostPage = () => {
                         </div>
                     </article>
                 ) : (
-                    // Este 'else' agora apanha o 'isError' ou se o 'post' for undefined
                     <div className="text-center py-32 container mx-auto">
                         <h1 className="text-4xl font-bold">Artigo não encontrado</h1>
                         <p className="text-black/80 dark:text-white/80 mt-4">

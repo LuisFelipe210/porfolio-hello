@@ -35,35 +35,28 @@ const HeroSection = () => {
                 <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
             </div>
 
-            {/* CONTAINER PRINCIPAL: Centralizado */}
             <div className="relative z-10 text-left text-white px-12 max-w-6xl mx-auto w-full">
                 {!isLoading && (
                     <div className="flex flex-col items-center justify-center w-full">
 
-                        {/* GRUPO LOGO + TÍTULOS: Alinhado à base (items-end). Removendo justify-start para que o wrapper o centre */}
                         <div className="flex items-end gap-3 mb-2 animate-fade-in-up">
 
-                            {/* LOGO */}
                             <img
                                 src={Logo}
                                 alt="Hellô Borges Logo"
                                 className="h-12 sm:h-22 md:h-32 w-auto shrink-0"
                             />
 
-                            {/* BLOCO DE TEXTO */}
                             <div className="flex flex-col">
-                                {/* TITULO: Hellô Borges */}
                                 <h1 className="text-4xl sm:text-6xl md:text-8xl font-title leading-none text-white">
                                     {settings?.heroTitle}
                                 </h1>
-                                {/* FOTOGRAFIA: Peso leve e geométrica */}
                                 <p className="text-xs sm:text-2xl md:text-4xl font-sans font-light tracking-[0.4em] uppercase leading-tight -mt-1 md:-mt-3 text-white">
                                     FOTOGRAFIA
                                 </p>
                             </div>
                         </div>
 
-                        {/* SUBTÍTULO DA HERO: TAMANHO MÍNIMO NO MOBILE (text-[10px]) e peso leve. Centralizado automaticamente pelo wrapper. */}
                         <p
                             className="text-[8px] md:text-xl font-extralight mb-8 mt-2 max-w-2xl mx-auto text-center animate-fade-in-up text-white"
                             style={{ animationDelay: "0.2s" }}
@@ -72,13 +65,18 @@ const HeroSection = () => {
                         </p>
                     </div>
                 )}
-                {/* CONTAINER DO BOTÃO (Vazio) */}
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
                 </div>
             </div>
-            {/* BOTÃO SCROLL DOWN */}
+
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-float">
-                <button onClick={scrollToPortfolio} className="text-white/70 hover:text-white transition-colors"><ArrowDown size={24} /></button>
+                <button
+                    onClick={scrollToPortfolio}
+                    className="text-white hover:text-white/70 transition-colors"
+                    aria-label="Rolar para o portfólio"
+                >
+                    <ArrowDown size={24} />
+                </button>
             </div>
         </section>
     );

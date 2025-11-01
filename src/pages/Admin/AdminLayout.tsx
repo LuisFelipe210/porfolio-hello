@@ -21,19 +21,11 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { MdDashboard } from 'react-icons/md';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMessages } from '@/context/MessagesContext';
-// Supondo que existe um contexto de disponibilidade:
-// import { useAvailability } from '@/context/AvailabilityContext';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 const HAMSTER_URL = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1761845385/fifi_y0nden.png";
 
-// Adicione um hook ou uma prop para obter o contador de datas ocupadas (eventsCount)
-// Aqui está um exemplo fictício, ajuste conforme seu contexto real:
 const useEventsCount = () => {
-    // Substitua por lógica real de obtenção do número de datas ocupadas
-    // Por exemplo, usando um contexto de disponibilidade
-    // const { occupiedDates } = useAvailability();
-    // return occupiedDates.length;
     return 3; // Exemplo estático
 };
 
@@ -71,28 +63,28 @@ const AdminLayout = () => {
     const NavLinks = ({ className, eventsCount }: { className?: string, eventsCount: number }) => (
         <nav className={`flex flex-col gap-2 p-4 min-w-full ${className}`}>
             <Link to="/admin" onClick={() => setSheetOpen(false)}>
-                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
+                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}>
                     <Home className="mr-3 h-5 w-5" /> Início
                 </Button>
             </Link>
             <Link to="/admin/clients" onClick={() => setSheetOpen(false)}>
-                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}>
+                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}>
                     <Users className="mr-3 h-5 w-5" /> Clientes
                 </Button>
             </Link>
             <Link to="/admin/messages" onClick={() => setSheetOpen(false)}>
-                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black relative`}>
+                <Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white relative`}>
                     <Inbox className="mr-3 h-5 w-5" /> Mensagens
                     {hasUnreadMessages && <span className="absolute top-1/2 right-4 -translate-y-1/2 h-2.5 w-2.5 bg-orange-500 rounded-full animate-pulse" />}
                 </Button>
             </Link>
-            <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><ImageIcon className="mr-3 h-5 w-5" /> Portfólio</Button></Link>
-            <Link to="/admin/services" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><LayoutDashboard className="mr-3 h-5 w-5" /> Serviços</Button></Link>
-            <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos</Button></Link>
-            <Link to="/admin/blog" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Rss className="mr-3 h-5 w-5" /> Blog</Button></Link>
-            <Link to="/admin/availability" onClick={() => setSheetOpen(false)}><Button variant="secondary" size="default" aria-label="Disponibilidade" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade</Button></Link>
-            <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
-            <Link to="/admin/settings" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}><Settings className="mr-3 h-5 w-5" /> Configurações</Button></Link>
+            <Link to="/admin/portfolio" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}><ImageIcon className="mr-3 h-5 w-5" /> Portfólio</Button></Link>
+            <Link to="/admin/services" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}><LayoutDashboard className="mr-3 h-5 w-5" /> Serviços</Button></Link>
+            <Link to="/admin/testimonials" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}><MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos</Button></Link>
+            <Link to="/admin/blog" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}><Rss className="mr-3 h-5 w-5" /> Blog</Button></Link>
+            <Link to="/admin/availability" onClick={() => setSheetOpen(false)}><Button variant="secondary" size="default" aria-label="Disponibilidade" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}><CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade</Button></Link>
+            <Link to="/admin/about" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}><User className="mr-3 h-5 w-5" /> Sobre Mim</Button></Link>
+            <Link to="/admin/settings" onClick={() => setSheetOpen(false)}><Button variant="secondary" className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}><Settings className="mr-3 h-5 w-5" /> Configurações</Button></Link>
         </nav>
     );
 
@@ -104,7 +96,6 @@ const AdminLayout = () => {
         <div className="flex h-screen overflow-hidden bg-black text-white">
             <div className="fixed inset-0 z-0"><img src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920,e_blur:100")} alt="Background" className="w-full h-full object-cover" /><div className="absolute inset-0 bg-black/70 backdrop-blur-sm" /></div>
 
-            {/* BARRA LATERAL (Desktop) */}
             {!isMobile && (
                 <aside
                     className="h-full bg-black/50 backdrop-blur-lg border-r border-white/10 flex flex-col relative z-20 transition-all duration-300 ease-in-out overflow-y-auto"
@@ -133,30 +124,26 @@ const AdminLayout = () => {
                 </aside>
             )}
 
-            {/* CONTEÚDO PRINCIPAL E HEADER */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="relative z-30 flex h-24 items-center justify-between px-4 sm:px-6 md:px-8 bg-black/30 backdrop-blur-md border-b border-white/10">
 
-                    {/* IMAGEM DO HAMSTER CORRENDO */}
                     <img
                         src={optimizedHamsterUrl}
                         alt="Hamster Correndo"
                         className="animated-runner"
                     />
-                    {/* FIM DA IMAGEM DO HAMSTER */}
 
                     <div className="flex items-center gap-4">
                         {isMobile ? (
                             <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
                                 <SheetTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10">
+                                    <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10" aria-label="Abrir menu">
                                         <Menu className="h-6 w-6" />
                                         {hasUnreadMessages && (<span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-orange-500 animate-pulse" />)}
                                     </Button>
                                 </SheetTrigger>
                                 <SheetContent side="left" className="flex flex-col p-0 bg-black/80 backdrop-blur-lg border-r border-white/10">
                                     <div className="flex items-center gap-3 p-4 border-b border-white/10 shrink-0">
-                                        {/* Espaço reservado no lugar do botão de voltar */}
                                         <div className="w-6"></div>
                                         <MdDashboard className="text-orange-500 text-2xl" />
                                         <span className="text-xl font-semibold text-white">Painel</span>
@@ -167,7 +154,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <Home className="mr-3 h-5 w-5" /> Início
                                                 </Button>
@@ -176,7 +163,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/clients') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <Users className="mr-3 h-5 w-5" /> Clientes
                                                 </Button>
@@ -185,7 +172,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black relative`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/messages') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white relative`}
                                                 >
                                                     <Inbox className="mr-3 h-5 w-5" /> Mensagens
                                                     {hasUnreadMessages && <span className="absolute top-1/2 right-4 -translate-y-1/2 h-2.5 w-2.5 bg-orange-500 rounded-full animate-pulse" />}
@@ -195,7 +182,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/portfolio') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <ImageIcon className="mr-3 h-5 w-5" /> Portfólio
                                                 </Button>
@@ -204,7 +191,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/services') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <LayoutDashboard className="mr-3 h-5 w-5" /> Serviços
                                                 </Button>
@@ -213,7 +200,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/about') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <User className="mr-3 h-5 w-5" /> Sobre Mim
                                                 </Button>
@@ -222,17 +209,16 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/testimonials') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <MessageSquareQuote className="mr-3 h-5 w-5" /> Depoimentos
                                                 </Button>
                                             </Link>
-                                            {/* NOVO LINK DE DISPONIBILIDADE */}
                                             <Link to="/admin/availability" onClick={() => setSheetOpen(false)}>
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/availability') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <CalendarDays className="mr-3 h-5 w-5" /> Disponibilidade
                                                 </Button>
@@ -241,7 +227,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/blog') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <Rss className="mr-3 h-5 w-5" /> Blog
                                                 </Button>
@@ -250,7 +236,7 @@ const AdminLayout = () => {
                                                 <Button
                                                     variant="secondary"
                                                     size="default"
-                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-orange-500 hover:text-black`}
+                                                    className={`w-full justify-start text-sm p-4 rounded-2xl ${isLinkActive('/admin/settings') ? 'bg-orange-500 text-black' : 'bg-white/5 text-white'} hover:bg-white/20 hover:text-white`}
                                                 >
                                                     <Settings className="mr-3 h-5 w-5" /> Configurações
                                                 </Button>
@@ -276,13 +262,12 @@ const AdminLayout = () => {
                                     size="icon"
                                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                                     className="relative text-white hover:bg-white/10 transition"
+                                    aria-label={isSidebarOpen ? "Ocultar menu" : "Mostrar menu"}
                                 >
-                                    {/* Ícone fixo de menu desaparece no hover */}
                                     <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 opacity-100 group-hover:opacity-0 pointer-events-none">
                                         <Menu className="h-6 w-6" />
                                     </span>
 
-                                    {/* Ícone de seta aparece apenas no hover */}
                                     <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition pointer-events-none">
                                         {isSidebarOpen ? (
                                             <FiChevronLeft className="h-6 w-6" />
@@ -292,7 +277,6 @@ const AdminLayout = () => {
                                     </span>
                                 </Button>
 
-                                {/* Tooltip */}
                                 <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition bg-black/80 text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap border border-white/10">
                                     {isSidebarOpen ? "Ocultar menu" : "Mostrar menu"}
                                 </div>

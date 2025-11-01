@@ -35,7 +35,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; /
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
-// Schema (sem alteração)
 const serviceSchema = z.object({
     title: z.string().min(3, { message: "O título é obrigatório." }),
     description: z.string().min(10, { message: "A descrição é obrigatória." }),
@@ -44,7 +43,6 @@ const serviceSchema = z.object({
     alt: z.string().optional(),
 });
 
-// Interface (sem alteração)
 interface Service {
     _id: string;
     title: string;
@@ -54,8 +52,6 @@ interface Service {
     imageUrl: string;
     alt?: string;
 }
-
-// --- Funções de API (Helpers) ---
 
 const fetchServicesAPI = async (): Promise<Service[]> => {
     const response = await fetch('/api/services');
@@ -121,7 +117,6 @@ const reorderServicesAPI = async (serviceIds: string[]) => {
     return response.json();
 };
 
-// Esta função está pronta para quando você reativar o 'handleDelete'
 const deleteServicesAPI = async (serviceIds: string[]) => {
     const token = localStorage.getItem('authToken');
     const response = await fetch('/api/services', {
@@ -132,8 +127,6 @@ const deleteServicesAPI = async (serviceIds: string[]) => {
     if (!response.ok) throw new Error('Falha ao excluir.');
     return response.json();
 };
-
-// --- Componentes Sortable (Sem alterações) ---
 
 function SortableServiceItem({ service, onEdit }: { service: Service, onEdit: (service: Service) => void }) {
     const {
@@ -166,7 +159,7 @@ function SortableServiceItem({ service, onEdit }: { service: Service, onEdit: (s
             <TableCell className="font-medium text-white">{service.title}</TableCell>
             <TableCell className="text-white/80">{service.price}</TableCell>
             <TableCell className="text-right">
-                <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => onEdit(service)}>
+                <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => onEdit(service)} aria-label={`Editar ${service.title}`}>
                     <Edit className="h-4 w-4" />
                 </Button>
             </TableCell>
@@ -204,14 +197,14 @@ function SortableServiceCard({ service, onEdit }: { service: Service, onEdit: (s
                 <h3 className="font-semibold text-white text-lg">{service.title}</h3>
                 <p className="text-sm text-orange-400 font-semibold">{service.price}</p>
                 <div className="mt-2 flex space-x-2">
-                    <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(service)}><Edit className="h-4 w-4" /></Button>
+                    <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(service)} aria-label={`Editar ${service.title}`}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
         </Card>
     );
 }
-
-// --- Componente Principal ---
 
 const AdminServices = () => {
     const [services, setServices] = useState<Service[]>([]);
@@ -334,38 +327,22 @@ const AdminServices = () => {
         setSelectedServices(newSet);
     };
 
-
-    // ***** CORREÇÃO: useMutation (Reordenar) (TS2353) *****
-    // A lógica de 'context' foi implementada corretamente com onMutate.
     const reorderMutation = useMutation({
         mutationFn: reorderServicesAPI,
-
-        // 1. Guarda o estado antigo no 'onMutate'
         onMutate: async (newOrderIds: string[]) => {
-            // Cancela queries pendentes para não sobrescreverem a atualização otimista
             await queryClient.cancelQueries({ queryKey: ['services'] });
-
-            // Guarda os dados antigos
             const previousServices = queryClient.getQueryData<Service[]>(['services']);
-
-            // Atualiza otimisticamente para a nova ordem
             const newOrder = newOrderIds.map(id => services.find(s => s._id === id)).filter(Boolean) as Service[];
             queryClient.setQueryData(['services'], newOrder);
-
-            // Retorna o estado antigo para o 'context'
             return { previousServices };
         },
-
-        // 2. Em caso de erro, usa o 'context' para reverter
         onError: (err, newOrderIds, context) => {
             if (context?.previousServices) {
                 queryClient.setQueryData(['services'], context.previousServices);
-                setServices(context.previousServices); // Reverte o estado local também
+                setServices(context.previousServices);
             }
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível reordenar. Revertendo.' });
         },
-
-        // 3. Independentemente de sucesso ou erro, revalida os dados
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['services'] });
         }
@@ -380,13 +357,10 @@ const AdminServices = () => {
         if (oldIndex === -1 || newIndex === -1) return;
 
         const newOrder = arrayMove(services, oldIndex, newIndex);
-        setServices(newOrder); // Atualização otimista no estado local
+        setServices(newOrder);
 
-        // ***** CORREÇÃO: Chama o mutate apenas com as variáveis *****
         reorderMutation.mutate(newOrder.map(s => s._id));
     };
-
-    // O resto do seu JSX continua aqui sem alterações...
 
     const renderContent = () => {
         if (isLoading) {
@@ -479,8 +453,11 @@ const AdminServices = () => {
                                 <Label className="text-white mb-2 font-semibold block">Imagem do Serviço</Label>
                                 <div className="flex items-center gap-4">
                                     {imagePreviewUrl && <img src={optimizeCloudinaryUrl(imagePreviewUrl, 'f_auto,q_auto,w_200')} alt={form.watch('alt') || form.watch('title')} className="w-24 h-24 object-cover rounded-2xl" />}
+
                                     <Input id="image-upload" type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { setSelectedImageFile(file); } }} className="hidden" />
-                                    <Label htmlFor="image-upload" className="cursor-pointer text-white bg-white/10 rounded-xl hover:bg-white/20 transition-all px-4 py-2 flex items-center gap-2"><Upload className="h-4 w-4" />{imagePreviewUrl ? 'Trocar' : 'Escolher'}</Label>
+                                    <Label htmlFor="image-upload" className="cursor-pointer text-white bg-white/10 rounded-xl hover:bg-white/20 transition-all px-4 py-2 flex items-center gap-2">
+                                        <Upload className="h-4 w-4" />{imagePreviewUrl ? 'Trocar' : 'Escolher'}
+                                    </Label>
                                 </div>
                             </div>
                             <FormField control={form.control} name="title" render={({ field }) => (<FormItem>

@@ -205,18 +205,90 @@ const AdminDashboard = () => {
     if (isMobile) {
         return (
             <div className="flex flex-col h-full animate-fade-in p-4">
-                <div className="shrink-0 mb-6"><h1 className="text-3xl font-bold text-white" dangerouslySetInnerHTML={{ __html: greeting }} /><p className="text-white/80">Aqui tem uma visão geral da atividade recente no seu site.</p></div>
+                <div className="shrink-0 mb-6">
+                    <h1 className="text-3xl font-bold text-white" dangerouslySetInnerHTML={{ __html: greeting }} />
+                    <p className="text-white/80">Aqui tem uma visão geral da atividade recente no seu site.</p>
+                </div>
                 <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6">
-                    <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10 mb-6"><CardHeader className="p-3 pb-0"><CardTitle className="text-white text-base font-semibold">Ações Rápidas</CardTitle></CardHeader><CardContent className="p-4 pt-3 grid grid-cols-3 gap-3"><Button asChild className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl relative"><Link to="/admin/messages" className="flex flex-col items-center justify-center h-full w-full">{hasUnreadMessages && <span className="absolute top-1 right-1 flex h-3 w-3"><span className="animate-ping absolute h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}<Inbox className="h-5 w-5 mb-1" /><span className="font-medium text-center">Mensagens</span></Link></Button><Button onClick={() => { clientForm.reset(); setIsClientDialogOpen(true); }} className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl"><PlusCircle className="h-5 w-5 mb-1" /><span className="font-medium text-center">Novo Cliente</span></Button><Button onClick={() => { portfolioForm.reset(); setPFile(null); setIsPortfolioDialogOpen(true); }} className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl"><ImageIcon className="h-5 w-5 mb-1" /><span className="font-medium text-center">Portfólio</span></Button></CardContent></Card>
-                    <div className="grid grid-cols-2 gap-3 mb-6"><Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between"><CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><Users className="h-4 w-4" /> Clientes</CardTitle><p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.clients}</p></Card><Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between"><CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><CheckCircle className="h-4 w-4 text-green-400" /> Não Lidas</CardTitle><p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.galleryStatus.unread}</p></Card><Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between"><CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><ImageIcon className="h-4 w-4" /> Portfólio</CardTitle><p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.portfolio}</p></Card><Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between"><CardTitle className="text-xs font-medium text-white/70 flex items-center gap-1"><Clock className="h-4 w-4 text-yellow-400" /> Pendentes</CardTitle><p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.galleryStatus.pending}</p></Card></div>
-                    <div className="space-y-4 mb-6"><Card className="bg-black/70 rounded-2xl border border-white/10"><CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Próximas Sessões</CardTitle></CardHeader><CardContent className="space-y-2 p-4 pt-2">{isLoading ? <Skeleton className="h-8 w-full bg-white/10 p-2" /> : (Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (data.activity.reservedDates.slice(0, 3).map((d, i) => (<div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg"><div className="flex items-center gap-2"><Clock className="h-5 w-5 text-indigo-400" /><span className="text-white font-semibold text-sm">{formatDate(d)}</span></div></div>))) : <p className="text-white/70 text-sm p-1">Nenhuma sessão próxima.</p>)}</CardContent></Card><Card className="bg-black/70 rounded-2xl border border-white/10"><CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Última Atividade</CardTitle></CardHeader><CardContent className="space-y-2 p-4 pt-2">{isLoading ? <Skeleton className="h-10 w-full bg-white/10 p-2" /> : (<>{!data?.activity.lastMessage && !data?.activity.lastSelection ? <p className="text-white/70 text-sm p-1">Nenhuma nova atividade por ler.</p> : null}{data?.activity.lastMessage && (<Link to="/admin/messages" className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><div className="flex items-center gap-3"><MessageSquare className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white text-sm truncate">Nova mensagem de {data.activity.lastMessage.name}</p></div><ArrowRight className="h-4 w-4 text-white/70" /></Link>)}{data?.activity.lastSelection && (<Link to="/admin/messages" className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><div className="flex items-center gap-3"><Users className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white text-sm truncate">Nova seleção de {data.activity.lastSelection.clientInfo.name}</p></div><ArrowRight className="h-4 w-4 text-white/70" /></Link>)}</>)}</CardContent></Card></div>
+                    <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10 mb-6">
+                        <CardHeader className="p-3 pb-0">
+                            {/* NÍVEL DE CABEÇALHO CORRIGIDO */}
+                            <h2 className="text-white text-base font-semibold px-1">Ações Rápidas</h2>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-3 grid grid-cols-3 gap-3">
+                            <Button asChild className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl relative">
+                                <Link to="/admin/messages" className="flex flex-col items-center justify-center h-full w-full">
+                                    {hasUnreadMessages && <span className="absolute top-1 right-1 flex h-3 w-3"><span className="animate-ping absolute h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}
+                                    <Inbox className="h-5 w-5 mb-1" /><span className="font-medium text-center">Mensagens</span>
+                                </Link>
+                            </Button>
+                            <Button onClick={() => { clientForm.reset(); setIsClientDialogOpen(true); }} className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl">
+                                <PlusCircle className="h-5 w-5 mb-1" /><span className="font-medium text-center">Novo Cliente</span>
+                            </Button>
+                            <Button onClick={() => { portfolioForm.reset(); setPFile(null); setIsPortfolioDialogOpen(true); }} className="h-20 p-2 bg-white/10 hover:bg-white/20 text-white flex flex-col items-center justify-center text-xs rounded-xl">
+                                <ImageIcon className="h-5 w-5 mb-1" /><span className="font-medium text-center">Portfólio</span>
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                        <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                            <h3 className="text-xs font-medium text-white/70 flex items-center gap-1"><Users className="h-4 w-4" /> Clientes</h3>
+                            <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.clients}</p>
+                        </Card>
+                        <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                            <h3 className="text-xs font-medium text-white/70 flex items-center gap-1"><CheckCircle className="h-4 w-4 text-green-400" /> Não Lidas</h3>
+                            <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.galleryStatus.unread}</p>
+                        </Card>
+                        <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                            <h3 className="text-xs font-medium text-white/70 flex items-center gap-1"><ImageIcon className="h-4 w-4" /> Portfólio</h3>
+                            <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.portfolio}</p>
+                        </Card>
+                        <Card className="bg-black/70 rounded-2xl border border-white/10 p-3 h-24 flex flex-col justify-between">
+                            <h3 className="text-xs font-medium text-white/70 flex items-center gap-1"><Clock className="h-4 w-4 text-yellow-400" /> Pendentes</h3>
+                            <p className="text-3xl font-bold text-white leading-none">{isLoading ? <Skeleton className="h-7 w-2/3 bg-white/10" /> : data?.stats.galleryStatus.pending}</p>
+                        </Card>
+                    </div>
+
+                    <div className="space-y-4 mb-6">
+                        <Card className="bg-black/70 rounded-2xl border border-white/10">
+                            <CardHeader className="p-4 pb-2">
+                                <h2 className="text-white text-base font-semibold">Próximas Sessões</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-2 p-4 pt-2">
+                                {isLoading ? <Skeleton className="h-8 w-full bg-white/10 p-2" /> : (Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (data.activity.reservedDates.slice(0, 3).map((d, i) => (<div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg"><div className="flex items-center gap-2"><Clock className="h-5 w-5 text-indigo-400" /><span className="text-white font-semibold text-sm">{formatDate(d)}</span></div></div>))) : <p className="text-white/70 text-sm p-1">Nenhuma sessão próxima.</p>)}
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-black/70 rounded-2xl border border-white/10">
+                            <CardHeader className="p-4 pb-2">
+                                <h2 className="text-white text-base font-semibold">Última Atividade</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-2 p-4 pt-2">{isLoading ? <Skeleton className="h-10 w-full bg-white/10 p-2" /> : (<>{!data?.activity.lastMessage && !data?.activity.lastSelection ? <p className="text-white/70 text-sm p-1">Nenhuma nova atividade por ler.</p> : null}{data?.activity.lastMessage && (<Link to="/admin/messages" className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><div className="flex items-center gap-3"><MessageSquare className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white text-sm truncate">Nova mensagem de {data.activity.lastMessage.name}</p></div><ArrowRight className="h-4 w-4 text-white/70" /></Link>)}{data?.activity.lastSelection && (<Link to="/admin/messages" className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><div className="flex items-center gap-3"><Users className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white text-sm truncate">Nova seleção de {data.activity.lastSelection.clientInfo.name}</p></div><ArrowRight className="h-4 w-4 text-white/70" /></Link>)}</>)}</CardContent>
+                        </Card>
+                    </div>
                     <div className="mb-6"><QuickNotes /></div>
-                    <div className="grid grid-cols-1 gap-4 mb-6"><Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10"><CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Distribuição do Portfólio</CardTitle></CardHeader><CardContent className="h-56 p-4 pt-2"><ResponsiveContainer width="100%" height="100%">{isLoading ? <Skeleton className="h-full w-full bg-white/10" /> : <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}><XAxis type="number" hide /><YAxis type="category" dataKey="name" stroke="#A1A1AA" fontSize={12} tickLine={false} axisLine={false} width={80} /><Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.08)' }} content={<CustomTooltip />} /><Bar dataKey="total" radius={[0, 6, 6, 0]}>{chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Bar></BarChart>}</ResponsiveContainer></CardContent></Card><Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10"><CardHeader className="p-4 pb-2"><CardTitle className="text-white text-base">Últimos 5 Clientes</CardTitle></CardHeader><CardContent className="space-y-2 p-4 pt-2">{isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (data?.activity.latestClients.length > 0 ? data.activity.latestClients.map(client => <div key={client._id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"><UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white text-sm truncate">{client.name}</p></div>) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>)}</CardContent></Card></div>
+                    <div className="grid grid-cols-1 gap-4 mb-6">
+                        <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10">
+                            <CardHeader className="p-4 pb-2">
+                                <h2 className="text-white text-base font-semibold">Distribuição do Portfólio</h2>
+                            </CardHeader>
+                            <CardContent className="h-56 p-4 pt-2">
+                                <ResponsiveContainer width="100%" height="100%">{isLoading ? <Skeleton className="h-full w-full bg-white/10" /> : <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}><XAxis type="number" hide /><YAxis type="category" dataKey="name" stroke="#A1A1AA" fontSize={12} tickLine={false} axisLine={false} width={80} /><Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.08)' }} content={<CustomTooltip />} /><Bar dataKey="total" radius={[0, 6, 6, 0]}>{chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Bar></BarChart>}</ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/10">
+                            <CardHeader className="p-4 pb-2">
+                                <h2 className="text-white text-base font-semibold">Últimos 5 Clientes</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-2 p-4 pt-2">{isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (data?.activity.latestClients.length > 0 ? data.activity.latestClients.map(client => <div key={client._id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"><UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white text-sm truncate">{client.name}</p></div>) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>)}</CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         );
     }
 
+    // ----- VERSÃO DESKTOP  -----
     return (
         <div className="flex flex-col h-full animate-fade-in">
             <div className="shrink-0 mb-8">
@@ -224,9 +296,178 @@ const AdminDashboard = () => {
                 <p className="text-white/80">Aqui tem uma visão geral da atividade recente no seu site.</p>
             </div>
             <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"><div className="lg:col-span-2"><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Atalhos Rápidos</CardTitle></CardHeader><CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4"><Button asChild size="lg" className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left relative"><Link to="/admin/messages">{hasUnreadMessages && <span className="absolute top-3 right-3 flex h-3 w-3"><span className="animate-ping absolute h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}<Inbox className="h-6 w-6 mb-2" /><span className="font-semibold">Mensagens</span></Link></Button><Button size="lg" onClick={() => { clientForm.reset(); setIsClientDialogOpen(true); }} className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left"><PlusCircle className="h-6 w-6 mb-2" /><span className="font-semibold">Novo Cliente</span></Button><Button size="lg" onClick={() => { portfolioForm.reset(); setPFile(null); setIsPortfolioDialogOpen(true); }} className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left"><ImageIcon className="h-6 w-6 mb-2" /><span className="font-semibold">Adicionar ao Portfólio</span></Button></CardContent></Card></div><div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Acompanhamento de Galerias</CardTitle></CardHeader><CardContent className="space-y-4">{isLoading ? <><Skeleton className="h-10 w-full bg-white/10" /><Skeleton className="h-10 w-full bg-white/10" /></> : (<><div className="flex justify-between items-center p-4 bg-white/5 rounded-xl"><div className="flex items-center gap-3"><Clock className="h-6 w-6 text-yellow-400" /><span className="text-white font-semibold">Pendentes</span></div><span className="font-bold text-2xl text-white">{data?.stats.galleryStatus.pending}</span></div><div className="flex justify-between items-center p-4 bg-white/5 rounded-xl"><div className="flex items-center gap-3"><CheckCircle className="h-6 w-6 text-green-400" /><span className="text-white font-semibold">Não Lidas</span></div><span className="font-bold text-2xl text-white">{data?.stats.galleryStatus.unread}</span></div></>)}</CardContent></Card></div></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Distribuição do Portfólio</CardTitle></CardHeader><CardContent className="h-64"><ResponsiveContainer width="100%" height="100%">{isLoading ? <Skeleton className="h-full w-full bg-white/10" /> : <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}><XAxis type="number" hide /><YAxis type="category" dataKey="name" stroke="#A1A1AA" fontSize={14} tickLine={false} axisLine={false} width={100} /><Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.08)' }} content={<CustomTooltip />} /><Bar dataKey="total" radius={[0, 8, 8, 0]}>{chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Bar></BarChart>}</ResponsiveContainer></CardContent></Card></div><div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Estatísticas Gerais</CardTitle></CardHeader><CardContent className="space-y-3">{isLoading ? (<> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> </>) : (<><div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><Users className="h-5 w-5 text-white/70"/>Clientes</span><span className="font-bold text-xl">{data?.stats.clients}</span></div><div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-white/70"/>Itens no Portfólio</span><span className="font-bold text-xl">{data?.stats.portfolio}</span></div><div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><MessageSquareQuote className="h-5 w-5 text-white/70"/>Depoimentos</span><span className="font-bold text-xl">{data?.stats.testimonials}</span></div><div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><FileText className="h-5 w-5 text-white/70"/>Artigos no Blog</span><span className="font-bold text-xl">{data?.stats.posts}</span></div></>)}</CardContent></Card></div><div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Próximas Sessões</CardTitle></CardHeader><CardContent className="space-y-3">{isLoading ? (<div className="space-y-2"><Skeleton className="h-9 w-full bg-white/10" /><Skeleton className="h-9 w-full bg-white/10" /><Skeleton className="h-9 w-full bg-white/10" /></div>) : (<>{Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (data.activity.reservedDates.slice(0, 4).map((dateStr: string, idx: number) => (<div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-xl"><div className="flex items-center gap-2"><Clock className="h-5 w-5 text-indigo-400" /><span className="text-white font-semibold">{formatDate(dateStr)}</span></div></div>))) : (<div className="p-2 bg-white/5 rounded-xl"><span className="text-white/70 text-sm">Nenhuma sessão próxima</span></div>)}</>)}</CardContent></Card></div></div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"><div className="lg:col-span-1"><QuickNotes /></div><div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Última Atividade Não Lida</CardTitle></CardHeader><CardContent className="space-y-4">{isLoading ? <Skeleton className="h-10 w-full bg-white/10" /> : (<>{!data?.activity.lastMessage && !data?.activity.lastSelection ? <p className="text-white/70 text-sm">Nenhuma nova atividade por ler.</p> : null}{data?.activity.lastMessage && <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl"><div className="flex items-center gap-3"><MessageSquare className="h-5 w-5 text-orange-400" /><div><p className="font-semibold text-white text-sm">Nova mensagem de {data.activity.lastMessage.name}</p></div></div><Button asChild size="sm" variant="ghost" className="rounded-full hover:bg-white/20"><Link to="/admin/messages"><ArrowRight className="h-4 w-4" /></Link></Button></div>}{data?.activity.lastSelection && <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl"><div className="flex items-center gap-3"><Users className="h-5 w-5 text-orange-400" /><div><p className="font-semibold text-white text-sm">Nova seleção de {data.activity.lastSelection.clientInfo.name}</p></div></div><Button asChild size="sm" variant="ghost" className="rounded-full hover:bg-white/20"><Link to="/admin/messages"><ArrowRight className="h-4 w-4" /></Link></Button></div>}</>)}</CardContent></Card></div><div><Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full"><CardHeader><CardTitle className="text-white">Últimos 5 Clientes</CardTitle></CardHeader><CardContent className="space-y-3">{isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (data?.activity.latestClients.length > 0 ? data.activity.latestClients.map(client => <div key={client._id} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl"><UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" /><p className="font-semibold text-white truncate">{client.name}</p></div>) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>)}</CardContent></Card></div></div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2">
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader>
+                                <h2 className="text-2xl font-semibold text-white">Atalhos Rápidos</h2>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <Button asChild size="lg" className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left relative">
+                                    <Link to="/admin/messages">
+                                        {hasUnreadMessages && <span className="absolute top-3 right-3 flex h-3 w-3"><span className="animate-ping absolute h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}
+                                        <Inbox className="h-6 w-6 mb-2" />
+                                        <span className="font-semibold">Mensagens</span>
+                                    </Link>
+                                </Button>
+                                <Button size="lg" onClick={() => { clientForm.reset(); setIsClientDialogOpen(true); }} className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left">
+                                    <PlusCircle className="h-6 w-6 mb-2" />
+                                    <span className="font-semibold">Novo Cliente</span>
+                                </Button>
+                                <Button size="lg" onClick={() => { portfolioForm.reset(); setPFile(null); setIsPortfolioDialogOpen(true); }} className="h-24 bg-white/10 rounded-2xl hover:bg-white/20 text-white flex flex-col items-start justify-end p-4 text-left">
+                                    <ImageIcon className="h-6 w-6 mb-2" />
+                                    <span className="font-semibold">Adicionar ao Portfólio</span>
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader>
+                                <h2 className="text-2xl font-semibold text-white">Acompanhamento de Galerias</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {isLoading ? <><Skeleton className="h-10 w-full bg-white/10" /><Skeleton className="h-10 w-full bg-white/10" /></> : (
+                                    <>
+                                        <div className="flex justify-between items-center p-4 bg-white/5 rounded-xl">
+                                            <div className="flex items-center gap-3"><Clock className="h-6 w-6 text-yellow-400" /><span className="text-white font-semibold">Pendentes</span></div>
+                                            <span className="font-bold text-2xl text-white">{data?.stats.galleryStatus.pending}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center p-4 bg-white/5 rounded-xl">
+                                            <div className="flex items-center gap-3"><CheckCircle className="h-6 w-6 text-green-400" /><span className="text-white font-semibold">Não Lidas</span></div>
+                                            <span className="font-bold text-2xl text-white">{data?.stats.galleryStatus.unread}</span>
+                                        </div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader>
+                                <h2 className="text-2xl font-semibold text-white">Distribuição do Portfólio</h2>
+                            </CardHeader>
+                            <CardContent className="h-64">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    {isLoading ? <Skeleton className="h-full w-full bg-white/10" /> :
+                                        <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                            <XAxis type="number" hide />
+                                            <YAxis type="category" dataKey="name" stroke="#A1A1AA" fontSize={14} tickLine={false} axisLine={false} width={100} />
+                                            <Tooltip cursor={{ fill: 'rgba(255, 255, 255, 0.08)' }} content={<CustomTooltip />} />
+                                            <Bar dataKey="total" radius={[0, 8, 8, 0]}>
+                                                {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                            </Bar>
+                                        </BarChart>
+                                    }
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader>
+                                <h2 className="text-2xl font-semibold text-white">Estatísticas Gerais</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {isLoading ? (
+                                    <> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> <Skeleton className="h-9 w-full bg-white/10" /> </>
+                                ) : (
+                                    <>
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><Users className="h-5 w-5 text-white/70"/>Clientes</span><span className="font-bold text-xl">{data?.stats.clients}</span></div>
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-white/70"/>Itens no Portfólio</span><span className="font-bold text-xl">{data?.stats.portfolio}</span></div>
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><MessageSquareQuote className="h-5 w-5 text-white/70"/>Depoimentos</span><span className="font-bold text-xl">{data?.stats.testimonials}</span></div>
+                                        <div className="flex justify-between items-center p-2 bg-white/5 rounded-xl text-white"><span className="flex items-center gap-2"><FileText className="h-5 w-5 text-white/70"/>Artigos no Blog</span><span className="font-bold text-xl">{data?.stats.posts}</span></div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader>
+                                <h2 className="text-2xl font-semibold text-white">Próximas Sessões</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {isLoading ? (<div className="space-y-2"><Skeleton className="h-9 w-full bg-white/10" /><Skeleton className="h-9 w-full bg-white/10" /><Skeleton className="h-9 w-full bg-white/10" /></div>) : (
+                                    <>
+                                        {Array.isArray(data?.activity?.reservedDates) && data.activity.reservedDates.length > 0 ? (
+                                            data.activity.reservedDates.slice(0, 4).map((dateStr: string, idx: number) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-xl">
+                                                    <div className="flex items-center gap-2"><Clock className="h-5 w-5 text-indigo-400" />
+                                                        <span className="text-white font-semibold">{formatDate(dateStr)}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-2 bg-white/5 rounded-xl"><span className="text-white/70 text-sm">Nenhuma sessão próxima</span></div>
+                                        )}
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-1">
+                        <QuickNotes />
+                    </div>
+                    <div>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader>
+                                <h2 className="text-2xl font-semibold text-white">Última Atividade Não Lida</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {isLoading ? <Skeleton className="h-10 w-full bg-white/10" /> : (
+                                    <>
+                                        {!data?.activity.lastMessage && !data?.activity.lastSelection ? <p className="text-white/70 text-sm">Nenhuma nova atividade por ler.</p> : null}
+                                        {data?.activity.lastMessage &&
+                                            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                                                <div className="flex items-center gap-3">
+                                                    <MessageSquare className="h-5 w-5 text-orange-400" />
+                                                    <div><p className="font-semibold text-white text-sm">Nova mensagem de {data.activity.lastMessage.name}</p></div>
+                                                </div>
+                                                <Button asChild size="sm" variant="ghost" className="rounded-full hover:bg-white/20" aria-label="Ver mensagem">
+                                                    <Link to="/admin/messages"><ArrowRight className="h-4 w-4" /></Link>
+                                                </Button>
+                                            </div>
+                                        }
+                                        {data?.activity.lastSelection &&
+                                            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                                                <div className="flex items-center gap-3">
+                                                    <Users className="h-5 w-5 text-orange-400" />
+                                                    <div><p className="font-semibold text-white text-sm">Nova seleção de {data.activity.lastSelection.clientInfo.name}</p></div>
+                                                </div>
+                                                <Button asChild size="sm" variant="ghost" className="rounded-full hover:bg-white/20" aria-label="Ver seleção">
+                                                    <Link to="/admin/messages"><ArrowRight className="h-4 w-4" /></Link>
+                                                </Button>
+                                            </div>
+                                        }
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div>
+                        <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 h-full">
+                            <CardHeader>
+                                <h2 className="text-2xl font-semibold text-white">Últimos 5 Clientes</h2>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full bg-white/10" />) : (
+                                    data?.activity.latestClients.length > 0 ?
+                                        data.activity.latestClients.map(client =>
+                                            <div key={client._id} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl">
+                                                <UserPlus className="h-5 w-5 text-orange-400 flex-shrink-0" />
+                                                <p className="font-semibold text-white truncate">{client.name}</p>
+                                            </div>
+                                        ) : <p className="text-sm text-white/70">Nenhum cliente recente.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             </div>
 
             <Dialog open={isClientDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) clientForm.reset(); setIsClientDialogOpen(isOpen); }}>
@@ -241,8 +482,12 @@ const AdminDashboard = () => {
                                 <Label className="text-white mb-1 font-semibold">Email de Login</Label>
                                 <div className="flex items-center gap-2">
                                     <FormControl><Input type="email" required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
-                                    <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
-                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                    <Button type="button" size="icon" onClick={generateRandomEmail} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Gerar email aleatório">
+                                        <RefreshCw className="h-5 w-5" />
+                                    </Button>
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Email')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Copiar email">
+                                        <Copy className="h-5 w-5" />
+                                    </Button>
                                 </div><FormMessage />
                             </FormItem>)} />
                             <FormField control={clientForm.control} name="phone" render={({ field }) => (<FormItem>
@@ -252,8 +497,12 @@ const AdminDashboard = () => {
                                 <Label className="text-white mb-1 font-semibold">Senha Provisória</Label>
                                 <div className="flex items-center gap-2">
                                     <FormControl><Input type="text" required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
-                                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><RefreshCw className="h-5 w-5" /></Button>
-                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12"><Copy className="h-5 w-5" /></Button>
+                                    <Button type="button" size="icon" onClick={generateRandomPassword} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Gerar senha aleatória">
+                                        <RefreshCw className="h-5 w-5" />
+                                    </Button>
+                                    <Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Senha')} className="bg-black/70 text-white rounded-xl hover:bg-white/10 aspect-square h-12 w-12" aria-label="Copiar senha">
+                                        <Copy className="h-5 w-5" />
+                                    </Button>
                                 </div><FormMessage />
                             </FormItem>)} />
                             <FormField control={clientForm.control} name="phrase" render={({ field }) => (<FormItem>
@@ -283,7 +532,10 @@ const AdminDashboard = () => {
                             <FormField control={portfolioForm.control} name="description" render={({ field }) => (<FormItem>
                                 <Label className="text-white mb-1 font-semibold">Descrição</Label><FormControl><Textarea required className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage />
                             </FormItem>)} />
-                            <div><Label htmlFor="file" className="text-white mb-1 font-semibold">Imagem</Label><Input id="file" type="file" onChange={(e) => setPFile(e.target.files?.[0] || null)} required className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" /></div>
+                            <div>
+                                <Label htmlFor="portfolio-file-upload" className="text-white mb-1 font-semibold">Imagem</Label>
+                                <Input id="portfolio-file-upload" type="file" onChange={(e) => setPFile(e.target.files?.[0] || null)} required className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                            </div>
                             <DialogFooter className="!mt-6"><DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose><Button type="submit" disabled={portfolioForm.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">{portfolioForm.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Guardar'}</Button></DialogFooter>
                         </form>
                     </Form>

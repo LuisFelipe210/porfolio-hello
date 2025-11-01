@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, FolderKanban, Copy } from 'lucide-react'; // Importar novo ícone
+import { Edit, FolderKanban, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface Client {
@@ -9,7 +9,7 @@ interface Client {
     email: string;
     phone?: string;
     createdAt: string;
-    galleryCount: number; // <-- ADICIONADO: Contagem de galerias
+    galleryCount: number;
 }
 
 interface ClientCardProps {
@@ -33,22 +33,19 @@ const ClientCard = ({ client, isSelected, onSelectionChange, onEdit, onCopy }: C
                 <h3 className="font-semibold text-white text-lg">{client.name}</h3>
                 <p className="text-sm text-white/70 flex items-center gap-2">
                     {client.email}
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-white/70 hover:text-white" onClick={() => onCopy(client.email, 'Email')}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-white/70 hover:text-white" onClick={() => onCopy(client.email, 'Email')} aria-label="Copiar Email">
                         <Copy className="h-3 w-3" />
                     </Button>
                 </p>
                 {client.phone && <p className="text-sm text-white/70">{client.phone}</p>}
             </div>
-            {/* ***** BOTÃO RESTAURADO E MELHORADO AQUI ***** */}
             <div className="flex gap-2 justify-end">
-                {/* v-- ALTERAÇÃO AQUI --v */}
                 <Button asChild variant="default" className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white flex-1 font-semibold">
                     <Link to={`/admin/clients/${client._id}/${encodeURIComponent(client.name)}`}>
                         <FolderKanban className="h-4 w-4 mr-2" /> Ver Galerias ({client.galleryCount})
                     </Link>
                 </Button>
-                {/* ^-- ALTERAÇÃO AQUI --^ */}
-                <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(client)}>
+                <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(client)} aria-label="Editar Cliente">
                     <Edit className="h-4 w-4" />
                 </Button>
             </div>

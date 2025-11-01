@@ -8,7 +8,6 @@ import React from "react";
 import Masonry from 'react-masonry-css';
 import { Loader2 } from "lucide-react";
 
-// 1. Interface PortfolioItem separada
 interface PortfolioItem {
     id: string;
     title: string;
@@ -16,11 +15,10 @@ interface PortfolioItem {
     image: string;
     category: 'portrait' | 'wedding' | 'maternity' | 'family' | 'events' | 'other';
     alt?: string;
-    tags?: string[];       // para futuras filtragens ou buscas
-    createdAt?: string;    // data de criação do item
+    tags?: string[];
+    createdAt?: string;
 }
 
-// 2. Componente PortfolioImage fora da interface
 const PortfolioImage = ({ src, alt }: { src: string; alt?: string }) => {
     const [loaded, setLoaded] = useState(false);
     return (
@@ -109,7 +107,6 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
-            {/* 4. Usando PortfolioImage */}
             <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")} alt={item.alt || item.title} />
 
             <div className={fullOverlayClasses}>
@@ -141,14 +138,12 @@ const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenMod
     );
 };
 
-// Componente para o layout Masonry
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
     return (
         <div
             className={`relative group cursor-pointer rounded-none overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg w-full mb-4`}
             onClick={() => setSelectedIndex(index)}
         >
-            {/* 4. Usando PortfolioImage */}
             <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")} alt={item.alt || item.title} />
 
             <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
@@ -358,7 +353,7 @@ const PortfolioSection = () => {
                             key={category.id}
                             onClick={() => { setActiveCategory(category.id); setShowAllDesktop(false); }}
                             className={`px-6 py-2 text-sm font-light tracking-wide transition-all uppercase ${activeCategory === category.id
-                                ? "text-accent border-b-2 border-accent"
+                                ? "text-foreground font-semibold border-b-2 border-accent"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -379,7 +374,8 @@ const PortfolioSection = () => {
                             onClick={() => { scrollToCategory(category.id, index); setShowAllMobile(false); }}
                             className={`relative pb-1 text-base tracking-wide font-light transition-all duration-300 whitespace-nowrap snap-center uppercase
               ${activeCategory === category.id
-                                ? "text-accent after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.5px] after:bg-accent"
+                                /* CORREÇÃO DE CONTRASTE */
+                                ? "text-foreground font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.Spx] after:bg-accent"
                                 : "text-zinc-400 hover:text-zinc-100 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-accent after:transition-all after:duration-300 hover:after:w-full"
                             }`}
                         >
@@ -463,17 +459,14 @@ const PortfolioSection = () => {
                             }
                         }}
                     >
-                        {/* ***** INÍCIO DAS MODIFICAÇÕES ***** */}
                         <div className="relative w-full h-full flex items-center justify-center">
 
-                            {/* Botão Fechar */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); setSelectedIndex(null); }}
                                 className="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-3xl z-50 hover:text-accent transition-colors"
                                 aria-label="Fechar visualização"
                             >×</button>
 
-                            {/* Botão Anterior (Esquerda) */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -484,7 +477,6 @@ const PortfolioSection = () => {
                                 aria-label="Imagem Anterior"
                             >❮</button>
 
-                            {/* Contêiner da Imagem */}
                             <div
                                 className="w-full h-full flex items-center justify-center p-2 sm:p-4"
                                 onTouchStart={handleTouchStart}
@@ -506,7 +498,6 @@ const PortfolioSection = () => {
                                 />
                             </div>
 
-                            {/* Botão Próximo (Direita) */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -517,12 +508,10 @@ const PortfolioSection = () => {
                                 aria-label="Próxima Imagem"
                             >❯</button>
 
-                            {/* Contador */}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded-lg text-white text-sm opacity-80 pointer-events-none">
                                 <span>{selectedIndex + 1} / {filteredItems.length}</span>
                             </div>
                         </div>
-                        {/* ***** FIM DAS MODIFICAÇÕES ***** */}
                     </div>
                 )}
             </div>

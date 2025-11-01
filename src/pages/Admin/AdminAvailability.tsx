@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // useCallback foi removido
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CalendarDays, Save } from 'lucide-react';
@@ -8,9 +8,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { format } from 'date-fns';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-// Tipo de evento (sem alteração)
 interface ReservedEvent {
     title: string;
     start: Date;
@@ -19,7 +18,6 @@ interface ReservedEvent {
     resource?: any;
 }
 
-// Funções utilitárias (movidas para fora para clareza)
 const formatDateString = (date: Date) => format(date, 'yyyy-MM-dd');
 
 const datesToReservedEvents = (dates: Date[]): ReservedEvent[] => {
@@ -61,31 +59,24 @@ const saveAvailabilityAPI = async (eventsToSave: ReservedEvent[]) => {
 // --- Componente Principal ---
 
 const AdminAvailability = () => {
-    // Este estado local é MANTIDO para permitir edições offline antes de salvar
     const [events, setEvents] = useState<ReservedEvent[]>([]);
-    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
-    // const [isSubmitting, setIsSubmitting] = useState(false); // <<< REMOVIDO
     const { toast } = useToast();
-    const queryClient = useQueryClient(); // <<< Adicionado
+    const queryClient = useQueryClient();
 
-    // O useDashboardData não está a ser usado, mas mantenho-o
     const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
 
-    // --- Refatoração: useQuery ---
     const { data: eventsData, isLoading, isError, error } = useQuery<ReservedEvent[], Error>({
         queryKey: ['availability'],
         queryFn: fetchAvailabilityAPI,
     });
 
-    // Sincroniza os dados do servidor (do query) para o estado local 'events'
     useEffect(() => {
         if (eventsData) {
             setEvents(eventsData);
         }
     }, [eventsData]);
 
-    // Lida com erros do query
     useEffect(() => {
         if (isError) {
             toast({ variant: 'destructive', title: 'Erro', description: (error as Error).message || 'Não foi possível carregar as datas.' });
@@ -93,7 +84,6 @@ const AdminAvailability = () => {
     }, [isError, error, toast]);
 
 
-    // --- Refatoração: useMutation ---
     const saveMutation = useMutation({
         mutationFn: saveAvailabilityAPI,
         onSuccess: () => {
@@ -106,12 +96,10 @@ const AdminAvailability = () => {
         }
     });
 
-    // handleSave agora apenas chama a mutação
     const handleSave = async () => {
         saveMutation.mutate(events);
     };
 
-    // handleDateClick (Sem alteração - funciona perfeitamente com o estado local 'events')
     const handleDateClick = (date: Date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -132,7 +120,6 @@ const AdminAvailability = () => {
         }
     };
 
-    // tileClassName (Sem alteração)
     const tileClassName = ({ date, view }: { date: Date; view: string }) => {
         if (view === 'month') {
             const dateString = formatDateString(date);
@@ -150,7 +137,6 @@ const AdminAvailability = () => {
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            {/* CABEÇALHO */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Gerir Disponibilidade</h1>
@@ -158,15 +144,16 @@ const AdminAvailability = () => {
                 </div>
                 <Button
                     onClick={handleSave}
-                    disabled={isLoading || saveMutation.isPending} // <<< Alterado
+                    disabled={isLoading || saveMutation.isPending}
                     title="Salvar disponibilidade"
+                    aria-label="Salvar disponibilidade"
                     className={`fixed bottom-6 right-6 z-50 flex items-center justify-center rounded-full h-12 w-12 p-3 transition-all
-                        ${isLoading || saveMutation.isPending // <<< Alterado
+                        ${isLoading || saveMutation.isPending
                         ? 'bg-orange-700/50 cursor-not-allowed'
                         : 'bg-orange-500 hover:bg-orange-600 shadow-lg'
                     }`}
                 >
-                    {saveMutation.isPending ? ( // <<< Alterado
+                    {saveMutation.isPending ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                         <Save className="h-8 w-8 text-white" />
@@ -174,13 +161,13 @@ const AdminAvailability = () => {
                 </Button>
             </div>
 
-            {/* BOTÃO E MODAL DE DATAS OCUPADAS (Sem alteração) */}
             <Dialog>
                 <DialogTrigger asChild>
                     <Button
                         variant="outline"
                         className="fixed bottom-24 right-6 z-40 bg-black/60 border border-white/20 text-white hover:bg-white/10 rounded-full h-12 w-12 p-3"
                         title="Ver datas ocupadas"
+                        aria-label="Ver datas ocupadas"
                     >
                         <CalendarDays className="h-6 w-6 text-orange-400" />
                         {events.length > 0 && (
@@ -222,9 +209,8 @@ const AdminAvailability = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* CONTEÚDO (Alterado para usar o 'isLoading' do query) */}
             <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                {isLoading ? ( // <<< Alterado
+                {isLoading ? (
                     <Skeleton className="h-[600px] w-full bg-black/60 rounded-3xl" />
                 ) : (
                     <div className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10 p-4 sm:p-6">
@@ -244,7 +230,6 @@ const AdminAvailability = () => {
                 )}
             </div>
 
-            {/* ESTILOS CSS (Sem alteração) */}
             <style>{`
                 .react-calendar {
                     width: 100%;

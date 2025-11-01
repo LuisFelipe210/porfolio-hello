@@ -48,13 +48,13 @@ interface AboutContent {
 }
 
 const ImageColumn = ({
-    title,
-    images,
-    onFileChange,
-    onRemove,
-    onEditAlt,
-    isUploading,
-}: {
+                         title,
+                         images,
+                         onFileChange,
+                         onRemove,
+                         onEditAlt,
+                         isUploading,
+                     }: {
     title: string;
     images: Image[];
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -84,6 +84,7 @@ const ImageColumn = ({
                                 className="h-8 w-8 rounded-full"
                                 onClick={() => onEditAlt(index)}
                                 type="button"
+                                aria-label="Editar texto alternativo"
                             >
                                 <Edit2 className="h-4 w-4" />
                             </Button>
@@ -93,6 +94,7 @@ const ImageColumn = ({
                                 className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-600"
                                 onClick={() => onRemove(index)}
                                 type="button"
+                                aria-label="Remover imagem"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
@@ -149,7 +151,6 @@ const AdminAbout = () => {
         resolver: zodResolver(aboutFormSchema),
     });
 
-    // React Query: GET
     const {
         data: content,
         isLoading,
@@ -162,14 +163,12 @@ const AdminAbout = () => {
         }
     });
 
-    // Reset form when content is loaded
     useEffect(() => {
         if (content) {
             form.reset(content);
         }
     }, [content, form]);
 
-    // React Query: PUT
     const mutation = useMutation({
         mutationFn: async (data: z.infer<typeof aboutFormSchema> & { _id: string }) => {
             const token = localStorage.getItem('authToken');
@@ -281,7 +280,9 @@ const AdminAbout = () => {
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <h2 className="text-2xl font-semibold text-white">Textos</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('text')} className="text-white hover:bg-white/10 rounded-xl"><Edit className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('text')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Textos">
+                            <Edit className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div><Label className="font-semibold text-white/60">Primeiro Parágrafo</Label><p className="text-white/80 whitespace-pre-wrap">{content.paragraph1}</p></div>
@@ -292,7 +293,9 @@ const AdminAbout = () => {
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <h2 className="text-2xl font-semibold text-white">Imagens</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('images')} className="text-white hover:bg-white/10 rounded-xl"><Edit className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('images')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Imagens">
+                            <Edit className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {[...content.imagesColumn1, ...content.imagesColumn2].map((img, index) => (

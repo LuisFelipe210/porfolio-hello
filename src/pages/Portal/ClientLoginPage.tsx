@@ -13,15 +13,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Loader2 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query'; // <<< Importado
+import { useMutation } from '@tanstack/react-query';
 
 // Schema (sem alteração)
 const formSchema = z.object({
     email: z.string().email({ message: "Por favor, insira um email válido." }),
     password: z.string().min(1, { message: "A palavra-passe é obrigatória." }),
 });
-
-// --- Interface e Função de API (Helpers) ---
 
 interface LoginResponse {
     token: string;
@@ -43,10 +41,8 @@ const loginAPI = async (data: z.infer<typeof formSchema>): Promise<LoginResponse
     return response.json();
 };
 
-// --- Componente Principal ---
 
 const ClientLoginPage = () => {
-    // const [isLoading, setIsLoading] = useState(false); // <<< REMOVIDO
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -58,7 +54,6 @@ const ClientLoginPage = () => {
         },
     });
 
-    // --- Refatoração: useMutation para Login ---
     const loginMutation = useMutation({
         mutationFn: loginAPI,
         onSuccess: (data) => {
@@ -81,7 +76,6 @@ const ClientLoginPage = () => {
             }, 1500);
         },
         onError: (error) => {
-            // Mostra o erro do servidor no campo de senha
             form.setError("password", {
                 type: "manual",
                 message: error instanceof Error ? error.message : "Email ou senha incorretos."
@@ -89,7 +83,6 @@ const ClientLoginPage = () => {
         }
     });
 
-    // onSubmit agora apenas limpa erros e chama a mutação
     const onSubmit = (data: z.infer<typeof formSchema>) => {
         form.clearErrors();
         loginMutation.mutate(data);
@@ -161,8 +154,7 @@ const ClientLoginPage = () => {
                             />
                         </CardContent>
                         <CardFooter>
-                            {/* O 'disabled' e o ícone de loading usam 'loginMutation.isPending' */}
-                            <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={loginMutation.isPending}>
+                            <Button className="w-full bg-orange-500 text-black hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={loginMutation.isPending}>
                                 {loginMutation.isPending ? <Loader2 className="animate-spin" /> : 'Entrar'}
                             </Button>
                         </CardFooter>

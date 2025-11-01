@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'; // useCallback foi removido
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card'; // CardDescription removido (não usado)
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,6 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
 
-// Schema (sem alteração)
 const settingsSchema = z.object({
     heroTitle: z.string().min(1, "O título é obrigatório."),
     heroSubtitle: z.string().min(1, "O subtítulo é obrigatório."),
@@ -32,8 +31,6 @@ const settingsSchema = z.object({
 });
 
 type Settings = z.infer<typeof settingsSchema> & { _id: string };
-
-// --- Funções de API (Helpers) ---
 
 const fetchSettingsAPI = async (): Promise<Settings> => {
     const response = await fetch('/api/settings');
@@ -62,8 +59,6 @@ const saveSettingsAPI = async (data: { formData: z.infer<typeof settingsSchema>,
 // --- Componente Principal ---
 
 const AdminSettings = () => {
-    // const [settings, setSettings] = useState<Settings | null>(null); // <<< REMOVIDO
-    // const [isLoading, setIsLoading] = useState(true); // <<< REMOVIDO
     const { toast } = useToast();
     const queryClient = useQueryClient(); // <<< Adicionado
 
@@ -74,27 +69,23 @@ const AdminSettings = () => {
         resolver: zodResolver(settingsSchema),
     });
 
-    // --- Refatoração: useQuery para buscar os dados ---
     const { data: settings, isLoading, isError, error } = useQuery<Settings, Error>({
         queryKey: ['settings'],
         queryFn: fetchSettingsAPI,
     });
 
-    // Efeito para popular o formulário quando os dados chegam
     useEffect(() => {
         if (settings) {
             form.reset(settings);
         }
     }, [settings, form]);
 
-    // Efeito para mostrar erro ao carregar
     useEffect(() => {
         if (isError) {
             toast({ variant: 'destructive', title: 'Erro', description: error?.message || 'Não foi possível carregar as configurações.' });
         }
     }, [isError, error, toast]);
 
-    // --- Refatoração: useMutation para salvar os dados ---
     const saveMutation = useMutation({
         mutationFn: saveSettingsAPI,
         onSuccess: (updatedData) => {
@@ -102,10 +93,7 @@ const AdminSettings = () => {
             setIsDialogOpen(false);
             setEditingSection(null);
 
-            // Invalida o cache, o que faz o useQuery buscar os dados novos
             queryClient.invalidateQueries({ queryKey: ['settings'] });
-
-            // Reseta o formulário com os novos dados para limpar o estado 'dirty'
             form.reset(updatedData);
         },
         onError: (error: Error) => {
@@ -116,18 +104,16 @@ const AdminSettings = () => {
     const handleOpenDialog = (section: 'hero' | 'contacts' | 'hours') => {
         setEditingSection(section);
         if (settings) {
-            form.reset(settings); // Garante que o formulário tem os dados mais recentes
+            form.reset(settings);
         }
         setIsDialogOpen(true);
     };
 
-    // onSubmit agora apenas chama a mutação
     const onSubmit = (data: z.infer<typeof settingsSchema>) => {
         if (!settings) return;
         saveMutation.mutate({ formData: data, settingsId: settings._id });
     };
 
-    // O ecrã de loading agora usa o 'isLoading' do useQuery
     if (isLoading || !settings) {
         return <Skeleton className="h-[500px] w-full bg-black/60 rounded-3xl" />;
     }
@@ -142,11 +128,12 @@ const AdminSettings = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-8 pr-2 -mr-2">
-                {/* CARD PÁGINA INICIAL */}
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <h2 className="text-2xl font-semibold text-white">Página Inicial</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('hero')} className="text-white hover:bg-white/10 rounded-xl"><Edit className="h-4 w-4" /></Button>
+                        <h2 className="text-2xl font-semibold text-white">Página Inicial</h2>\
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('hero')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Página Inicial">
+                            <Edit className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div><Label className="font-semibold text-white/60">Título Principal</Label><p className="text-white text-lg">{settings.heroTitle}</p></div>
@@ -154,11 +141,12 @@ const AdminSettings = () => {
                     </CardContent>
                 </Card>
 
-                {/* CARD CONTACTOS */}
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <h2 className="text-2xl font-semibold text-white">Contactos e Redes Sociais</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('contacts')} className="text-white hover:bg-white/10 rounded-xl"><Edit className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('contacts')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Contactos e Redes Sociais">
+                            <Edit className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><Label className="font-semibold text-white/60">WhatsApp</Label><p className="text-white">{settings.whatsapp}</p></div>
@@ -168,11 +156,12 @@ const AdminSettings = () => {
                     </CardContent>
                 </Card>
 
-                {/* CARD HORÁRIOS */}
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <h2 className="text-2xl font-semibold text-white">Horários de Atendimento</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('hours')} className="text-white hover:bg-white/10 rounded-xl"><Edit className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('hours')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Horários de Atendimento">
+                            <Edit className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div><Label className="font-semibold text-white/60">Segunda a Sexta</Label><p className="text-white">{settings.horarioSex}</p></div>
@@ -182,7 +171,6 @@ const AdminSettings = () => {
                 </Card>
             </div>
 
-            {/* DIÁLOGO DE EDIÇÃO */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
                     <DialogHeader>
@@ -217,7 +205,6 @@ const AdminSettings = () => {
                             )}
                             <DialogFooter className="!mt-6">
                                 <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                                {/* O 'disabled' e o ícone de loading agora vêm do 'useMutation' */}
                                 <Button type="submit" disabled={saveMutation.isPending} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">
                                     {saveMutation.isPending ? <Loader2 className="animate-spin" /> : 'Guardar'}
                                 </Button>
