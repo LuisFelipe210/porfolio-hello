@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card'; // CardContent removido
+import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Edit, Plus, Loader2 } from 'lucide-react';
+import { Trash2, Edit, Plus, Loader2, GripVertical } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,7 +16,23 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
@@ -35,6 +51,7 @@ interface Testimonial {
     text: string;
     imageUrl: string;
     alt?: string;
+    order: number; // Campo de ordem adicionado
 }
 
 const fetchTestimonialsAPI = async (): Promise<Testimonial[]> => {
@@ -90,12 +107,112 @@ const deleteTestimonialsAPI = async (testimonialIds: string[]) => {
     return response.json();
 };
 
+const reorderTestimonialsAPI = async (testimonialIds: string[]) => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/testimonials', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: "reorder", testimonialIds }),
+    });
+    if (!response.ok) throw new Error('Falha ao reordenar os depoimentos.');
+    return response.json();
+};
+
+const SortableTestimonialCard = ({ item, selected, onSelect, onEdit }: {
+    item: Testimonial,
+    selected: boolean,
+    onSelect: (id: string, checked: boolean) => void,
+    onEdit: (item: Testimonial) => void
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: item._id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 99 : undefined,
+        opacity: isDragging ? 0.7 : 1,
+    };
+
+    return (
+        <Card ref={setNodeRef} style={style} {...attributes} className="relative bg-black/70 backdrop-blur-md rounded-3xl p-4 flex gap-4 border border-white/10">
+            <span {...listeners} className="absolute top-4 left-4 cursor-grab text-white/60 hover:text-white" aria-label="Arrastar para reordenar">
+                <GripVertical className="h-5 w-5" />
+            </span>
+            <input type="checkbox" className="absolute top-4 left-12 w-5 h-5 accent-orange-500 bg-transparent rounded" checked={selected} onChange={(e) => onSelect(item._id, e.target.checked)} />
+            <img src={optimizeCloudinaryUrl(item.imageUrl, "f_auto,q_auto,w_200,h_200,c_fill,g_auto")} alt={item.alt || `Foto de ${item.author}`} className="h-24 w-24 object-cover rounded-full flex-shrink-0 ml-20" />
+            <div className="flex-1 flex flex-col justify-center">
+                <h3 className="font-semibold text-white text-lg">{item.author}</h3>
+                <p className="text-sm text-orange-400 font-semibold">{item.role}</p>
+                <div className="mt-2 flex space-x-2">
+                    <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(item)} aria-label={`Editar ${item.author}`}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    );
+};
+
+const SortableTestimonialItem = ({ item, selected, onSelect, onEdit }: {
+    item: Testimonial,
+    selected: boolean,
+    onSelect: (id: string, checked: boolean) => void,
+    onEdit: (item: Testimonial) => void
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: item._id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 99 : undefined,
+        opacity: isDragging ? 0.7 : 1,
+    };
+
+    return (
+        <TableRow ref={setNodeRef} style={style} className={`border-white/10 ${isDragging ? "bg-white/10" : ""}`}>
+            <TableCell className="w-10">
+                <span {...attributes} {...listeners} className="cursor-grab text-white/60 hover:text-white flex items-center justify-center" aria-label="Arrastar para reordenar">
+                    <GripVertical className="h-5 w-5" />
+                </span>
+            </TableCell>
+            <TableCell className="w-12"><input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selected} onChange={(e) => onSelect(item._id, e.target.checked)} /></TableCell>
+            <TableCell><img src={optimizeCloudinaryUrl(item.imageUrl, "f_auto,q_auto,w_200,h_200,c_fill,g_auto")} alt={item.alt || `Foto de ${item.author}`} className="h-16 w-16 object-cover rounded-full" /></TableCell>
+            <TableCell className="font-medium text-white">{item.author}</TableCell>
+            <TableCell className="text-white/80">{item.role}</TableCell>
+            <TableCell className="text-right">
+                <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => onEdit(item)} aria-label={`Editar ${item.author}`}>
+                    <Edit className="h-4 w-4" />
+                </Button>
+            </TableCell>
+        </TableRow>
+    );
+};
+
 const AdminTestimonials = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { toast } = useToast();
     const isMobile = useIsMobile();
     const { refetch: refetchDashboard } = useDashboardData();
     const queryClient = useQueryClient();
+
+    const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
     const [selectedTestimonials, setSelectedTestimonials] = useState<Set<string>>(new Set());
     const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
@@ -108,11 +225,18 @@ const AdminTestimonials = () => {
         defaultValues: { author: "", role: "", text: "", alt: "" },
     });
 
-    const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[], Error>({
+    const sensors = useSensors(useSensor(PointerSensor));
+
+    const { data: testimonialsData, isLoading, isError, error } = useQuery<Testimonial[], Error>({
         queryKey: ['testimonials'],
         queryFn: fetchTestimonialsAPI,
-        initialData: [], // Garante que 'testimonials' é sempre um array
     });
+
+    useEffect(() => {
+        if (testimonialsData) {
+            setTestimonials(testimonialsData);
+        }
+    }, [testimonialsData]);
 
     useEffect(() => {
         if (isError) {
@@ -217,46 +341,73 @@ const AdminTestimonials = () => {
         setSelectedTestimonials(newSet);
     };
 
+    const reorderMutation = useMutation({
+        mutationFn: reorderTestimonialsAPI,
+        onError: (error: Error, variables: string[]) => {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a ordem. Sincronizando...' });
+            queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+        }
+    });
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const oldIndex = testimonials.findIndex(t => t._id === active.id);
+        const newIndex = testimonials.findIndex(t => t._id === over.id);
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const newOrder = arrayMove(testimonials, oldIndex, newIndex);
+        setTestimonials(newOrder); // Atualização otimista
+
+        reorderMutation.mutate(newOrder.map(t => t._id));
+    };
+
     const renderContent = () => {
         if (isLoading) {
             return isMobile ?
                 Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />) :
-                Array.from({ length: 2 }).map((_, i) => <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-24 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>);
+                Array.from({ length: 2 }).map((_, i) => <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-24 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>);
         }
         if (testimonials.length === 0) {
-            return isMobile ? <div className="text-center text-white/60 pt-12 col-span-full">Nenhum depoimento encontrado.</div> : <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum depoimento encontrado.</TableCell></TableRow>;
+            return isMobile ? <div className="text-center text-white/60 pt-12 col-span-full">Nenhum depoimento encontrado.</div> : <TableRow><TableCell colSpan={6} className="text-center text-white/60 pt-12">Nenhum depoimento encontrado.</TableCell></TableRow>;
         }
+
         if (isMobile) {
-            return testimonials.map((item) => (
-                <Card key={item._id} className="relative bg-black/70 backdrop-blur-md rounded-3xl p-4 flex gap-4 border border-white/10">
-                    <input type="checkbox" className="absolute top-4 left-4 w-5 h-5 accent-orange-500 bg-transparent rounded" checked={selectedTestimonials.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} />
-                    <img src={optimizeCloudinaryUrl(item.imageUrl, "f_auto,q_auto,w_200,h_200,c_fill,g_auto")} alt={item.alt || `Foto de ${item.author}`} className="h-24 w-24 object-cover rounded-full flex-shrink-0 ml-8" />
-                    <div className="flex-1 flex flex-col justify-center">
-                        <h3 className="font-semibold text-white text-lg">{item.author}</h3>
-                        <p className="text-sm text-orange-400 font-semibold">{item.role}</p>
-                        <div className="mt-2 flex space-x-2">
-                            <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)} aria-label={`Editar ${item.author}`}>
-                                <Edit className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </Card>
-            ));
+            return (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={testimonials.map(t => t._id)} strategy={verticalListSortingStrategy}>
+                        {testimonials.map((item) => (
+                            <SortableTestimonialCard
+                                key={item._id}
+                                item={item}
+                                selected={selectedTestimonials.has(item._id)}
+                                onSelect={handleSelectionChange}
+                                onEdit={handleOpenDialog}
+                            />
+                        ))}
+                    </SortableContext>
+                </DndContext>
+            );
         }
-        return testimonials.map((item) => (
-            <TableRow key={item._id} className="border-white/10">
-                <TableCell className="w-12"><input type="checkbox" className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded" checked={selectedTestimonials.has(item._id)} onChange={(e) => handleSelectionChange(item._id, e.target.checked)} /></TableCell>
-                <TableCell><img src={optimizeCloudinaryUrl(item.imageUrl, "f_auto,q_auto,w_200,h_200,c_fill,g_auto")} alt={item.alt || `Foto de ${item.author}`} className="h-16 w-16 object-cover rounded-full" /></TableCell>
-                <TableCell className="font-medium text-white">{item.author}</TableCell>
-                <TableCell className="text-white/80">{item.role}</TableCell>
-                {/* RÓTULO DE BOTÃO CORRIGIDO */}
-                <TableCell className="text-right">
-                    <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(item)} aria-label={`Editar ${item.author}`}>
-                        <Edit className="h-4 w-4" />
-                    </Button>
-                </TableCell>
-            </TableRow>
-        ));
+        return (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={testimonials.map(t => t._id)} strategy={verticalListSortingStrategy}>
+                    {testimonials.map((item) => (
+                        <SortableTestimonialItem
+                            key={item._id}
+                            item={item}
+                            selected={selectedTestimonials.has(item._id)}
+                            onSelect={handleSelectionChange}
+                            onEdit={handleOpenDialog}
+                        />
+                    ))}
+                </SortableContext>
+            </DndContext>
+        );
     };
 
     return (
@@ -276,7 +427,25 @@ const AdminTestimonials = () => {
             </div>
 
             <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
-                {isMobile ? renderContent() : (<div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2"><Table><TableHeader><TableRow className="border-white/10 hover:bg-transparent"><TableHead className="w-12"></TableHead><TableHead className="w-[100px] text-white">Foto</TableHead><TableHead className="text-white">Autor</TableHead><TableHead className="text-white">Cargo/Serviço</TableHead><TableHead className="text-right text-white">Ações</TableHead></TableRow></TableHeader><TableBody>{renderContent()}</TableBody></Table></div>)}
+                {isMobile ? renderContent() : (
+                    <div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="border-white/10 hover:bg-transparent">
+                                    <TableHead className="w-10"></TableHead>
+                                    <TableHead className="w-12"></TableHead>
+                                    <TableHead className="w-[100px] text-white">Foto</TableHead>
+                                    <TableHead className="text-white">Autor</TableHead>
+                                    <TableHead className="text-white">Cargo/Serviço</TableHead>
+                                    <TableHead className="text-right text-white">Ações</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {renderContent()}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>

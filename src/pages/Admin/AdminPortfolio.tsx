@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Loader2, GripVertical, Trash2, Edit } from 'lucide-react';
+// dnd-kit imports
 import {
     DndContext,
     closestCenter,
@@ -40,7 +41,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// ***** INÍCIO DAS NOVAS IMPORTAÇÕES *****
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// ***** FIM DAS NOVAS IMPORTAÇÕES *****
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -69,7 +72,6 @@ interface PortfolioItem {
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
-
 
 const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
     item: PortfolioItem,
@@ -189,7 +191,6 @@ const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
     );
 };
 
-
 const fetchPortfolioItems = async (): Promise<PortfolioItem[]> => {
     const response = await fetch('/api/portfolio');
     if (!response.ok) throw new Error("Falha ao carregar itens.");
@@ -232,10 +233,12 @@ const deletePortfolioItems = async (itemIds: string[]) => {
 
 const reorderPortfolioItems = async (itemIds: string[]) => {
     const token = localStorage.getItem('authToken');
-    const response = await fetch('/api/portfolio/reorder', {
+    // 1. Mudamos a URL de /api/portfolio/reorder para /api/portfolio
+    const response = await fetch('/api/portfolio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ itemIds }),
+        // 2. Adicionamos a action: "reorder" ao body
+        body: JSON.stringify({ action: "reorder", itemIds }),
     });
     if (!response.ok) throw new Error('Não foi possível atualizar a ordem.');
     return response.json();
@@ -405,7 +408,7 @@ const AdminPortfolio = () => {
 
         const newItems = arrayMove(items, oldIndex, newIndex);
 
-        setItems(newItems);
+        setItems(newItems); // Atualização otimista
 
         reorderMutation.mutate(newItems.map(i => i._id));
     };

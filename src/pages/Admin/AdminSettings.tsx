@@ -56,7 +56,6 @@ const saveSettingsAPI = async (data: { formData: z.infer<typeof settingsSchema>,
     return response.json();
 };
 
-// --- Componente Principal ---
 
 const AdminSettings = () => {
     const { toast } = useToast();
@@ -130,7 +129,7 @@ const AdminSettings = () => {
             <div className="flex-1 overflow-y-auto space-y-8 pr-2 -mr-2">
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <h2 className="text-2xl font-semibold text-white">Página Inicial</h2>\
+                        <h2 className="text-2xl font-semibold text-white">Página Inicial</h2>
                         <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('hero')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Página Inicial">
                             <Edit className="h-4 w-4" />
                         </Button>

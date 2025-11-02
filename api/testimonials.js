@@ -22,6 +22,11 @@ const deleteTestimonialsSchema = z.object({
     testimonialIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")).optional()
 });
 
+const reorderTestimonialsSchema = z.object({
+    action: z.literal("reorder"),
+    testimonialIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")),
+});
+
 async function connectToDatabase(uri) {
     if (global.mongoClient?.topology?.isConnected()) {
         return global.mongoClient.db('helloborges_portfolio');
@@ -37,11 +42,9 @@ export default async function handler(req, res) {
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const collection = db.collection('testimonials');
 
-        // --- ROTA PÚBLICA: BUSCAR TODOS OS DEPOIMENTOS (GET) ---
         if (req.method === 'GET') {
-            const testimonials = await collection.find({}).sort({ _id: -1 }).toArray();
+            const testimonials = await collection.find({}).sort({ order: 1, _id: -1 }).toArray();
 
-            // Adiciona campos padrão caso não existam
             const testimonialsWithDefaults = testimonials.map(testimonial => ({
                 ...testimonial,
                 alt: testimonial.alt || `Foto de ${testimonial.author}` || 'Cliente satisfeito'
@@ -64,8 +67,27 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
-            const newTestimonial = req.body;
 
+            if (req.body.action === 'reorder') {
+                const parseResult = reorderTestimonialsSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({ error: parseResult.error.errors.map(e => e.message).join(', ') });
+                }
+
+                const { testimonialIds } = parseResult.data;
+
+                const updatePromises = testimonialIds.map((id, index) => {
+                    return collection.updateOne(
+                        { _id: new ObjectId(id) },
+                        { $set: { order: index } }
+                    );
+                });
+
+                await Promise.all(updatePromises);
+                return res.status(200).json({ message: 'Ordem atualizada com sucesso.' });
+            }
+
+            const newTestimonial = req.body;
             const validation = createTestimonialSchema.safeParse(newTestimonial);
             if (!validation.success) {
                 return res.status(400).json({ error: 'Dados inválidos.', details: validation.error.errors });
@@ -75,8 +97,16 @@ export default async function handler(req, res) {
                 newTestimonial.alt = `Foto de ${newTestimonial.author}`;
             }
 
-            const result = await collection.insertOne(newTestimonial);
-            const inserted = { ...newTestimonial, _id: result.insertedId };
+            const maxOrderDoc = await collection.findOne({}, { sort: { order: -1 } });
+            const nextOrder = (maxOrderDoc && typeof maxOrderDoc.order === 'number') ? maxOrderDoc.order + 1 : 0;
+
+            const itemToInsert = {
+                ...newTestimonial,
+                order: nextOrder
+            };
+
+            const result = await collection.insertOne(itemToInsert);
+            const inserted = { ...itemToInsert, _id: result.insertedId };
             return res.status(201).json(inserted);
         }
 

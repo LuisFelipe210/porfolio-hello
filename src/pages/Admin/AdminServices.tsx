@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card'; // Removido CardContent, etc. que não estavam a ser usados
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,7 +30,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
@@ -105,13 +105,14 @@ const saveServiceAPI = async (data: {
 
 const reorderServicesAPI = async (serviceIds: string[]) => {
     const token = localStorage.getItem('authToken');
-    const response = await fetch('/api/services/reorder', {
+    const response = await fetch('/api/services', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ serviceIds }),
+        // 2. O body agora envia uma "action"
+        body: JSON.stringify({ action: "reorder", serviceIds }),
     });
     if (!response.ok) throw new Error('Falha ao reordenar os serviços.');
     return response.json();
@@ -411,11 +412,6 @@ const AdminServices = () => {
                     <h1 className="text-3xl font-bold text-white">Gerir Serviços</h1>
                     <p className="text-white/80">Edite as informações dos serviços oferecidos no seu site.</p>
                 </div>
-                {/* {selectedServices.size > 0 && (
-                    <Button variant="outline" onClick={() => setIsDeleteModalOpen(true)} className="border border-red-500/80 text-red-500 hover:bg-red-500/20 bg-transparent rounded-xl font-semibold transition-all w-full sm:w-auto">
-                        <Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedServices.size})
-                    </Button>
-                )} */}
             </div>
 
             <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
@@ -439,11 +435,6 @@ const AdminServices = () => {
                 )}
             </div>
 
-            {/* <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild><Button className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg" onClick={() => handleOpenDialog()}><Plus className="h-12 w-12" /></Button></DialogTrigger>
-                <DialogContent> ... </DialogContent>
-            </Dialog> */}
-
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle className="text-white">Editar Serviço</DialogTitle></DialogHeader>
@@ -453,11 +444,8 @@ const AdminServices = () => {
                                 <Label className="text-white mb-2 font-semibold block">Imagem do Serviço</Label>
                                 <div className="flex items-center gap-4">
                                     {imagePreviewUrl && <img src={optimizeCloudinaryUrl(imagePreviewUrl, 'f_auto,q_auto,w_200')} alt={form.watch('alt') || form.watch('title')} className="w-24 h-24 object-cover rounded-2xl" />}
-
                                     <Input id="image-upload" type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { setSelectedImageFile(file); } }} className="hidden" />
-                                    <Label htmlFor="image-upload" className="cursor-pointer text-white bg-white/10 rounded-xl hover:bg-white/20 transition-all px-4 py-2 flex items-center gap-2">
-                                        <Upload className="h-4 w-4" />{imagePreviewUrl ? 'Trocar' : 'Escolher'}
-                                    </Label>
+                                    <Label htmlFor="image-upload" className="cursor-pointer text-white bg-white/10 rounded-xl hover:bg-white/20 transition-all px-4 py-2 flex items-center gap-2"><Upload className="h-4 w-4" />{imagePreviewUrl ? 'Trocar' : 'Escolher'}</Label>
                                 </div>
                             </div>
                             <FormField control={form.control} name="title" render={({ field }) => (<FormItem>
@@ -485,24 +473,6 @@ const AdminServices = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
-                    <DialogHeader>
-                        <DialogTitle>Confirmar exclusão</DialogTitle>
-                        <DialogDescription className="text-white/80">
-                            Tem a certeza que deseja excluir <strong>{selectedServices.size} serviço(s)</strong>? Esta ação não pode ser desfeita.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="!mt-6">
-                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button></DialogClose>
-                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={deleteMutation.isPending}>
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {deleteMutation.isPending ? 'A excluir...' : 'Excluir'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            */}
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,20 +7,16 @@ import { Label } from '@/components/ui/label';
 import Logo from "@/assets/logo.svg";
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-
-// ***** INÍCIO DAS MODIFICAÇÕES *****
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
-// 1. Esquema de validação com Zod
 const formSchema = z.object({
     username: z.string().min(1, { message: "O utilizador é obrigatório." }),
     password: z.string().min(1, { message: "A palavra-passe é obrigatória." }),
 });
-// ***** FIM DAS MODIFICAÇÕES *****
 
 
 const AdminLogin = () => {
@@ -32,8 +28,6 @@ const AdminLogin = () => {
         document.documentElement.classList.add('dark');
     }, []);
 
-    // ***** INÍCIO DAS MODIFICAÇÕES *****
-    // 2. O formulário agora é controlado pelo React Hook Form
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -42,7 +36,6 @@ const AdminLogin = () => {
         },
     });
 
-    // 3. A função de submit é adaptada para o React Hook Form
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         form.clearErrors();
@@ -51,7 +44,7 @@ const AdminLogin = () => {
             const response = await fetch('/api/auth', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data), // Usa os dados validados do formulário
+                body: JSON.stringify(data),
             });
 
             if (!response.ok) {
@@ -71,7 +64,7 @@ const AdminLogin = () => {
             });
 
             setTimeout(() => {
-                navigate('/admin');
+                navigate('/admin'); // Redireciona para o dashboard
             }, 1500);
 
         } catch (error) {
@@ -83,7 +76,6 @@ const AdminLogin = () => {
             setIsLoading(false);
         }
     };
-    // ***** FIM DAS MODIFICAÇÕES *****
 
     return (
         <div className="relative flex items-center justify-center min-h-screen bg-black text-white p-4">
@@ -105,7 +97,6 @@ const AdminLogin = () => {
                     </CardDescription>
                 </CardHeader>
 
-                {/* ***** INÍCIO DAS MODIFICAÇÕES NO JSX ***** */}
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
                         <CardContent className="grid gap-4">
@@ -151,13 +142,22 @@ const AdminLogin = () => {
                             />
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={isLoading}>
+                            <Button className="w-full bg-orange-500 text-black hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={isLoading}>
                                 {isLoading ? <Loader2 className="animate-spin" /> : 'Entrar'}
                             </Button>
                         </CardFooter>
                     </form>
                 </Form>
-                {/* ***** FIM DAS MODIFICAÇÕES NO JSX ***** */}
+
+                <div className="px-6 pb-6 pt-0 text-center">
+                    <Button asChild variant="link" className="text-white/70 hover:text-white">
+                        <Link to="/">
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Voltar ao site principal
+                        </Link>
+                    </Button>
+                </div>
+
             </Card>
         </div>
     );

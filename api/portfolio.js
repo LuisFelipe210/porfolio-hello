@@ -6,6 +6,7 @@ const createPortfolioItemSchema = z.object({
     title: z.string().min(1, "Título é obrigatório"),
     description: z.string().min(1, "Descrição é obrigatória"),
     image: z.string().url("URL de imagem inválida"),
+    category: z.string().min(1, "Categoria é obrigatória"), // Assegure-se que o frontend envia isto
     alt: z.string().optional()
 });
 
@@ -13,11 +14,18 @@ const updatePortfolioItemSchema = z.object({
     title: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
     image: z.string().url().optional(),
-    alt: z.string().optional()
+    category: z.string().min(1).optional(), // Assegure-se que o frontend envia isto
+    alt: z.string().optional(),
+    order: z.number().optional() // Permite a atualização da ordem
 });
 
 const deletePortfolioItemsSchema = z.object({
     itemIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")).optional()
+});
+
+const reorderPortfolioItemsSchema = z.object({
+    action: z.literal("reorder"),
+    itemIds: z.array(z.string().refine(id => ObjectId.isValid(id), "ID inválido")),
 });
 
 async function connectToDatabase(uri) {
@@ -36,7 +44,7 @@ export default async function handler(req, res) {
         const collection = db.collection('portfolioItems');
 
         if (req.method === 'GET') {
-            const items = await collection.find({}).sort({ _id: -1 }).toArray();
+            const items = await collection.find({}).sort({ order: 1, _id: -1 }).toArray();
             return res.status(200).json(items);
         }
 
@@ -54,6 +62,27 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
+
+            if (req.body.action === 'reorder') {
+                const parseResult = reorderPortfolioItemsSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({ error: parseResult.error.errors.map(e => e.message).join(', ') });
+                }
+
+                const { itemIds } = parseResult.data;
+
+                // Lógica de Reordenação
+                const updatePromises = itemIds.map((id, index) => {
+                    return collection.updateOne(
+                        { _id: new ObjectId(id) },
+                        { $set: { order: index } }
+                    );
+                });
+
+                await Promise.all(updatePromises);
+                return res.status(200).json({ message: 'Ordem atualizada com sucesso.' });
+            }
+
             const parseResult = createPortfolioItemSchema.safeParse(req.body);
             if (!parseResult.success) {
                 return res.status(400).json({ error: parseResult.error.errors.map(e => e.message).join(', ') });
@@ -64,8 +93,20 @@ export default async function handler(req, res) {
                 newItem.alt = newItem.title;
             }
 
-            const result = await collection.insertOne(newItem);
-            const insertedItem = { ...newItem, _id: result.insertedId };
+            // ***** ALTERAÇÃO 3: ADICIONAR ORDEM A NOVOS ITENS *****
+            // Coloca novos itens no início da lista (ordem -1 ou 0) ou no fim
+            // Vamos colocar no fim (número mais alto)
+            const maxOrderDoc = await collection.findOne({}, { sort: { order: -1 } });
+            const nextOrder = (maxOrderDoc && typeof maxOrderDoc.order === 'number') ? maxOrderDoc.order + 1 : 0;
+
+            const itemToInsert = {
+                ...newItem,
+                order: nextOrder // Define a ordem
+            };
+            // ***** FIM DA ALTERAÇÃO 3 *****
+
+            const result = await collection.insertOne(itemToInsert);
+            const insertedItem = { ...itemToInsert, _id: result.insertedId };
             return res.status(201).json(insertedItem);
         }
 
@@ -75,6 +116,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'ID do item inválido ou não fornecido.' });
             }
 
+            // Usamos o schema de atualização que agora aceita 'order'
             const parseResult = updatePortfolioItemSchema.safeParse(req.body);
             if (!parseResult.success) {
                 return res.status(400).json({ error: parseResult.error.errors.map(e => e.message).join(', ') });
@@ -124,7 +166,6 @@ export default async function handler(req, res) {
                 return res.status(200).json({ message: 'Item excluído com sucesso.' });
             }
 
-            // Se nenhum ID for fornecido (nem na query, nem no body)
             return res.status(400).json({ error: 'ID inválido ou não fornecido.' });
         }
 
