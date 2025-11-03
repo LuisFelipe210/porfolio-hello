@@ -8,6 +8,7 @@ import React from "react";
 import Masonry from 'react-masonry-css';
 import { Loader2 } from "lucide-react";
 import { Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
 
 interface PortfolioItem {
     id: string;
@@ -409,9 +410,17 @@ const PortfolioSection = () => {
                         </div>
                         <div className="flex justify-center mb-12 md:hidden px-6" ref={mobileActionRef}>
                             {shouldShowShowAllButton && (
-                                <Link to="/portfolio" className={linkClasses}>
-                                    Ver Portfólio Completo
-                                </Link>
+                                <Button
+                                    asChild
+                                    className="bg-accent hover:bg-accent/80 text-white px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+                                >
+                                    <Link to="/portfolio" className="flex items-center gap-2 uppercase tracking-wide">
+                                        <span>Ver Portfólio Completo</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+                                </Button>
                             )}
                         </div>
                         <div className="hidden md:block px-6 md:px-12" ref={portfolioGridRef}>
@@ -432,9 +441,17 @@ const PortfolioSection = () => {
                         </div>
                         <div className="flex justify-center mb-12 hidden md:flex px-6">
                             {shouldShowShowAllDesktopButton && (
-                                <Link to="/portfolio" className={linkClasses}>
-                                    Ver Portfólio Completo
-                                </Link>
+                                <Button
+                                    asChild
+                                    className="bg-accent hover:bg-accent/80 text-white px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+                                >
+                                    <Link to="/portfolio" className="flex items-center gap-2 uppercase tracking-wide">
+                                        <span>Ver Portfólio Completo</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+                                </Button>
                             )}
                         </div>
                     </>
