@@ -412,9 +412,9 @@ const PortfolioSection = () => {
                             {shouldShowShowAllButton && (
                                 <Button
                                     asChild
-                                    className="bg-accent hover:bg-accent/80 text-white px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+                                    className="bg-orange-500 hover:bg-orange-600 text-white dark:bg-orange-500 dark:hover:bg-orange-600 dark:text-black font-semibold px-6 py-2 rounded-lg shadow-lg transition-all duration-300 uppercase tracking-wide"
                                 >
-                                    <Link to="/portfolio" className="flex items-center gap-2 uppercase tracking-wide">
+                                    <Link to="/portfolio" className="flex items-center gap-2">
                                         <span>Ver Portfólio Completo</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -443,9 +443,9 @@ const PortfolioSection = () => {
                             {shouldShowShowAllDesktopButton && (
                                 <Button
                                     asChild
-                                    className="bg-accent hover:bg-accent/80 text-white px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+                                    className="bg-orange-500 hover:bg-orange-600 text-white dark:bg-orange-500 dark:hover:bg-orange-600 dark:text-black font-semibold px-6 py-2 rounded-lg shadow-lg transition-all duration-300 uppercase tracking-wide"
                                 >
-                                    <Link to="/portfolio" className="flex items-center gap-2 uppercase tracking-wide">
+                                    <Link to="/portfolio" className="flex items-center gap-2">
                                         <span>Ver Portfólio Completo</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

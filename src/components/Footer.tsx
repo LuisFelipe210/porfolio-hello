@@ -60,9 +60,14 @@ const Footer = () => {
             <div className="container mx-auto px-6 max-w-6xl">
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     <div>
-                        <div className="flex items-center mb-4 space-x-3">
-                            <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
-                            <span className="text-2xl font-light">Hellô Borges</span>
+                        <div className="flex items-center mb-4">
+                            <img src={Logo} alt="Hellô Borges" className="h-10 sm:h-12 w-auto mr-4" />
+                            <div className="flex flex-col">
+                                <h2 className="text-2xl sm:text-3xl font-title leading-none text-white dark:text-black">Hellô Borges</h2>
+                                <p className="text-xs sm:text-sm tracking-[0.20em] uppercase mt-0 font-light text-white dark:text-black">
+                                    Fotografia
+                                </p>
+                            </div>
                         </div>
                         <p className="text-primary-foreground/80 text-sm leading-relaxed">
                             Fotografia profissional com sensibilidade artística,
