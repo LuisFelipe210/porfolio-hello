@@ -21,6 +21,7 @@ const Index = lazy(() => import("./pages/Index.tsx"));
 const BlogPage = lazy(() => import("./pages/BlogPage.tsx"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const PortfolioPage = lazy(() => import("./pages/PortfolioPage.tsx"));
 
 // --- Páginas do Admin ---
 const AdminAvailability = lazy(() => import("./pages/Admin/AdminAvailability.tsx"));
@@ -53,7 +54,6 @@ const PageLoader = () => (
     </div>
 );
 
-// Este componente foi removido pois a nova abordagem com PublicLayout o torna desnecessário.
 
 const AppContent = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -76,16 +76,15 @@ const AppContent = () => {
                 <Suspense fallback={<PageLoader />}>
                     <MessagesProvider>
                         <Routes>
-                            {/* ***** INÍCIO DAS MODIFICAÇÕES ***** */}
 
                             {/* --- Rotas Públicas agrupadas sob o PublicLayout --- */}
                             <Route element={<PublicLayout />}>
                                 <Route path="/" element={<Index />} />
                                 <Route path="/blog" element={<BlogPage />} />
                                 <Route path="/blog/:slug" element={<BlogPostPage />} />
+                                <Route path="/portfolio" element={<PortfolioPage />} />
                             </Route>
 
-                            {/* ***** FIM DAS MODIFICAÇÕES ***** */}
 
                             {/* --- Rotas Clientes (Estrutura original mantida) --- */}
                             <Route path="/portal/login" element={<ClientLoginPage />} />

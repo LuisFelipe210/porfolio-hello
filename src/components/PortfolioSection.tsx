@@ -7,6 +7,7 @@ import { optimizeCloudinaryUrl } from "@/lib/utils";
 import React from "react";
 import Masonry from 'react-masonry-css';
 import { Loader2 } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 interface PortfolioItem {
     id: string;
@@ -408,14 +409,9 @@ const PortfolioSection = () => {
                         </div>
                         <div className="flex justify-center mb-12 md:hidden px-6" ref={mobileActionRef}>
                             {shouldShowShowAllButton && (
-                                <button onClick={() => setShowAllMobile(true)} className={linkClasses}>
-                                    Mostrar Todas ({filteredItems.length} Fotos)
-                                </button>
-                            )}
-                            {showAllMobile && (
-                                <button onClick={handleShowLess} className={linkClasses}>
-                                    Mostrar Menos
-                                </button>
+                                <Link to="/portfolio" className={linkClasses}>
+                                    Ver Portfólio Completo
+                                </Link>
                             )}
                         </div>
                         <div className="hidden md:block px-6 md:px-12" ref={portfolioGridRef}>
@@ -436,14 +432,9 @@ const PortfolioSection = () => {
                         </div>
                         <div className="flex justify-center mb-12 hidden md:flex px-6">
                             {shouldShowShowAllDesktopButton && (
-                                <button onClick={() => setShowAllDesktop(true)} className={linkClasses}>
-                                    Mostrar Todas ({filteredItems.length} Fotos)
-                                </button>
-                            )}
-                            {showAllDesktop && (
-                                <button onClick={handleShowLessDesktop} className={linkClasses}>
-                                    Mostrar Menos
-                                </button>
+                                <Link to="/portfolio" className={linkClasses}>
+                                    Ver Portfólio Completo
+                                </Link>
                             )}
                         </div>
                     </>

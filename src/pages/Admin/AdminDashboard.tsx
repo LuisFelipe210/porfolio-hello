@@ -29,11 +29,15 @@ const clientFormSchema = z.object({
     phrase: z.string().optional(),
 });
 
+// ***** INÍCIO DA MODIFICAÇÃO *****
+// Adicionado alt (opcional)
 const portfolioFormSchema = z.object({
     title: z.string().min(3, { message: "O título é obrigatório." }),
     category: z.string().min(1, { message: "Selecione uma categoria." }),
     description: z.string().min(1, { message: "A descrição é obrigatória." }),
+    alt: z.string().optional(),
 });
+// ***** FIM DA MODIFICAÇÃO *****
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -118,7 +122,7 @@ const AdminDashboard = () => {
 
     const portfolioForm = useForm<z.infer<typeof portfolioFormSchema>>({
         resolver: zodResolver(portfolioFormSchema),
-        defaultValues: { title: "", category: "", description: "" },
+        defaultValues: { title: "", category: "", description: "", alt: "" }, // alt adicionado
     });
 
     const handleCloudinaryUpload = async (file: File): Promise<string> => {
@@ -133,6 +137,8 @@ const AdminDashboard = () => {
         return uploadData.secure_url;
     };
 
+    // ***** INÍCIO DA MODIFICAÇÃO *****
+    // Lógica do 'alt' adicionada ao envio
     const onPortfolioSubmit = async (formData: z.infer<typeof portfolioFormSchema>) => {
         if (!pFile) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem para um novo item.' });
@@ -141,10 +147,18 @@ const AdminDashboard = () => {
         try {
             const imageUrl = await handleCloudinaryUpload(pFile);
             const token = localStorage.getItem('authToken');
+
+            // Prepara o body com a lógica do 'alt'
+            const body = {
+                ...formData,
+                image: imageUrl,
+                alt: formData.alt || formData.title // Lógica do fallback
+            };
+
             const response = await fetch('/api/portfolio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ ...formData, image: imageUrl }),
+                body: JSON.stringify(body), // body atualizado
             });
             if (!response.ok) throw new Error('Falha ao salvar o item.');
 
@@ -159,6 +173,7 @@ const AdminDashboard = () => {
             toast({ variant: 'destructive', title: 'Erro', description: errorMessage });
         }
     };
+    // ***** FIM DA MODIFICAÇÃO *****
 
     const formatDate = (dateStr: string) => {
         const d = new Date(dateStr);
@@ -503,12 +518,20 @@ const AdminDashboard = () => {
                                 <Label className="text-white mb-1 font-semibold">Categoria</Label>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl><SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                                    <SelectContent position="popper" className="bg-black/90 text-white border-white/20 z-[9999]"><SelectItem value="portrait">Retratos</SelectItem><SelectItem value="wedding">Casamentos</SelectItem><SelectItem value="maternity">Maternidade</SelectItem><SelectItem value="family">Família</SelectItem><SelectItem value="events">Eventos</SelectItem></SelectContent>
+                                    <SelectContent position="z-1000" className="bg-black/90 text-white border-white/20 z-[9999]"><SelectItem value="portrait">Retratos</SelectItem><SelectItem value="wedding">Casamentos</SelectItem><SelectItem value="maternity">Maternidade</SelectItem><SelectItem value="family">Família</SelectItem><SelectItem value="events">Eventos</SelectItem></SelectContent>
                                 </Select><FormMessage />
                             </FormItem>)} />
                             <FormField control={portfolioForm.control} name="description" render={({ field }) => (<FormItem>
                                 <Label className="text-white mb-1 font-semibold">Descrição</Label><FormControl><Textarea required className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage />
                             </FormItem>)} />
+
+                            <FormField control={portfolioForm.control} name="alt" render={({ field }) => (<FormItem>
+                                <Label className="text-white mb-1 font-semibold">Texto Alternativo (ALT)<span className="text-white/60 text-xs ml-2">(Opcional)</span></Label>
+                                <FormControl><Input placeholder={portfolioForm.watch('title') || "Descreva a imagem"} className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
+                                <p className="text-xs text-white/50 mt-1">Se deixado em branco, usaremos o título.</p>
+                                <FormMessage />
+                            </FormItem>)} />
+
                             <div>
                                 <Label htmlFor="portfolio-file-upload-dashboard" className="text-white mb-1 font-semibold">Imagem</Label>
                                 <Input id="portfolio-file-upload-dashboard" type="file" onChange={(e) => setPFile(e.target.files?.[0] || null)} required className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />

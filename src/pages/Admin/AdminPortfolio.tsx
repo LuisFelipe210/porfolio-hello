@@ -529,7 +529,7 @@ const AdminPortfolio = () => {
                                 <Label className="text-white mb-1 font-semibold">Categoria</Label>
                                 <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                     <FormControl><SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                                    <SelectContent className="bg-black/90 text-white border-white/20">
+                                    <SelectContent position="z-[1000]" className="bg-black/90 text-white border-white/20 ">
                                         <SelectItem value="portrait">Retratos</SelectItem>
                                         <SelectItem value="wedding">Casamentos</SelectItem>
                                         <SelectItem value="maternity">Maternidade</SelectItem>
