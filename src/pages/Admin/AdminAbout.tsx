@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Upload, Loader2, Save, Edit2, Edit } from 'lucide-react';
+import { Upload, Loader2, Edit } from 'lucide-react';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
 import {
     Dialog,
@@ -17,11 +17,10 @@ import {
     DialogTitle,
     DialogClose,
 } from '@/components/ui/dialog';
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
@@ -30,131 +29,59 @@ const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 const aboutFormSchema = z.object({
     paragraph1: z.string().min(1, { message: "O primeiro parágrafo não pode estar vazio." }),
     paragraph2: z.string().min(1, { message: "O segundo parágrafo não pode estar vazio." }),
-    imagesColumn1: z.array(z.object({ src: z.string(), alt: z.string() })),
-    imagesColumn2: z.array(z.object({ src: z.string(), alt: z.string() })),
+    profileImage: z.object({
+        src: z.string().url(),
+        alt: z.string().min(1)
+    }),
+    stats: z.object({
+        sessions: z.number().min(0),
+        weddings: z.number().min(0),
+        families: z.number().min(0)
+    })
 });
-
-interface Image {
-    src: string;
-    alt: string;
-}
 
 interface AboutContent {
     _id: string;
     paragraph1: string;
     paragraph2: string;
-    imagesColumn1: Image[];
-    imagesColumn2: Image[];
+    profileImage: {
+        src: string;
+        alt: string;
+    };
+    stats: {
+        sessions: number;
+        weddings: number;
+        families: number;
+    };
 }
-
-const ImageColumn = ({
-                         title,
-                         images,
-                         onFileChange,
-                         onRemove,
-                         onEditAlt,
-                         isUploading,
-                     }: {
-    title: string;
-    images: Image[];
-    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onRemove: (index: number) => void;
-    onEditAlt: (index: number) => void;
-    isUploading: boolean;
-}) => {
-    const isLimitReached = images.length >= 2;
-    return (
-        <div>
-            <h3 className="text-white font-semibold mb-4">{title}</h3>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-                {images.map((img, index) => (
-                    <div key={index} className="relative group aspect-square">
-                        <img
-                            src={optimizeCloudinaryUrl(
-                                img.src,
-                                "f_auto,q_auto,w_200,h_200,c_fill,g_auto"
-                            )}
-                            alt={img.alt}
-                            className="w-full h-full object-cover rounded-2xl"
-                        />
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-2">
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                className="h-8 w-8 rounded-full"
-                                onClick={() => onEditAlt(index)}
-                                type="button"
-                                aria-label="Editar texto alternativo"
-                            >
-                                <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                size="icon"
-                                className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-600"
-                                onClick={() => onRemove(index)}
-                                type="button"
-                                aria-label="Remover imagem"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        {img.alt && (
-                            <div className="absolute bottom-1 left-1 right-1 bg-black/70 text-white text-[10px] px-1 py-0.5 rounded truncate">
-                                {img.alt}
-                            </div>
-                        )}
-                    </div>
-                ))}
-                {isUploading && (
-                    <div className="relative flex items-center justify-center w-full aspect-square bg-black/80 border border-white/20 rounded-2xl">
-                        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
-                    </div>
-                )}
-            </div>
-            {isLimitReached ? (
-                <div className="w-full p-4 border-2 border-dashed border-red-500/50 rounded-2xl text-center text-red-400">
-                    Limite de 2 imagens atingido. Exclua uma para adicionar outra.
-                </div>
-            ) : (
-                <Label
-                    htmlFor={`upload-${title.replace(/\s+/g, "")}`}
-                    className="w-full text-white font-semibold cursor-pointer"
-                >
-                    <div className="flex items-center justify-center w-full p-4 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors">
-                        <Upload className="h-5 w-5 mr-2" /> Adicionar Imagem
-                    </div>
-                    <Input
-                        id={`upload-${title.replace(/\s+/g, "")}`}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={onFileChange}
-                        disabled={isUploading || isLimitReached}
-                    />
-                </Label>
-            )}
-        </div>
-    );
-};
 
 const AdminAbout = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [editingSection, setEditingSection] = useState<'text' | 'images' | null>(null);
-    const [isUploading, setIsUploading] = useState<'column1' | 'column2' | null>(null);
-    const [editingImage, setEditingImage] = useState<{ column: 'imagesColumn1' | 'imagesColumn2', index: number } | null>(null);
+    const [editingSection, setEditingSection] = useState<'text' | 'image' | 'stats' | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [editingAlt, setEditingAlt] = useState(false);
     const [tempAlt, setTempAlt] = useState('');
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof aboutFormSchema>>({
         resolver: zodResolver(aboutFormSchema),
+        defaultValues: {
+            paragraph1: '',
+            paragraph2: '',
+            profileImage: {
+                src: '',
+                alt: ''
+            },
+            stats: {
+                sessions: 0,
+                weddings: 0,
+                families: 0
+            }
+        }
     });
 
-    const {
-        data: content,
-        isLoading,
-    } = useQuery<AboutContent, Error>({
+    const { data: content, isLoading } = useQuery<AboutContent, Error>({
         queryKey: ['about'],
         queryFn: async () => {
             const response = await fetch('/api/about');
@@ -165,7 +92,14 @@ const AdminAbout = () => {
 
     useEffect(() => {
         if (content) {
-            form.reset(content);
+            // Garante que todos os campos existem antes de fazer reset
+            const safeContent = {
+                paragraph1: content.paragraph1 || '',
+                paragraph2: content.paragraph2 || '',
+                profileImage: content.profileImage || { src: '', alt: '' },
+                stats: content.stats || { sessions: 0, weddings: 0, families: 0 }
+            };
+            form.reset(safeContent);
         }
     }, [content, form]);
 
@@ -185,17 +119,23 @@ const AdminAbout = () => {
             queryClient.invalidateQueries({ queryKey: ['about'] });
             setIsDialogOpen(false);
             setEditingSection(null);
-            form.reset(data);
+            form.reset(data.data);
         },
         onError: () => {
             toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar as alterações.' });
         },
     });
 
-    const handleOpenDialog = (section: 'text' | 'images') => {
+    const handleOpenDialog = (section: 'text' | 'image' | 'stats') => {
         setEditingSection(section);
         if (content) {
-            form.reset(content);
+            const safeContent = {
+                paragraph1: content.paragraph1 || '',
+                paragraph2: content.paragraph2 || '',
+                profileImage: content.profileImage || { src: '', alt: '' },
+                stats: content.stats || { sessions: 0, weddings: 0, families: 0 }
+            };
+            form.reset(safeContent);
         }
         setIsDialogOpen(true);
     };
@@ -212,48 +152,34 @@ const AdminAbout = () => {
         return uploadData.secure_url;
     };
 
-    const handleFileChange = async (
-        e: React.ChangeEvent<HTMLInputElement>,
-        column: 'imagesColumn1' | 'imagesColumn2'
-    ) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const uploadingColumn = column === 'imagesColumn1' ? 'column1' : 'column2';
-        setIsUploading(uploadingColumn);
+        setIsUploading(true);
         try {
             const uploadedUrl = await handleCloudinaryUpload(file);
-            const newImage: Image = { src: uploadedUrl, alt: 'Imagem da seção sobre mim' };
-            const currentImages = form.getValues(column);
-            form.setValue(column, [...currentImages, newImage]);
-            toast({ title: 'Upload concluído!', variant: "success", description: 'Imagem adicionada.' });
+            const currentAlt = form.getValues('profileImage.alt');
+            form.setValue('profileImage', {
+                src: uploadedUrl,
+                alt: currentAlt || 'Foto da fotógrafa'
+            });
+            toast({ title: 'Upload concluído!', variant: "success", description: 'Imagem atualizada.' });
         } catch (error) {
             toast({ variant: 'destructive', title: 'Erro de Upload', description: 'Não foi possível enviar a imagem.' });
         } finally {
-            setIsUploading(null);
+            setIsUploading(false);
             e.target.value = '';
         }
     };
 
-    const handleRemoveImage = (index: number, column: 'imagesColumn1' | 'imagesColumn2') => {
-        const currentImages = form.getValues(column);
-        const updatedImages = [...currentImages];
-        updatedImages.splice(index, 1);
-        form.setValue(column, updatedImages);
-        toast({ title: 'Imagem removida', description: 'A imagem foi removida da lista.' });
-    };
-
-    const handleOpenEditAlt = (index: number, column: 'imagesColumn1' | 'imagesColumn2') => {
-        setEditingImage({ column, index });
-        setTempAlt(form.getValues(column)[index].alt);
+    const handleOpenEditAlt = () => {
+        setEditingAlt(true);
+        setTempAlt(form.getValues('profileImage.alt'));
     };
 
     const handleSaveAlt = () => {
-        if (!editingImage) return;
-        const currentImages = form.getValues(editingImage.column);
-        const updatedImages = [...currentImages];
-        updatedImages[editingImage.index].alt = tempAlt || 'Imagem da seção sobre mim';
-        form.setValue(editingImage.column, updatedImages);
-        setEditingImage(null);
+        form.setValue('profileImage.alt', tempAlt || 'Foto da fotógrafa');
+        setEditingAlt(false);
         setTempAlt('');
         toast({ title: 'Texto alternativo atualizado', variant: "success" });
     };
@@ -272,70 +198,177 @@ const AdminAbout = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Gerir "Sobre Mim"</h1>
-                    <p className="text-white/80">Edite os textos e as imagens da sua página de apresentação.</p>
+                    <p className="text-white/80">Edite os textos, imagem e estatísticas da sua página.</p>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-8 pr-2 -mr-2">
-                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <h2 className="text-2xl font-semibold text-white">Textos</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('text')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Textos">
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div><Label className="font-semibold text-white/60">Primeiro Parágrafo</Label><p className="text-white/80 whitespace-pre-wrap">{content.paragraph1}</p></div>
-                        <div><Label className="font-semibold text-white/60">Segundo Parágrafo</Label><p className="text-white/80 whitespace-pre-wrap">{content.paragraph2}</p></div>
-                    </CardContent>
-                </Card>
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                {/* Grid Layout Responsivo */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {/* Card de Textos - Ocupa 2 colunas em telas grandes */}
+                    <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10 lg:col-span-2">
+                        <CardHeader className="flex flex-row items-center justify-between pb-3">
+                            <div>
+                                <h2 className="text-xl font-semibold text-white">Textos</h2>
+                                <p className="text-xs text-white/60 mt-1">Parágrafos da seção "Sobre Mim"</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('text')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Textos">
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div>
+                                <Label className="text-xs font-semibold text-white/60">Primeiro Parágrafo</Label>
+                                <p className="text-sm text-white/80 line-clamp-2">{content.paragraph1}</p>
+                            </div>
+                            <div>
+                                <Label className="text-xs font-semibold text-white/60">Segundo Parágrafo</Label>
+                                <p className="text-sm text-white/80 line-clamp-2">{content.paragraph2}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <h2 className="text-2xl font-semibold text-white">Imagens</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('images')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Imagens">
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {[...content.imagesColumn1, ...content.imagesColumn2].map((img, index) => (
-                            <img key={index} src={optimizeCloudinaryUrl(img.src, "f_auto,q_auto,w_200,h_200,c_fill,g_auto")} alt={img.alt} className="w-full h-auto object-cover rounded-2xl aspect-square" />
-                        ))}
-                    </CardContent>
-                </Card>
+                    {/* Card de Imagem */}
+                    <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
+                        <CardHeader className="flex flex-row items-center justify-between pb-3">
+                            <div>
+                                <h2 className="text-xl font-semibold text-white">Imagem de Perfil</h2>
+                                <p className="text-xs text-white/60 mt-1">Foto principal da seção</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('image')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Imagem">
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {content?.profileImage?.src ? (
+                                <img
+                                    src={optimizeCloudinaryUrl(content.profileImage.src, "f_auto,q_auto,w_300")}
+                                    alt={content.profileImage.alt}
+                                    className="w-full h-48 object-cover rounded-2xl"
+                                />
+                            ) : (
+                                <div className="w-full h-48 bg-black/40 rounded-2xl flex items-center justify-center text-white/60 text-sm">
+                                    Nenhuma imagem configurada
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Card de Estatísticas */}
+                    <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
+                        <CardHeader className="flex flex-row items-center justify-between pb-3">
+                            <div>
+                                <h2 className="text-xl font-semibold text-white">Estatísticas</h2>
+                                <p className="text-xs text-white/60 mt-1">Números de conquistas</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('stats')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Estatísticas">
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-3 gap-3">
+                            <div className="text-center p-3 bg-black/40 rounded-xl">
+                                <div className="text-xl font-bold text-white">{content?.stats?.sessions || 0}+</div>
+                                <div className="text-[10px] text-white/60 mt-1">Sessões</div>
+                            </div>
+                            <div className="text-center p-3 bg-black/40 rounded-xl">
+                                <div className="text-xl font-bold text-white">{content?.stats?.weddings || 0}+</div>
+                                <div className="text-[10px] text-white/60 mt-1">Casamentos</div>
+                            </div>
+                            <div className="text-center p-3 bg-black/40 rounded-xl">
+                                <div className="text-xl font-bold text-white">{content?.stats?.families || 0}+</div>
+                                <div className="text-[10px] text-white/60 mt-1">Famílias</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-4xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-2xl bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-semibold text-white">
                             {editingSection === 'text' && 'Editar Textos'}
-                            {editingSection === 'images' && 'Editar Imagens'}
+                            {editingSection === 'image' && 'Editar Imagem de Perfil'}
+                            {editingSection === 'stats' && 'Editar Estatísticas'}
                         </DialogTitle>
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
                             {editingSection === 'text' && (
                                 <div className="space-y-4 py-4">
-                                    <FormField control={form.control} name="paragraph1" render={({ field }) => (<FormItem><Label className="font-semibold">Primeiro Parágrafo</Label><FormControl><Textarea rows={8} className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                    <FormField control={form.control} name="paragraph2" render={({ field }) => (<FormItem><Label className="font-semibold">Segundo Parágrafo</Label><FormControl><Textarea rows={8} className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="paragraph1" render={({ field }) => (<FormItem><FormLabel className="font-semibold">Primeiro Parágrafo</FormLabel><FormControl><Textarea rows={8} className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="paragraph2" render={({ field }) => (<FormItem><FormLabel className="font-semibold">Segundo Parágrafo</FormLabel><FormControl><Textarea rows={8} className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 </div>
                             )}
-                            {editingSection === 'images' && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-                                    <ImageColumn title="Coluna 1" images={form.watch('imagesColumn1')} onFileChange={(e) => handleFileChange(e, 'imagesColumn1')} onRemove={(i) => handleRemoveImage(i, 'imagesColumn1')} onEditAlt={(i) => handleOpenEditAlt(i, 'imagesColumn1')} isUploading={isUploading === 'column1'} />
-                                    <ImageColumn title="Coluna 2" images={form.watch('imagesColumn2')} onFileChange={(e) => handleFileChange(e, 'imagesColumn2')} onRemove={(i) => handleRemoveImage(i, 'imagesColumn2')} onEditAlt={(i) => handleOpenEditAlt(i, 'imagesColumn2')} isUploading={isUploading === 'column2'} />
+                            {editingSection === 'image' && (
+                                <div className="space-y-4 py-4">
+                                    <div className="flex flex-col items-center gap-4">
+                                        <img
+                                            src={optimizeCloudinaryUrl(form.watch('profileImage.src'), "f_auto,q_auto,w_300")}
+                                            alt={form.watch('profileImage.alt')}
+                                            className="w-48 h-48 object-cover rounded-2xl"
+                                        />
+                                        <div className="flex gap-3">
+                                            <Button
+                                                type="button"
+                                                onClick={handleOpenEditAlt}
+                                                variant="secondary"
+                                                className="rounded-xl h-11 px-6"
+                                            >
+                                                Editar ALT
+                                            </Button>
+                                            <Label htmlFor="upload-profile" className="cursor-pointer">
+                                                <Button
+                                                    type="button"
+                                                    disabled={isUploading}
+                                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-11 px-6 min-w-[140px] pointer-events-none"
+                                                    asChild
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        {isUploading ? (
+                                                            <>
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Enviando...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Upload className="h-4 w-4" />
+                                                                Trocar Imagem
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </Button>
+                                                <Input
+                                                    id="upload-profile"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleFileChange}
+                                                    disabled={isUploading}
+                                                />
+                                            </Label>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {editingSection === 'stats' && (
+                                <div className="space-y-4 py-4">
+                                    <FormField control={form.control} name="stats.sessions" render={({ field }) => (
+                                        <FormItem><FormLabel>Sessões</FormLabel><FormControl><Input type="number" min="0" className="bg-black/70 border-white/20 rounded-xl" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="stats.weddings" render={({ field }) => (
+                                        <FormItem><FormLabel>Casamentos</FormLabel><FormControl><Input type="number" min="0" className="bg-black/70 border-white/20 rounded-xl" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="stats.families" render={({ field }) => (
+                                        <FormItem><FormLabel>Famílias</FormLabel><FormControl><Input type="number" min="0" className="bg-black/70 border-white/20 rounded-xl" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl><FormMessage /></FormItem>
+                                    )} />
                                 </div>
                             )}
                             <DialogFooter className="!mt-6">
                                 <DialogClose asChild>
                                     <Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button>
                                 </DialogClose>
-                                <Button
-                                    type="submit"
-                                    disabled={form.formState.isSubmitting || mutation.isPending}
-                                    className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12"
-                                >
+                                <Button type="submit" disabled={form.formState.isSubmitting || mutation.isPending} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">
                                     {(form.formState.isSubmitting || mutation.isPending) ? <Loader2 className="animate-spin" /> : 'Guardar'}
                                 </Button>
                             </DialogFooter>
@@ -344,25 +377,30 @@ const AdminAbout = () => {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={editingImage !== null} onOpenChange={(open) => !open && setEditingImage(null)}>
+            <Dialog open={editingAlt} onOpenChange={(open) => !open && setEditingAlt(false)}>
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
                     <DialogHeader>
                         <DialogTitle>Editar Texto Alternativo (ALT)</DialogTitle>
-                        <DialogDescription className="text-white/80">O texto alternativo é usado por leitores de tela e melhora o SEO da sua página.</DialogDescription>
+                        <DialogDescription className="text-white/80">O texto alternativo melhora a acessibilidade e SEO.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                        {editingImage && content && (<div className="flex gap-4">
-                            <img src={optimizeCloudinaryUrl(form.getValues(editingImage.column)[editingImage.index].src, "f_auto,q_auto,w_150,h_150,c_fill,g_auto")} alt="Preview" className="w-24 h-24 object-cover rounded-lg flex-shrink-0" />
-                            <div className="flex-1">
-                                <Label className="text-white mb-2 font-semibold">Descrição da Imagem</Label>
-                                <Textarea value={tempAlt} onChange={(e) => setTempAlt(e.target.value)} placeholder="Descreva o que está na imagem..." className="bg-black/70 border-white/20 rounded-xl" rows={3} />
-                                <p className="text-xs text-white/50 mt-1">Exemplo: "Fotógrafa sorrindo segurando uma câmera"</p>
-                            </div>
-                        </div>)}
+                        <div>
+                            <Label className="text-white mb-2 font-semibold">Descrição da Imagem</Label>
+                            <Textarea value={tempAlt} onChange={(e) => setTempAlt(e.target.value)} placeholder="Descreva o que está na imagem..." className="bg-black/70 border-white/20 rounded-xl" rows={3} />
+                        </div>
                     </div>
-                    <DialogFooter className="!mt-6">
-                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                        <Button onClick={handleSaveAlt} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">Salvar ALT</Button>
+                    <DialogFooter className="!mt-6 flex justify-end gap-3">
+                        <DialogClose asChild>
+                            <Button variant="secondary" className="rounded-xl h-11 px-6">
+                                Cancelar
+                            </Button>
+                        </DialogClose>
+                        <Button
+                            onClick={handleSaveAlt}
+                            className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-11 px-6 min-w-[120px]"
+                        >
+                            Salvar ALT
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

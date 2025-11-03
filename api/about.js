@@ -14,16 +14,22 @@ async function connectToDatabase(uri) {
 }
 
 const imageSchema = z.object({
-  src: z.string().url(),
-  alt: z.string().min(1)
+    src: z.string().url(),
+    alt: z.string().min(1)
+});
+
+const statsSchema = z.object({
+    sessions: z.number().min(0),
+    weddings: z.number().min(0),
+    families: z.number().min(0)
 });
 
 const updateAboutSchema = z.object({
-  _id: z.string().min(1),
-  paragraph1: z.string().min(1).optional(),
-  paragraph2: z.string().min(1).optional(),
-  imagesColumn1: z.array(imageSchema).optional(),
-  imagesColumn2: z.array(imageSchema).optional(),
+    _id: z.string().min(1),
+    paragraph1: z.string().min(1).optional(),
+    paragraph2: z.string().min(1).optional(),
+    profileImage: imageSchema.optional(),
+    stats: statsSchema.optional()
 });
 
 export default async function handler(req, res) {
@@ -58,7 +64,10 @@ export default async function handler(req, res) {
         if (req.method === 'PUT') {
             const parsed = updateAboutSchema.safeParse(req.body);
             if (!parsed.success) {
-                return res.status(400).json({ error: "Dados inválidos", details: parsed.error.format() });
+                return res.status(400).json({
+                    error: "Dados inválidos",
+                    details: parsed.error.format()
+                });
             }
             const { _id, ...updatedData } = parsed.data;
 

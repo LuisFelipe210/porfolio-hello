@@ -100,7 +100,7 @@ const TestimonialsSection = () => {
                                         className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6"
                                     >
                                         <div className="py-6">
-                                            <Skeleton className="h-[26rem] sm:h-[28rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" />
+                                            <Skeleton className="h-[18rem] sm:h-[20rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" />
                                         </div>
                                     </div>
                                 ))
