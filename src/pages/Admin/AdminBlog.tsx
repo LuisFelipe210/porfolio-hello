@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, Edit, Search, Plus, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,9 +20,18 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useDashboardData } from '@/hooks/useDashboardData';
 
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
 const blogPostSchema = z.object({
     title: z.string().min(3, { message: "O título é obrigatório." }),
-    content: z.string().min(10, { message: "O conteúdo deve ter pelo menos 10 caracteres." }),
+    content: z.string().refine((html) => {
+        if (typeof window === 'undefined') return true;
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const text = div.textContent || div.innerText || "";
+        return text.trim().length >= 10;
+    }, { message: "O conteúdo deve ter pelo menos 10 caracteres." }),
     alt: z.string().optional(),
 });
 
@@ -34,6 +42,7 @@ interface Post {
     coverImage: string;
     createdAt: string;
     alt?: string;
+    galleryImages?: string[];
 }
 
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
@@ -50,17 +59,22 @@ const AdminBlog = () => {
     const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useDashboardData();
 
     const [file, setFile] = useState<File | null>(null);
+    const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+    const [existingGallery, setExistingGallery] = useState<string[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
-
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
+
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const form = useForm<z.infer<typeof blogPostSchema>>({
         resolver: zodResolver(blogPostSchema),
         defaultValues: { title: "", content: "", alt: "" },
     });
 
-    // React Query integration
     const queryClient = useQueryClient();
     const { data: posts = [], isLoading } = useQuery<Post[], Error>({
         queryKey: ['blogPosts'],
@@ -78,8 +92,10 @@ const AdminBlog = () => {
             : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     const resetForm = () => {
-        form.reset();
+        form.reset({ title: "", content: "", alt: "" });
         setFile(null);
+        setGalleryFiles([]);
+        setExistingGallery([]);
         setEditingId(null);
     };
 
@@ -92,6 +108,7 @@ const AdminBlog = () => {
                 content: item.content,
                 alt: item.alt || item.title,
             });
+            setExistingGallery(item.galleryImages || []);
         }
         setIsDialogOpen(true);
     };
@@ -124,6 +141,25 @@ const AdminBlog = () => {
         setFile(selectedFile);
     };
 
+    const handleGalleryFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        const validFiles: File[] = [];
+        for (const file of files) {
+            if (!file.type.startsWith('image/')) {
+                toast({ variant: 'destructive', title: 'Arquivo inválido', description: `${file.name} não é uma imagem.` });
+                continue;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                toast({ variant: 'destructive', title: 'Arquivo muito grande', description: `${file.name} tem mais de 10MB.` });
+                continue;
+            }
+            validFiles.push(file);
+        }
+        setGalleryFiles(prev => [...prev, ...validFiles]);
+    };
+
     const onSubmit = async (data: z.infer<typeof blogPostSchema>) => {
         if (!editingId && !file) {
             toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem de capa.' });
@@ -136,13 +172,24 @@ const AdminBlog = () => {
                 coverImage = await handleCloudinaryUpload(file);
             }
 
+            let newGalleryImageUrls: string[] = [];
+            if (galleryFiles.length > 0) {
+                toast({ title: 'Aguarde', description: `A enviar ${galleryFiles.length} fotos da galeria...` });
+                const uploadPromises = galleryFiles.map(handleCloudinaryUpload);
+                newGalleryImageUrls = await Promise.all(uploadPromises);
+            }
+
             const token = localStorage.getItem('authToken');
             const method = editingId ? 'PUT' : 'POST';
             const url = editingId ? `/api/blog?id=${editingId}` : '/api/blog';
+
+            const finalGalleryImages = [...existingGallery, ...newGalleryImageUrls];
+
             const body = {
                 title: data.title,
                 content: data.content,
                 alt: data.alt || data.title,
+                galleryImages: finalGalleryImages,
                 ...(coverImage && { coverImage })
             };
 
@@ -158,7 +205,6 @@ const AdminBlog = () => {
 
             resetForm();
             setIsDialogOpen(false);
-            // Refetch posts using React Query
             queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
@@ -179,7 +225,6 @@ const AdminBlog = () => {
             });
             if (!response.ok) throw new Error('Falha ao excluir o(s) artigo(s).');
             toast({ title: 'Sucesso', variant: "success", description: `${ids.length} artigo(s) excluído(s) com sucesso.` });
-            // Refetch posts using React Query
             queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
@@ -196,6 +241,10 @@ const AdminBlog = () => {
         if (checked) newSet.add(id);
         else newSet.delete(id);
         setSelectedPosts(newSet);
+    };
+
+    const removeExistingGalleryImage = (urlToRemove: string) => {
+        setExistingGallery(prev => prev.filter(url => url !== urlToRemove));
     };
 
     const renderContent = () => {
@@ -235,7 +284,6 @@ const AdminBlog = () => {
                 <TableCell><img src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_200,c_fill,ar_16:9,g_auto")} alt={post.alt || post.title} className="h-16 w-28 object-cover rounded-xl" /></TableCell>
                 <TableCell className="font-medium text-white">{post.title}</TableCell>
                 <TableCell className="text-white/80">{format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</TableCell>
-                {/* RÓTULO DE BOTÃO CORRIGIDO */}
                 <TableCell className="text-right">
                     <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => handleOpenDialog(post)} aria-label={`Editar ${post.title}`}>
                         <Edit className="h-4 w-4" />
@@ -307,9 +355,62 @@ const AdminBlog = () => {
                                 <FormControl><Input placeholder={form.watch('title') || "Descreva a imagem de capa"} className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
                                 <p className="text-xs text-white/50 mt-1">Se deixado em branco, usaremos o título.</p><FormMessage />
                             </FormItem>)} />
+
+                            <div>
+                                <Label htmlFor="blog-gallery-upload" className="text-white font-bold">Fotos da Galeria (Opcional)</Label>
+                                <Input id="blog-gallery-upload" type="file" accept="image/*" multiple onChange={handleGalleryFilesChange} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
+                            </div>
+
+                            {(existingGallery.length > 0 || galleryFiles.length > 0) && (
+                                <div className="space-y-2">
+                                    <Label className="text-white/80 text-sm">Imagens para a galeria:</Label>
+                                    <div className="flex flex-wrap gap-2 p-2 bg-black/50 rounded-lg max-h-40 overflow-y-auto">
+                                        {existingGallery.map(url => (
+                                            <div key={url} className="relative w-20 h-20">
+                                                <img src={optimizeCloudinaryUrl(url, "f_auto,q_auto,w_100,h_100,c_fill,g_auto")} className="w-20 h-20 object-cover rounded-md" />
+                                                <Button type="button" size="icon" variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 rounded-full" onClick={() => removeExistingGalleryImage(url)}>
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        {galleryFiles.map((file, index) => (
+                                            <div key={index} className="relative w-20 h-20">
+                                                <img src={URL.createObjectURL(file)} className="w-20 h-20 object-cover rounded-md" />
+                                                <Button type="button" size="icon" variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 rounded-full" onClick={() => setGalleryFiles(prev => prev.filter((_, i) => i !== index))}>
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <FormField control={form.control} name="content" render={({ field }) => (<FormItem>
-                                <Label className="text-white font-bold">Conteúdo</Label><FormControl><Textarea rows={10} required className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage />
+                                <Label className="text-white font-bold">Conteúdo</Label>
+                                <FormControl>
+                                    {isClient ? (
+                                        <ReactQuill
+                                            theme="snow"
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            onBlur={field.onBlur}
+                                            modules={{
+                                                toolbar: [
+                                                    [{ 'header': [1, 2, 3, false] }],
+                                                    ['bold', 'italic', 'underline', 'strike'],
+                                                    [{'list': 'ordered'}, {'list': 'bullet'}],
+                                                    ['link'],
+                                                    ['clean']
+                                                ]
+                                            }}
+                                        />
+                                    ) : (
+                                        <Skeleton className="h-[250px] w-full bg-black/70 border-white/20 rounded-xl" />
+                                    )}
+                                </FormControl>
+                                <FormMessage />
                             </FormItem>)} />
+
                             <DialogFooter className="!mt-6">
                                 <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
                                 <Button type="submit" disabled={form.formState.isSubmitting} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">

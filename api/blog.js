@@ -6,14 +6,16 @@ const createPostSchema = z.object({
     title: z.string().min(1, "Título é obrigatório"),
     content: z.string().min(1, "Conteúdo é obrigatório"),
     coverImage: z.string().min(1, "Imagem de capa é obrigatória"),
-    alt: z.string().optional()
+    alt: z.string().optional(),
+    galleryImages: z.array(z.string()).optional()
 });
 
 const updatePostSchema = z.object({
     title: z.string().min(1).optional(),
     content: z.string().min(1).optional(),
     coverImage: z.string().min(1).optional(),
-    alt: z.string().optional()
+    alt: z.string().optional(),
+    galleryImages: z.array(z.string()).optional()
 });
 
 const deletePostSchema = z.object({
@@ -34,10 +36,10 @@ const createSlug = (title) => {
     return title
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-        .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
-        .replace(/\s+/g, '-') // Substitui espaços por hífens
-        .replace(/-+/g, '-') // Remove hífens duplicados
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
         .trim();
 };
 
@@ -49,7 +51,7 @@ export default async function handler(req, res) {
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const feature = req.query.api || 'blog';
 
-        // ROTA DE DISPONIBILIDADE\
+
         if (feature === 'availability') {
             const collection = db.collection('availability');
 
@@ -88,7 +90,7 @@ export default async function handler(req, res) {
             return res.status(405).json({ error: `Método ${req.method} não permitido para Disponibilidade.` });
         }
 
-        // ROTA DE NOTAS
+
         if (feature === 'notes') {
             const collection = db.collection('notes');
 
@@ -126,18 +128,18 @@ export default async function handler(req, res) {
             return res.status(405).json({ error: `Método ${req.method} não permitido para Notas.` });
         }
 
-        // ROTA DE BLOG
+
         if (feature === 'blog') {
             const collection = db.collection('posts');
 
             if (req.method === 'GET') {
-                // Buscar por slug
+
                 if (req.query.slug) {
                     const post = await collection.findOne({ slug: req.query.slug });
                     if (!post) {
                         return res.status(404).json({ error: 'Artigo não encontrado.' });
                     }
-                    // Adiciona campo alt se não existir
+
                     if (!post.alt) {
                         post.alt = post.title || 'Imagem do artigo';
                     }
@@ -170,7 +172,7 @@ export default async function handler(req, res) {
                 if (!parsed.success) {
                     return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.format() });
                 }
-                const { title, content, coverImage, alt } = parsed.data;
+                const { title, content, coverImage, alt, galleryImages } = parsed.data;
 
                 const slug = createSlug(title);
 
@@ -185,7 +187,8 @@ export default async function handler(req, res) {
                     title: title.trim(),
                     content: content.trim(),
                     coverImage,
-                    alt: alt || title.trim(), // Usa o título como alt por padrão se alt não fornecido
+                    alt: alt || title.trim(),
+                    galleryImages: galleryImages || [],
                     slug,
                     createdAt: new Date(),
                     updatedAt: new Date(),
@@ -208,7 +211,7 @@ export default async function handler(req, res) {
                 }
                 const updatedData = parsed.data;
 
-                // Validação de campos obrigatórios (se fornecidos)
+
                 if (updatedData.title !== undefined && !updatedData.title.trim()) {
                     return res.status(400).json({ error: 'O título não pode estar vazio.' });
                 }
@@ -220,7 +223,7 @@ export default async function handler(req, res) {
                 if (updatedData.title) {
                     const newSlug = createSlug(updatedData.title);
 
-                    // Verifica se o novo slug já existe em outro post
+
                     const existingPost = await collection.findOne({
                         slug: newSlug,
                         _id: { $ne: new ObjectId(id) }
@@ -240,9 +243,13 @@ export default async function handler(req, res) {
                     updatedData.content = updatedData.content.trim();
                 }
 
-                // Se alt não foi fornecido mas título foi atualizado, usar o novo título
+
                 if (updatedData.title && !updatedData.alt) {
                     updatedData.alt = updatedData.title;
+                }
+
+                if (updatedData.galleryImages) {
+                    updatedData.galleryImages = updatedData.galleryImages;
                 }
 
                 updatedData.updatedAt = new Date();
