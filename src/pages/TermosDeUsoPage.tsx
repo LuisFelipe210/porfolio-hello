@@ -58,7 +58,7 @@ const TermosDeUsoPage: React.FC = () => {
                 <li>O Cliente concorda em notificar imediatamente o Proprietário sobre qualquer uso não autorizado da sua conta.</li>
             </UL>
 
-            <H3>9. Contacto</H3>
+            <H3>5. Contato</H3>
             <P>Em caso de dúvidas sobre estes termos, entre em contato através do hello@contato.com.</P>
 
         </PageContainer>
