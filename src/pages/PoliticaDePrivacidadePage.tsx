@@ -46,6 +46,35 @@ const PoliticaDePrivacidadePage: React.FC = () => {
                 </li>
             </UL>
 
+            <H3>2. Como Usamos os Seus Dados?</H3>
+            <P>Utilizamos os seus dados pessoais para as seguintes finalidades:</P>
+            <UL>
+                <li><strong>Para Responder a Si:</strong> Usamos os dados do formulário de contacto para responder às suas questões e pedidos de orçamento (como gerido por `api/send-email.js` e `api/messages.js`).</li>
+                <li><strong>Para Prestar Serviços:</strong> Usamos os dados da conta do Cliente para autenticar o seu acesso ao Portal do Cliente e permitir que veja e selecione as suas galerias de fotos (como gerido por `api/auth.js` e `api/portal/index.js`).</li>
+                <li><strong>Para Melhorar o Site:</strong> Dados de navegação ajudam-nos a entender como os utilizadores interagem com o nosso portfólio e blog.</li>
+            </UL>
+
+            <H3>3. Partilha de Dados</H3>
+            <P>Nós não vendemos nem alugamos os seus dados pessoais a terceiros.</P>
+            <P>Podemos partilhar os seus dados com fornecedores de serviços essenciais que nos ajudam a operar o site, tais como:</P>
+            <UL>
+                <li><strong>Serviços de Email:</strong> Para o envio de emails de resposta ou recuperação de senha (Ex: O serviço usado em `api/send-email.js`).</li>
+                <li><strong>Serviços de Hospedagem:</strong> Onde os dados do site e das galerias são armazenados.</li>
+            </UL>
+            <P>Exigimos que estes fornecedores protejam os seus dados e os utilizem apenas para os fins contratados.</P>
+
+            <H3>4. Segurança dos Dados</H3>
+            <P>Implementamos medidas de segurança técnicas e administrativas para proteger os seus dados pessoais, incluindo o uso de senhas (hash) para contas de clientes.</P>
+
+            <H3>5. Os Seus Direitos (LGPD/GDPR)</H3>
+            <P>Dependendo da sua localização, você tem o direito de:</P>
+            <UL>
+                <li><strong>Aceder:</strong> Solicitar uma cópia dos dados pessoais que temos sobre si.</li>
+                <li><strong>Corrigir:</strong> Pedir a correção de dados incompletos ou incorretos.</li>
+                <li><strong>Excluir:</strong> Solicitar a remoção dos seus dados pessoais dos nossos sistemas.</li>
+            </UL>
+            <P>Para exercer estes direitos, por favor, entre em contacto connosco.</P>
+
             <H3>2. Contato</H3>
             <P>Se tiver dúvidas sobre esta Política de Privacidade, entre em contacto através do hello@contato.com.</P>
 
