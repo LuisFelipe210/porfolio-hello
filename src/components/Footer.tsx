@@ -151,6 +151,15 @@ const Footer = () => {
                     <p className="text-sm text-primary-foreground/60">
                         © {new Date().getFullYear()} Hellô Borges Fotografia. Todos os direitos reservados.
                     </p>
+
+                    <div className="flex justify-center gap-4 mt-2">
+                        <Link to="/termos-de-uso" className="text-sm text-primary-foreground/60 hover:text-accent transition-colors">
+                            Termos de Uso
+                        </Link>
+                        <Link to="/politica-de-privacidade" className="text-sm text-primary-foreground/60 hover:text-accent transition-colors">
+                            Política de Privacidade
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>

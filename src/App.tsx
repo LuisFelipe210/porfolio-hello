@@ -9,11 +9,8 @@ import { HelmetProvider } from 'react-helmet-async';
 
 // Componentes Globais e Utilitários
 import ShutterPreloader from "./components/ShutterPreloader.tsx";
-import FloatingContact from "./components/FloatingContact.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
-
-// ***** NOVO IMPORT *****
 import PublicLayout from "./pages/PublicLayout.tsx";
 
 // --- Páginas com Lazy Loading ---
@@ -45,6 +42,8 @@ const ClientGalleryPage = lazy(() => import("./pages/Portal/ClientGalleryPage.ts
 const ClientResetPasswordPage = lazy(() => import("./pages/Portal/ClientResetPasswordPage.tsx"));
 const ForgotPasswordPage = lazy(() => import("./pages/Portal/ForgotPasswordPage.tsx"));
 const ResetPasswordWithTokenPage = lazy(() => import("./pages/Portal/ResetPasswordWithTokenPage.tsx"));
+const TermosDeUsoPage = lazy(() => import("./pages/TermosDeUsoPage.tsx"));
+const PoliticaDePrivacidadePage = lazy(() => import("./pages/PoliticaDePrivacidadePage.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -83,10 +82,12 @@ const AppContent = () => {
                                 <Route path="/blog" element={<BlogPage />} />
                                 <Route path="/blog/:slug" element={<BlogPostPage />} />
                                 <Route path="/portfolio" element={<PortfolioPage />} />
+                                <Route path="/termos-de-uso" element={<TermosDeUsoPage />} />
+                                <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidadePage />} />
                             </Route>
 
 
-                            {/* --- Rotas Clientes (Estrutura original mantida) --- */}
+                            {/* --- Rotas Clientes --- */}
                             <Route path="/portal/login" element={<ClientLoginPage />} />
                             <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
                             <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
@@ -95,7 +96,7 @@ const AppContent = () => {
                                 <Route path="reset-password" element={<ClientResetPasswordPage />} />
                             </Route>
 
-                            {/* --- Rotas Admin (Estrutura original mantida) --- */}
+                            {/* --- Rotas Admin --- */}
                             <Route path="/admin/login" element={<AdminLogin />} />
                             <Route path="/admin" element={<AdminLayout />}>
                                 <Route index element={<AdminDashboard />} />
@@ -111,12 +112,10 @@ const AppContent = () => {
                                 <Route path="availability" element={<AdminAvailability />} />
                             </Route>
 
-                            {/* --- Rota Not Found (Estrutura original mantida) --- */}
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                     </MessagesProvider>
                 </Suspense>
-                {/* O FloatingContact foi movido para o PublicLayout e removido daqui */}
             </div>
         </>
     );

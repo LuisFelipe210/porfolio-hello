@@ -1,19 +1,19 @@
 import { Outlet } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-import FloatingContact from '@/components/FloatingContact';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import FloatingContact from '../components/FloatingContact';
+import { Toaster as SonnerToaster } from "../components/ui/sonner";
+import CookieConsentBanner from '../components/CookieConsentBanner';
 
 const PublicLayout = () => {
     return (
         <>
-            <Helmet>
-                <title>Hellô Borges Fotografia | Página Inicial</title>
-                <meta
-                    name="description"
-                    content="Site oficial da Hellô Borges Fotografia: portfólio, blog e serviços de fotografia profissional."
-                />
-            </Helmet>
-            <Outlet />
+            <main className="flex-grow">
+                <Outlet />
+            </main>
             <FloatingContact />
+            <CookieConsentBanner />
+            <SonnerToaster position="bottom-right" richColors />
         </>
     );
 };
