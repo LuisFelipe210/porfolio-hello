@@ -59,7 +59,7 @@ const TermosDeUsoPage: React.FC = () => {
             </UL>
 
             <H3>9. Contacto</H3>
-            <P>Em caso de dúvidas sobre estes termos, entre em contacto através do hello@contato.com.</P>
+            <P>Em caso de dúvidas sobre estes termos, entre em contato através do hello@contato.com.</P>
 
         </PageContainer>
     );
