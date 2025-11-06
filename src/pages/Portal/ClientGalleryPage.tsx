@@ -278,7 +278,7 @@ const GallerySelectionView = ({ gallery, onSelectionSubmit, onSelectionChange }:
                             <AlertDialogContent className="bg-black/80 border-white/10 text-white backdrop-blur-lg rounded-3xl">
                                 <AlertDialogHeader><AlertDialogTitle>Confirmar Envio</AlertDialogTitle><AlertDialogDescription className="text-white/80">Tem a certeza que deseja finalizar a sua seleção de {selectedImages.size} fotos? Não poderá fazer alterações após o envio.</AlertDialogDescription></AlertDialogHeader>
                                 <AlertDialogFooter>
-                                    <AlertDialogCancel className="rounded-xl h-12">Cancelar</AlertDialogCancel>
+                                    <AlertDialogCancel className="rounded-xl h-12 text-black">Cancelar</AlertDialogCancel>
                                     <AlertDialogAction onClick={handleSubmitSelection} disabled={submitMutation.isPending} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12">
                                         {submitMutation.isPending ? 'A enviar...' : 'Sim, enviar'}
                                     </AlertDialogAction>

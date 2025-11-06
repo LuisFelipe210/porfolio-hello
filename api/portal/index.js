@@ -4,29 +4,26 @@ import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
 
-// --- Variável para Cache da Conexão com o Banco de Dados ---
 let cachedDb = null;
 
-// --- Função para Conectar ao Banco de Dados (com cache) ---
 async function connectToDatabase(uri) {
     if (cachedDb) {
         return cachedDb;
     }
     const client = await MongoClient.connect(uri);
-    const db = client.db('helloborges_portfolio'); // O nome do seu banco de dados
+    const db = client.db('helloborges_portfolio');
     cachedDb = db;
     return db;
 }
 
-// --- Função para Enviar E-mail de Redefinição de Senha ---
 async function sendPasswordResetEmail(email, token) {
     const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: Number(process.env.EMAIL_PORT) || 587,
-        secure: false, // false para a porta 587 (TLS)
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
+        secure: false,
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS, // Garanta que esta é uma "Senha de App" se usar o Gmail
+            pass: process.env.EMAIL_PASS,
         },
     });
 
@@ -62,11 +59,9 @@ async function sendPasswordResetEmail(email, token) {
         return info;
     } catch (error) {
         console.error('[EMAIL_ERROR] Falha ao enviar e-mail:', error);
-        // Não lançamos o erro para a frente para não expor detalhes ao cliente
     }
 }
 
-// --- Schemas Zod para validação ---
 const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(1),
@@ -94,7 +89,6 @@ const submitSelectionSchema = z.object({
     selectedImages: z.array(z.string()),
 });
 
-// --- Handler Principal da API (Função Serverless) ---
 export default async function handler(req, res) {
     try {
         const db = await connectToDatabase(process.env.MONGODB_URI);
@@ -102,11 +96,6 @@ export default async function handler(req, res) {
         const clientsCollection = db.collection('clients');
         const galleriesCollection = db.collection('galleries');
 
-        // =================================================================
-        // AÇÕES PÚBLICAS (NÃO PRECISAM DE TOKEN)
-        // =================================================================
-
-        // --- AÇÃO: LOGIN DO CLIENTE ---
         if (action === 'login' && req.method === 'POST') {
             const parseResult = loginSchema.safeParse(req.body);
             if (!parseResult.success) {
@@ -128,7 +117,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ token, mustResetPassword: !!client.mustResetPassword });
         }
 
-        // --- AÇÃO: SOLICITAR REDEFINIÇÃO DE SENHA ---
         if (action === 'requestPasswordReset' && req.method === 'POST') {
             const parseResult = requestPasswordResetSchema.safeParse(req.body);
             if (!parseResult.success) {
@@ -139,15 +127,16 @@ export default async function handler(req, res) {
             const client = await clientsCollection.findOne({ email });
 
             if (client) {
-                // Lógica principal: usa o e-mail de recuperação se existir, senão, o e-mail de login.
                 const targetEmail = client.recoveryEmail || client.email;
                 if (targetEmail) {
                     console.log(`[DEBUG] Cliente ${client.name} encontrado. E-mail de destino para redefinição: ${targetEmail}`);
+
                     const resetToken = jwt.sign(
                         { clientId: client._id, purpose: 'password-reset' },
                         process.env.CLIENT_JWT_SECRET,
                         { expiresIn: '1h' }
                     );
+
                     sendPasswordResetEmail(targetEmail, resetToken).catch(err => {
                         console.error("Erro assíncrono no envio de e-mail:", err);
                     });
@@ -159,9 +148,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Se o e-mail estiver registado, um link de redefinição foi enviado.' });
         }
 
-        // =================================================================
-        // VERIFICAÇÃO DE TOKEN PARA AÇÕES PRIVADAS
-        // =================================================================
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({ error: 'Acesso não autorizado.' });
@@ -175,11 +161,6 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: 'Token inválido ou expirado.' });
         }
 
-        // =================================================================
-        // AÇÕES PRIVADAS (PRECISAM DE TOKEN)
-        // =================================================================
-
-        // --- AÇÃO: VERIFICAR TOKEN DE REDEFINIÇÃO (GET) ---
         if (action === 'verifyResetToken' && req.method === 'GET') {
             if (decoded.purpose === 'password-reset') {
                 return res.status(200).json({ message: 'Token válido.' });
@@ -187,7 +168,6 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: 'Token inválido para esta ação.' });
         }
 
-        // --- AÇÃO: ATUALIZAR SENHA COM TOKEN (POST) ---
         if (action === 'updatePasswordWithToken' && req.method === 'POST') {
             if (decoded.purpose !== 'password-reset') {
                 return res.status(401).json({ error: 'Token inválido para esta ação.' });
@@ -201,7 +181,7 @@ export default async function handler(req, res) {
             const hashedPassword = await bcrypt.hash(newPassword, 10);
             const result = await clientsCollection.updateOne(
                 { _id: new ObjectId(decoded.clientId) },
-                { $set: { password: hashedPassword, mustResetPassword: false } }
+                { $set: { password: hashedPassword, mustResetPassword: false } } // Limpa a flag
             );
 
             if (result.matchedCount === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
@@ -211,7 +191,6 @@ export default async function handler(req, res) {
         const { clientId } = decoded;
         if (!clientId) return res.status(401).json({ error: 'Token de login inválido.' });
 
-        // --- AÇÃO: REDEFINIR SENHA (PRIMEIRO LOGIN) ---
         if (action === 'resetPassword' && req.method === 'POST') {
             const parseResult = resetPasswordSchema.safeParse(req.body);
             if (!parseResult.success) {
@@ -225,6 +204,7 @@ export default async function handler(req, res) {
                 { $set: { password: hashedPassword, mustResetPassword: false } }
             );
             const client = await clientsCollection.findOne({ _id: new ObjectId(clientId) });
+
             const newToken = jwt.sign(
                 { clientId: client._id, name: client.name, mustResetPassword: false },
                 process.env.CLIENT_JWT_SECRET,
@@ -233,7 +213,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Senha atualizada com sucesso!', token: newToken });
         }
 
-        // --- AÇÃO: BUSCAR INFORMAÇÕES DO CLIENTE (NOME) ---
         if (action === 'getClientInfo' && req.method === 'GET') {
             const client = await clientsCollection.findOne(
                 { _id: new ObjectId(clientId) },
@@ -243,13 +222,11 @@ export default async function handler(req, res) {
             return res.status(200).json({ name: client.name });
         }
 
-        // --- AÇÃO: BUSCAR GALERIAS DO CLIENTE ---
         if (action === 'getGalleries' && req.method === 'GET') {
             const galleries = await galleriesCollection.find({ clientId: new ObjectId(clientId) }).toArray();
             return res.status(200).json(galleries);
         }
 
-        // --- AÇÃO: ATUALIZAR SELEÇÃO (AUTOSAVE) ---
         if (action === 'updateSelection' && req.method === 'POST') {
             const parseResult = updateSelectionSchema.safeParse(req.body);
             if (!parseResult.success) {
@@ -265,7 +242,6 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: 'Seleção salva!' });
         }
 
-        // --- AÇÃO: SUBMETER SELEÇÃO DE FOTOS (FINALIZAR) ---
         if (action === 'submitSelection' && req.method === 'POST') {
             const parseResult = submitSelectionSchema.safeParse(req.body);
             if (!parseResult.success) {
@@ -283,6 +259,7 @@ export default async function handler(req, res) {
             const client = await clientsCollection.findOne({ _id: new ObjectId(clientId) });
             const gallery = await galleriesCollection.findOne({ _id: new ObjectId(galleryId) });
 
+            // (Esta parte também depende das variáveis de email, mas para o admin)
             const adminTransporter = nodemailer.createTransport({
                 host: process.env.EMAIL_HOST,
                 port: Number(process.env.EMAIL_PORT) || 465,
@@ -291,7 +268,7 @@ export default async function handler(req, res) {
             });
             adminTransporter.sendMail({
                 from: `"${process.env.EMAIL_FROM_NAME || 'Sistema'}" <${process.env.EMAIL_USER}>`,
-                to: process.env.EMAIL_TO,
+                to: process.env.EMAIL_TO, // Email do admin
                 subject: `Seleção de Fotos Recebida: ${client.name}`,
                 html: `<h2>O cliente ${client.name} finalizou a seleção de fotos!</h2><p><strong>Galeria:</strong> ${gallery.name}</p><p><strong>Total de fotos selecionadas:</strong> ${selectedImages.length}</p><p>Aceda ao seu painel de administração para ver as escolhas.</p>`,
             }).then(info => {

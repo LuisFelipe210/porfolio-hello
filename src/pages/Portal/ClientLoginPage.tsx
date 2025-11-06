@@ -152,6 +152,16 @@ const ClientLoginPage = () => {
                                     </FormItem>
                                 )}
                             />
+
+                            <div className="flex justify-end text-sm -mt-2">
+                                <Link
+                                    to="/portal/forgot-password"
+                                    className="font-medium text-gray-700 dark:text-gray-300 hover:underline"
+                                >
+                                    Esqueceu a senha?
+                                </Link>
+                            </div>
+
                         </CardContent>
                         <CardFooter>
                             <Button className="w-full bg-orange-500 text-black hover:bg-orange-600 rounded-xl h-12 text-base font-bold transition-all" type="submit" disabled={loginMutation.isPending}>
