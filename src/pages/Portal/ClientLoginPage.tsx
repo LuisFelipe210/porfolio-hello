@@ -153,14 +153,14 @@ const ClientLoginPage = () => {
                                 )}
                             />
 
-                            <div className="flex justify-end text-sm -mt-2">
-                                <Link
-                                    to="/portal/forgot-password"
-                                    className="font-medium text-gray-700 dark:text-gray-300 hover:underline"
-                                >
-                                    Esqueceu a senha?
-                                </Link>
-                            </div>
+                            {/*<div className="flex justify-end text-sm -mt-2">*/}
+                            {/*    <Link*/}
+                            {/*        to="/portal/forgot-password"*/}
+                            {/*        className="font-medium text-gray-700 dark:text-gray-300 hover:underline"*/}
+                            {/*    >*/}
+                            {/*        Esqueceu a senha?*/}
+                            {/*    </Link>*/}
+                            {/*</div>*/}
 
                         </CardContent>
                         <CardFooter>
