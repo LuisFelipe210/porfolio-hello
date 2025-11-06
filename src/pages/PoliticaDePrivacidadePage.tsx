@@ -75,7 +75,7 @@ const PoliticaDePrivacidadePage: React.FC = () => {
             </UL>
             <P>Para exercer estes direitos, por favor, entre em contacto connosco.</P>
 
-            <H3>2. Contato</H3>
+            <H3>6. Contato</H3>
             <P>Se tiver dúvidas sobre esta Política de Privacidade, entre em contacto através do hello@contato.com.</P>
 
         </PageContainer>
