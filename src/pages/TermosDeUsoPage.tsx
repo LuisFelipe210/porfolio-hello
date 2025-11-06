@@ -67,7 +67,7 @@ const TermosDeUsoPage: React.FC = () => {
             <H3>8. Lei Aplicável</H3>
             <p>Estes termos serão regidos e interpretados de acordo com as leis do Brasil.</p>
 
-            <H3>5. Contato</H3>
+            <H3>9. Contato</H3>
             <P>Em caso de dúvidas sobre estes termos, entre em contato através do hello@contato.com.</P>
 
         </PageContainer>
