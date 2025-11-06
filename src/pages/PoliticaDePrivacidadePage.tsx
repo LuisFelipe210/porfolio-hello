@@ -35,7 +35,7 @@ const PoliticaDePrivacidadePage: React.FC = () => {
             <UL>
                 <li><strong>Informações que Você Fornece:</strong>
                     <ul className="list-['-_'] list-inside ml-4">
-                        <li><strong>Formulário de Contacto:</strong> Nome, endereço de email e a mensagem que nos envia.</li>
+                        <li><strong>Formulário de Contato:</strong> Nome, endereço de email e a mensagem que nos envia.</li>
                         <li><strong>Portal do Cliente:</strong> Endereço de email e senha para criação e acesso à sua conta de cliente.</li>
                     </ul>
                 </li>
@@ -49,7 +49,7 @@ const PoliticaDePrivacidadePage: React.FC = () => {
             <H3>2. Como Usamos os Seus Dados?</H3>
             <P>Utilizamos os seus dados pessoais para as seguintes finalidades:</P>
             <UL>
-                <li><strong>Para Responder a Si:</strong> Usamos os dados do formulário de contacto para responder às suas questões e pedidos de orçamento (como gerido por `api/send-email.js` e `api/messages.js`).</li>
+                <li><strong>Para Responder a Si:</strong> Usamos os dados do formulário de contato para responder às suas questões e pedidos de orçamento (como gerido por `api/send-email.js` e `api/messages.js`).</li>
                 <li><strong>Para Prestar Serviços:</strong> Usamos os dados da conta do Cliente para autenticar o seu acesso ao Portal do Cliente e permitir que veja e selecione as suas galerias de fotos (como gerido por `api/auth.js` e `api/portal/index.js`).</li>
                 <li><strong>Para Melhorar o Site:</strong> Dados de navegação ajudam-nos a entender como os utilizadores interagem com o nosso portfólio e blog.</li>
             </UL>
@@ -73,10 +73,10 @@ const PoliticaDePrivacidadePage: React.FC = () => {
                 <li><strong>Corrigir:</strong> Pedir a correção de dados incompletos ou incorretos.</li>
                 <li><strong>Excluir:</strong> Solicitar a remoção dos seus dados pessoais dos nossos sistemas.</li>
             </UL>
-            <P>Para exercer estes direitos, por favor, entre em contacto connosco.</P>
+            <P>Para exercer estes direitos, por favor, entre em contato connosco.</P>
 
             <H3>6. Contato</H3>
-            <P>Se tiver dúvidas sobre esta Política de Privacidade, entre em contacto através do hello@contato.com.</P>
+            <P>Se tiver dúvidas sobre esta Política de Privacidade, entre em contato através do hello@contato.com.</P>
 
         </PageContainer>
     );
