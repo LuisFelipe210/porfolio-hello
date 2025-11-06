@@ -1,66 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Cookie } from 'lucide-react';
+import React from 'react';
 
-// Chave que usaremos para guardar a decisão no localStorage
-const COOKIE_CONSENT_KEY = "helloBorgesCookieConsent";
+// Reutilize os componentes de estilo do outro ficheiro
+const PageContainer = ({ children }: { children: React.ReactNode }) => (
+    <div className="container mx-auto max-w-4xl px-4 py-16 pt-24 md:pt-32">
+        {children}
+    </div>
+);
+const H1 = ({ children }: { children: React.ReactNode }) => (
+    <h1 className="text-3xl font-bold mb-6 mt-8 first:mt-0">{children}</h1>
+);
+const H3 = ({ children }: { children: React.ReactNode }) => (
+    <h3 className="text-xl font-semibold mb-3 mt-6">{children}</h3>
+);
+const P = ({ children }: { children: React.ReactNode }) => (
+    <p className="mb-4 leading-relaxed">{children}</p>
+);
+const UL = ({ children }: { children: React.ReactNode }) => (
+    <ul className="list-disc list-inside mb-4 pl-4">{children}</ul>
+);
 
-const CookieConsentBanner: React.FC = () => {
-    // Estado para controlar se o banner deve ser visível
-    const [isVisible, setIsVisible] = useState(false);
 
-    // No momento em que o componente é carregado, verificamos o localStorage
-    useEffect(() => {
-        const consentGiven = localStorage.getItem(COOKIE_CONSENT_KEY);
-        // Se o consentimento ainda NÃO foi dado ("true"), mostramos o banner
-        if (consentGiven !== "true") {
-            setIsVisible(true);
-        }
-    }, []);
-
-    // Função para aceitar e esconder o banner
-    const handleAccept = () => {
-        // Guarda a decisão no localStorage para não perguntar de novo
-        localStorage.setItem(COOKIE_CONSENT_KEY, "true");
-        setIsVisible(false);
-    };
-
-    // Se não for para ser visível (já aceitou), não renderiza nada
-    if (!isVisible) {
-        return null;
-    }
-
-    // Renderiza o banner usando os componentes Alert e Button do seu site
+const PoliticaDePrivacidadePage: React.FC = () => {
     return (
-        <Alert className="fixed bottom-4 left-4 md:bottom-8 md:left-8 w-[calc(100%-2rem)] max-w-md z-50 shadow-lg border-primary/20 bg-background/90 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-4">
+        <PageContainer>
+            {/* Cole o seu HTML da Política de Privacidade aqui dentro */}
+            {/* Lembre-se de substituir o conteúdo de exemplo pelo seu texto final */}
 
-            {/* Ícone a condizer */}
-            <Cookie className="h-5 w-5 text-primary" />
+            <H1>Política de Privacidade – Hellô Borges Fotografia</H1>
+            <P>Última atualização: 06/11/2025</P>
+            <P>A sua privacidade é importante para nós. Esta Política de Privacidade explica como Hellô Borges Fotografia ("nós", "nosso") recolhe, utiliza, armazena e protege os seus dados pessoais quando você utiliza o nosso site www.hellofotografia.com.br.</P>
 
-            <AlertTitle className="font-bold text-lg text-foreground">
-                Usamos cookies
-            </AlertTitle>
+            <H3>1. Que Dados Recolhemos?</H3>
+            <P>Recolhemos informações pessoais de duas formas principais:</P>
+            <UL>
+                <li><strong>Informações que Você Fornece:</strong>
+                    <ul className="list-['-_'] list-inside ml-4">
+                        <li><strong>Formulário de Contacto:</strong> Nome, endereço de email e a mensagem que nos envia.</li>
+                        <li><strong>Portal do Cliente:</strong> Endereço de email e senha para criação e acesso à sua conta de cliente.</li>
+                    </ul>
+                </li>
+                <li><strong>Informações Automáticas:</strong>
+                    <ul className="list-['-_'] list-inside ml-4">
+                        <li>Podemos recolher dados básicos de navegação (como tipo de navegador, páginas visitadas) através de cookies ou ferramentas de análise para melhorar a experiência no site.</li>
+                    </ul>
+                </li>
+            </UL>
 
-            <AlertDescription className="text-sm text-muted-foreground pr-4">
-                Nós usamos cookies essenciais e de preferência (como o seu tema escuro) para melhorar sua experiência.
-                Ao continuar, você concorda com nossa{" "}
-                <Link
-                    to="/politica-de-privacidade"
-                    className="font-semibold text-primary underline hover:text-primary/80"
-                >
-                    Política de Privacidade
-                </Link>.
-            </AlertDescription>
+            <H3>6. Contacto</H3>
+            <P>Se tiver dúvidas sobre esta Política de Privacidade, entre em contacto através do hello@contato.com.</P>
 
-            <div className="mt-4 flex justify-end">
-                <Button onClick={handleAccept} size="sm">
-                    Entendi
-                </Button>
-            </div>
-        </Alert>
+        </PageContainer>
     );
 };
 
-export default CookieConsentBanner;
+export default PoliticaDePrivacidadePage;
