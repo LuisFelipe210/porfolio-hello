@@ -58,6 +58,14 @@ const TermosDeUsoPage: React.FC = () => {
                 <li>O Cliente concorda em notificar imediatamente o Proprietário sobre qualquer uso não autorizado da sua conta.</li>
             </UL>
 
+            <H3>5. Conduta do Utilizador</H3>
+            <P>Ao utilizar este site, você concorda em não:</P>
+            <UL>
+                <li>Tentar obter acesso não autorizado a áreas restritas (como o Portal do Cliente ou a área de administração).</li>
+                <li>Utilizar o formulário de contato para enviar spam ou conteúdo ilícito.</li>
+                <li>Interferir no funcionamento adequado do site.</li>
+            </UL>
+
             <H3>6. Limitação de Responsabilidade</H3>
             <P>O Proprietário esforça-se para manter o site operacional e seguro, mas não pode garantir que o acesso seja ininterrupto ou livre de erros. O Proprietário não se responsabiliza por quaisquer danos diretos ou indiretos decorrentes do uso (ou incapacidade de uso) deste site.</P>
 
@@ -65,7 +73,7 @@ const TermosDeUsoPage: React.FC = () => {
             <P>O Proprietário reserva-se o direito de modificar estes Termos de Uso a qualquer momento. A versão mais recente estará sempre disponível nesta página.</P>
 
             <H3>8. Lei Aplicável</H3>
-            <p>Estes termos serão regidos e interpretados de acordo com as leis do Brasil.</p>
+            <p>Estes termos serão regidos e interpretados de acordo com a lei LGPD.</p>
 
             <H3>9. Contato</H3>
             <P>Em caso de dúvidas sobre estes termos, entre em contato através do hello@contato.com.</P>

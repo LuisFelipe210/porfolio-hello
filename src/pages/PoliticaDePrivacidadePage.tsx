@@ -66,7 +66,7 @@ const PoliticaDePrivacidadePage: React.FC = () => {
             <H3>4. Segurança dos Dados</H3>
             <P>Implementamos medidas de segurança técnicas e administrativas para proteger os seus dados pessoais, incluindo o uso de senhas (hash) para contas de clientes.</P>
 
-            <H3>5. Os Seus Direitos (LGPD/GDPR)</H3>
+            <H3>5. Os Seus Direitos (LGPD)</H3>
             <P>Dependendo da sua localização, você tem o direito de:</P>
             <UL>
                 <li><strong>Aceder:</strong> Solicitar uma cópia dos dados pessoais que temos sobre si.</li>
