@@ -4,7 +4,6 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 import TestimonialCard from './TestimonialCard';
-import { optimizeCloudinaryUrl } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 
 interface TestimonialFromAPI {
@@ -121,10 +120,7 @@ const TestimonialsSection = () => {
                                                 text={testimonial.text}
                                                 author={testimonial.author}
                                                 source={testimonial.source}
-                                                imageUrl={optimizeCloudinaryUrl(
-                                                    testimonial.imageUrl,
-                                                    "f_auto,q_auto,w_500"
-                                                )}
+                                                imageUrl={testimonial.imageUrl}
                                                 alt={testimonial.alt}
                                                 rotation={cardRotations[index % cardRotations.length]}
                                             />

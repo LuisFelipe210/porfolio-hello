@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowDown } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
-import { optimizeCloudinaryUrl } from "@/lib/utils";
+import { optimizeCloudinaryUrl, generateCloudinarySrcSet } from "@/lib/utils";
 
 interface HeroSettings {
     heroTitle: string;
@@ -27,12 +27,25 @@ const HeroSection = () => {
         document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" });
     };
 
+    const heroImageUrl = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
+    const widths = [400, 800, 1200, 1920];
+    const baseTransforms = "f_auto,q_auto";
+
     return (
         <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 z-0">
-                <img src={optimizeCloudinaryUrl("https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg", "f_auto,q_auto,w_1920")} alt="Hello Borges" className="w-full h-full min-h-screen object-cover" />
+                <img
+                    src={optimizeCloudinaryUrl(heroImageUrl, `${baseTransforms},w_${widths[0]}`)}
+                    srcSet={generateCloudinarySrcSet(heroImageUrl, widths, baseTransforms)}
+                    sizes="100vw"
+                    alt="Hello Borges"
+                    className="w-full h-full min-h-screen object-cover"
+                    loading="eager"
+                    fetchPriority="high"
+                />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
+                <div
+                    className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
             </div>
 
             <div className="relative z-10 text-left text-white px-12 max-w-6xl mx-auto w-full">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { optimizeCloudinaryUrl, generateCloudinarySrcSet } from '../lib/utils'; // MUDEI O CAMINHO AQUI
 
 interface TestimonialCardProps {
     text: string;
@@ -17,6 +18,11 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
                                                              rotation,
                                                              alt,
                                                          }) => {
+
+    const widths = [300, 500];
+    const baseTransforms = "f_auto,q_auto";
+    const sizes = "(max-width: 640px) 80vw, (max-width: 1024px) 50vw, 28vw";
+
     return (
         <div
             className="group w-full h-full bg-white p-1.5 pb-2 shadow-lg rounded-sm border border-gray-200/60
@@ -26,7 +32,9 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         >
             <div className="w-full h-32 sm:h-40 mb-1.5 sm:mb-2 overflow-hidden rounded-sm">
                 <img
-                    src={imageUrl}
+                    src={optimizeCloudinaryUrl(imageUrl, `${baseTransforms},w_${widths[0]}`)}
+                    srcSet={generateCloudinarySrcSet(imageUrl, widths, baseTransforms)}
+                    sizes={sizes}
                     alt={alt || `Foto de ${author}`}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
@@ -47,6 +55,3 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
 };
 
 export default TestimonialCard;
-
-// Para o TestimonialsSection.tsx, altere também a linha do Skeleton:
-// <Skeleton className="h-[18rem] sm:h-[20rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" />

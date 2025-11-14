@@ -24,3 +24,32 @@ export function optimizeCloudinaryUrl(url: string, transformations: string): str
 
     return `${parts[0]}/upload/${transformations}/${parts[1]}`;
 }
+
+/**
+ * Gera um srcSet responsivo para uma imagem do Cloudinary.
+ * @param baseUrl - O URL base da imagem (ex: .../v12345/image.jpg)
+ * @param widths - Array de larguras (ex: [400, 800, 1200])
+ * @param baseTransforms - Transformações base (ex: "f_auto,q_auto")
+ * @returns Uma string srcSet
+ */
+export function generateCloudinarySrcSet(
+    baseUrl: string,
+    widths: number[],
+    baseTransforms: string = "f_auto,q_auto"
+): string {
+    if (!baseUrl || !baseUrl.includes('/upload/')) {
+        return ''; // Retorna vazio se não for um URL válido
+    }
+
+    const parts = baseUrl.split('/upload/');
+    const prefix = `${parts[0]}/upload/`;
+    // parts[1] já contém o ID da versão e da imagem (ex: v176.../hero-portrait.jpg)
+    const suffix = parts[1];
+
+    return widths
+        .map(width => {
+            const transformations = `${baseTransforms},w_${width}`;
+            return `${prefix}${transformations}/${suffix} ${width}w`;
+        })
+        .join(', ');
+}

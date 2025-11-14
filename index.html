@@ -9,8 +9,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Libre+Baskerville:ital@1&family=Montserrat:wght@100;300&family=Poppins:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
 
     <title>Hello Borges - Fotografia Profissional | Portfolio</title>
     <meta name="description" content="Fotógrafa profissional especializada em retratos, casamentos, maternidade e família. Capturando momentos únicos com elegância e sensibilidade artística em Salvador." />
@@ -30,6 +29,29 @@
 <body>
 <div id="root"></div>
 <script type="module" src="./src/main.tsx"></script>
-<script src="//code.tidio.co/mcpicf71mxi8oapbokyjb2uqsq0yxpvh.js" async></script>
+
+<script type="text/javascript">
+    (function() {
+        function loadTidio() {
+            if (window.TidioChatApi) {
+                return;
+            }
+            var tidioScript = document.createElement("script");
+            tidioScript.src = "//code.tidio.co/mcpicf71mxi8oapbokyjb2uqsq0yxpvh.js";
+            tidioScript.async = true;
+            document.body.appendChild(tidioScript);
+
+            window.removeEventListener('scroll', loadTidio, { capture: true });
+            window.removeEventListener('mousemove', loadTidio, { capture: true });
+            window.removeEventListener('touchstart', loadTidio, { capture: true });
+        }
+
+        window.addEventListener('scroll', loadTidio, { once: true, capture: true });
+        window.addEventListener('mousemove', loadTidio, { once: true, capture: true });
+        window.addEventListener('touchstart', loadTidio, { once: true, capture: true });
+
+        setTimeout(loadTidio, 5000);
+    })();
+</script>
 </body>
 </html>
