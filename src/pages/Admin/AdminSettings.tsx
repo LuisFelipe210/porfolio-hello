@@ -12,19 +12,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // <<< Importado
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const settingsSchema = z.object({
-    heroTitle: z.string().min(1, "O título é obrigatório."),
-    heroSubtitle: z.string().min(1, "O subtítulo é obrigatório."),
     whatsapp: z.string().min(1, "O WhatsApp é obrigatório."),
     email: z.string().email("Insira um email válido."),
     instagram: z.string().url({ message: "Insira um link válido para o Instagram." }),
     location: z.string().min(1, "A localização é obrigatória."),
-    horarioSeg: z.string().optional(),
-    horarioTer: z.string().optional(),
-    horarioQua: z.string().optional(),
-    horarioQui: z.string().optional(),
     horarioSex: z.string().min(1, "O horário de Seg a Sex é obrigatório."),
     horarioSab: z.string().min(1, "O horário de Sábado é obrigatório."),
     horarioDom: z.string().min(1, "O horário de Domingo é obrigatório."),
@@ -36,9 +30,7 @@ const fetchSettingsAPI = async (): Promise<Settings> => {
     const response = await fetch('/api/settings');
     if (!response.ok) throw new Error("Falha ao carregar configurações.");
     const data = await response.json();
-    // Garante que todos os campos do formulário existem, mesmo que vazios
     return {
-        horarioSeg: '', horarioTer: '', horarioQua: '', horarioQui: '',
         horarioSex: '', horarioSab: '', horarioDom: '',
         ...data
     };
@@ -59,10 +51,10 @@ const saveSettingsAPI = async (data: { formData: z.infer<typeof settingsSchema>,
 
 const AdminSettings = () => {
     const { toast } = useToast();
-    const queryClient = useQueryClient(); // <<< Adicionado
+    const queryClient = useQueryClient();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [editingSection, setEditingSection] = useState<'hero' | 'contacts' | 'hours' | null>(null);
+    const [editingSection, setEditingSection] = useState<'contacts' | 'hours' | null>(null);
 
     const form = useForm<z.infer<typeof settingsSchema>>({
         resolver: zodResolver(settingsSchema),
@@ -100,7 +92,7 @@ const AdminSettings = () => {
         }
     });
 
-    const handleOpenDialog = (section: 'hero' | 'contacts' | 'hours') => {
+    const handleOpenDialog = (section: 'contacts' | 'hours') => {
         setEditingSection(section);
         if (settings) {
             form.reset(settings);
@@ -127,18 +119,6 @@ const AdminSettings = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-8 pr-2 -mr-2">
-                <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <h2 className="text-2xl font-semibold text-white">Página Inicial</h2>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('hero')} className="text-white hover:bg-white/10 rounded-xl" aria-label="Editar Página Inicial">
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div><Label className="font-semibold text-white/60">Título Principal</Label><p className="text-white text-lg">{settings.heroTitle}</p></div>
-                        <div><Label className="font-semibold text-white/60">Subtítulo</Label><p className="text-white/80">{settings.heroSubtitle}</p></div>
-                    </CardContent>
-                </Card>
 
                 <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -174,19 +154,14 @@ const AdminSettings = () => {
                 <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-semibold text-white">
-                            {editingSection === 'hero' && 'Editar Página Inicial'}
                             {editingSection === 'contacts' && 'Editar Contactos'}
                             {editingSection === 'hours' && 'Editar Horários'}
                         </DialogTitle>
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            {editingSection === 'hero' && (
-                                <>
-                                    <FormField control={form.control} name="heroTitle" render={({ field }) => (<FormItem><Label className="font-semibold">Título Principal</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                    <FormField control={form.control} name="heroSubtitle" render={({ field }) => (<FormItem><Label className="font-semibold">Subtítulo</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                </>
-                            )}
+
+
                             {editingSection === 'contacts' && (
                                 <>
                                     <FormField control={form.control} name="whatsapp" render={({ field }) => (<FormItem><Label className="font-semibold">WhatsApp</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage /></FormItem>)} />
