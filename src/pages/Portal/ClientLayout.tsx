@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button';
 import { LogOut, ArrowLeft } from 'lucide-react';
 import Logo from "@/assets/logo.svg";
 import React from 'react';
-import { optimizeCloudinaryUrl } from "@/lib/utils.ts";
-// Toaster não é mais necessário aqui, já que o layout não chama o toast
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useQueryClient } from '@tanstack/react-query'; // <<< Importado
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+// --- Tipagem ---
 interface Gallery {
     _id: string;
     name: string;
@@ -22,14 +21,13 @@ interface ClientInfo {
     name: string;
 }
 
-// --- Funções de API (Helpers) ---
-
+// --- API Helpers (Mantidos) ---
 const fetchClientGalleriesAPI = async (): Promise<Gallery[]> => {
     const token = localStorage.getItem('clientAuthToken');
     if (!token) throw new Error('Token não encontrado.');
     const headers = { 'Authorization': `Bearer ${token}` };
     const response = await fetch('/api/portal?action=getGalleries', { headers });
-    // Adiciona verificação de status 403 (Token inválido)
+
     if (response.status === 403) throw new Error('Sessão inválida.');
     if (!response.ok) throw new Error('Falha ao buscar galerias.');
     return response.json();
@@ -45,73 +43,49 @@ const fetchClientInfoAPI = async (): Promise<ClientInfo> => {
     return response.json();
 };
 
-// --- Componente Principal ---
-
 const ClientLayout = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [headerBackAction, setHeaderBackAction] = useState<(() => void) | null>(null);
-
-    // Mantido para compatibilidade com o Outlet context (ClientGalleryPage usa setGalleries)
     const [galleries, setGalleries] = useState<Gallery[]>([]);
 
-    // --- Refatoração: Gestão de Erros ---
     const handleAuthError = useCallback((error: Error) => {
-        toast({ variant: 'destructive', title: 'Erro de Sessão', description: `${error.message} Por favor, faça login novamente.` });
+        toast({ variant: 'destructive', title: 'Sessão Expirada', description: 'Faça login novamente.' });
         localStorage.removeItem('clientAuthToken');
         navigate('/portal/login');
     }, [navigate, toast]);
 
-    // --- Refatoração: useQuery para Galerias ---
-    // <<< CORREÇÃO (TS2769): 'onError' removido >>>
     const { data: galleriesData, isLoading: isLoadingGalleries, isError: isGalleriesError, error: galleriesError } = useQuery<Gallery[], Error>({
         queryKey: ['clientGalleries'],
         queryFn: fetchClientGalleriesAPI,
         staleTime: 5 * 60 * 1000,
-        retry: (failureCount, error) => {
-            // Não tenta de novo se for um erro de autenticação
-            return error.message !== 'Sessão inválida.' && failureCount < 2;
-        }
+        retry: (failureCount, error) => error.message !== 'Sessão inválida.' && failureCount < 2
     });
 
-    // --- Refatoração: useQuery para Info do Cliente ---
-    // <<< CORREÇÃO (TS2769): 'onError' removido >>>
     const { data: clientInfo, isLoading: isLoadingClientInfo, isError: isClientInfoError, error: clientInfoError } = useQuery<ClientInfo, Error>({
         queryKey: ['clientInfo'],
         queryFn: fetchClientInfoAPI,
         staleTime: 5 * 60 * 1000,
-        retry: (failureCount, error) => {
-            return error.message !== 'Sessão inválida.' && failureCount < 2;
-        }
+        retry: (failureCount, error) => error.message !== 'Sessão inválida.' && failureCount < 2
     });
 
-    // <<< CORREÇÃO (TS2345): Adicionado 'if (galleriesData)' >>>
     useEffect(() => {
-        if (galleriesData) {
-            setGalleries(galleriesData);
-        }
+        if (galleriesData) setGalleries(galleriesData);
     }, [galleriesData]);
 
-    // <<< CORREÇÃO: Novo useEffect para lidar com erros (substitui 'onError') >>>
     useEffect(() => {
-        if (isGalleriesError && galleriesError) {
-            handleAuthError(galleriesError);
-        } else if (isClientInfoError && clientInfoError) {
-            handleAuthError(clientInfoError);
-        }
+        if (isGalleriesError && galleriesError) handleAuthError(galleriesError);
+        else if (isClientInfoError && clientInfoError) handleAuthError(clientInfoError);
     }, [isGalleriesError, galleriesError, isClientInfoError, clientInfoError, handleAuthError]);
 
-
     const isLoading = isLoadingGalleries || isLoadingClientInfo;
-    // <<< CORREÇÃO (TS2339): 'clientInfo' agora é do tipo correto >>>
     const clientName = clientInfo?.name || '';
 
     const refetchData = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ['clientGalleries'] });
         queryClient.invalidateQueries({ queryKey: ['clientInfo'] });
     }, [queryClient]);
-
 
     const handleLogout = () => {
         localStorage.removeItem('clientAuthToken');
@@ -126,59 +100,49 @@ const ClientLayout = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-black dark:bg-black">
-            <div className="fixed inset-0 z-0">
-                <img
-                    src={optimizeCloudinaryUrl(
-                        "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg",
-                        "f_auto,q_auto,w_1080,e_blur:100"
-                    )}
-                    alt="Background"
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/70 dark:bg-black/70 backdrop-blur-md"></div>
-            </div>
+        // MUDANÇA DE DESIGN: Fundo Branco, Texto Preto
+        <div className="flex flex-col h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
 
-            <header className="relative z-50 flex h-24 items-center justify-between bg-black/30 dark:bg-black/30 text-white border-b border-white/10 px-4 md:px-8 shrink-0">
-                <div className="w-28">
+            {/* HEADER LIMPO */}
+            <header className="relative z-50 flex h-24 items-center justify-between bg-white/95 backdrop-blur-sm border-b border-zinc-100 px-6 md:px-12 shrink-0">
+                <div className="w-32 flex justify-start">
                     {headerBackAction && (
                         <Button
                             variant="ghost"
                             onClick={headerBackAction}
-                            className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-black text-orange-500 rounded-xl hover:bg-black/80 transition-colors shadow-sm hover:shadow-md border border-orange-500"
+                            className="rounded-none border border-zinc-200 text-zinc-500 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 uppercase tracking-widest text-[10px] font-bold h-10 px-4 transition-all"
                         >
-                            <ArrowLeft className="h-5 w-5" />
+                            <ArrowLeft className="h-3 w-3 mr-2" />
                             Voltar
                         </Button>
                     )}
                 </div>
 
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                    <div className="flex items-center gap-4">
-                        <img src={Logo} alt="Hellô Borges" className="h-10 w-auto" />
-                        {!isLoading && clientName && (
-                            <h1 className="hidden sm:block text-xl sm:text-2xl font-light text-white whitespace-nowrap animate-fade-in">
-                                {getGreeting()}, <span className="font-semibold text-orange-500">{clientName.split(' ')[0]}</span>
-                            </h1>
-                        )}
-                    </div>
+                <div className="flex flex-col items-center justify-center">
+                    <img src={Logo} alt="Hellô Borges" className="h-10 md:h-12  w-auto" />
+                    {!isLoading && clientName && (
+                        <div className="hidden md:flex items-center gap-1 text-[18px] uppercase tracking-[0.25em] text-black mt-2 animate-fade-in">
+                            <span>{getGreeting()},</span>
+                            <span className="text-orange-600 font-bold">{clientName.split(' ')[0]}</span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="w-28 flex justify-end">
+                <div className="w-32 flex justify-end">
                     {!headerBackAction && (
                         <Button
                             variant="ghost"
                             onClick={handleLogout}
-                            className="flex items-center gap-2 px-4 py-2 text-sm md:text-base font-medium bg-black text-orange-500 rounded-xl hover:bg-black/80 transition-colors shadow-sm hover:shadow-md border border-orange-500"
+                            className="rounded-none border border-zinc-200 text-zinc-400 hover:bg-red-50 hover:text-red-600 hover:border-red-100 uppercase tracking-widest text-[10px] font-bold h-10 px-4 transition-all"
                         >
-                            <LogOut className="h-5 w-5" />
                             Sair
+                            <LogOut className="h-3 w-3 ml-2" />
                         </Button>
                     )}
                 </div>
             </header>
 
-            <main className="relative z-10 flex-1 px-4 md:px-8 pb-28 md:pb-16 pt-8 overflow-y-auto">
+            <main className="relative z-10 flex-1 px-4 md:px-12 pb-12 pt-8 overflow-y-auto bg-white">
                 <Outlet context={{
                     setHeaderBackAction,
                     galleries,
