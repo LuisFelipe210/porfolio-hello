@@ -149,18 +149,17 @@ const ClientLoginPage = () => {
                                 )}
                             />
 
-                            {/* SENHA */}
                             <FormField
                                 control={form.control}
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem className="space-y-1">
-                                        <div className="flex justify-between items-end">
-                                            <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold ml-1">Senha</Label>
-                                            <Link to="/portal/forgot-password" className="text-xs text-zinc-400 hover:text-orange-600 transition-colors font-medium">
-                                                Esqueceu?
-                                            </Link>
-                                        </div>
+                                        {/*<div className="flex justify-between items-end">*/}
+                                        {/*    <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold ml-1">Senha</Label>*/}
+                                        {/*    <Link to="/portal/forgot-password" className="text-xs text-zinc-400 hover:text-orange-600 transition-colors font-medium">*/}
+                                        {/*        Esqueceu?*/}
+                                        {/*    </Link>*/}
+                                        {/*</div>*/}
                                         <FormControl>
                                             <Input
                                                 {...field}
@@ -174,7 +173,6 @@ const ClientLoginPage = () => {
                                 )}
                             />
 
-                            {/* BOTÃO */}
                             <Button
                                 type="submit"
                                 className="w-full rounded-none h-14 bg-zinc-900 hover:bg-orange-600 text-white uppercase tracking-[0.2em] text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-orange-500/20 mt-4"
@@ -193,7 +191,6 @@ const ClientLoginPage = () => {
                         </form>
                     </Form>
 
-                    {/* Footerzinho */}
                     <div className="mt-16 text-center">
                         <p className="text-zinc-400 text-xs mb-3 font-light">Ainda não tem acesso?</p>
                         <Link to="/services" className="text-zinc-900 text-xs font-bold hover:text-orange-600 border-b border-zinc-900 hover:border-orange-600 pb-1 transition-all uppercase tracking-widest">
