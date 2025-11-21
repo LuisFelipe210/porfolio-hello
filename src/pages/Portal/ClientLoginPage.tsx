@@ -164,9 +164,9 @@ const ClientLoginPage = () => {
                                             <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold ml-1">
                                                 Senha
                                             </Label>
-                                            <Link to="/portal/forgot-password" className="text-xs text-zinc-400 hover:text-orange-600 transition-colors font-medium">
+                                            {/*<Link to="/portal/forgot-password" className="text-xs text-zinc-400 hover:text-orange-600 transition-colors font-medium">
                                                 Esqueceu?
-                                            </Link>
+                                            </Link>*/}
                                         </div>
                                         <FormControl>
                                             <div className="relative">
