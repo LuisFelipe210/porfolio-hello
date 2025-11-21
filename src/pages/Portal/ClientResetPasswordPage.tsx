@@ -59,30 +59,32 @@ const ClientResetPasswordPage = () => {
     };
 
     return (
-        // h-screen + overflow-hidden = SEM BARRA DE ROLAGEM, PONTO FINAL.
-        <div className="h-screen w-full flex flex-col items-center justify-center bg-zinc-50 font-sans text-zinc-900 overflow-hidden relative">
+        // CORREÇÃO AQUI:
+        // Tirei 'h-screen' (altura da tela) e coloquei 'h-full' (altura do container pai).
+        // Tirei 'w-full' e bg-zinc-50 porque o layout pai já tem fundo branco.
+        <div className="h-full w-full flex flex-col items-center justify-center font-sans text-zinc-900">
 
-            {/* CARTÃO CENTRALIZADO - Compactei os paddings pra caber suave */}
-            <div className="w-full max-w-sm bg-white p-8 border border-zinc-200 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] relative z-10 animate-fade-in-up">
+            {/* CARTÃO CENTRALIZADO */}
+            <div className="w-full max-w-sm bg-white p-8 border border-zinc-200 shadow-xl relative z-10 animate-fade-in-up">
 
                 {/* Detalhe decorativo */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-orange-500"></div>
 
-                {/* Botão Voltar */}
-                <Link to="/portal/login" className="absolute top-6 left-6 text-zinc-400 hover:text-zinc-900 transition-colors" title="Voltar">
+                {/* Botão Voltar (Pode remover se quiser, já que tem menu em cima) */}
+                <Link to="/portal/login" className="absolute top-6 left-6 text-zinc-400 hover:text-zinc-900 transition-colors" title="Sair">
                     <ArrowLeft size={18} strokeWidth={1.5} />
                 </Link>
 
                 <div className="text-center mb-8 mt-2">
-                    <img src={Logo} alt="Hellô Borges" className="h-6 mx-auto mb-4 opacity-80" />
+                    {/* Removi a logo daqui pq já tem no Header do Layout */}
 
-                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-zinc-50 text-zinc-900 mb-3 border border-zinc-100">
-                        <ShieldCheck size={18} strokeWidth={1.5} />
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-50 text-orange-600 mb-3 border border-orange-100">
+                        <ShieldCheck size={20} strokeWidth={1.5} />
                     </div>
 
                     <h1 className="text-xl font-serif text-zinc-900 mb-1">Defina sua Senha</h1>
                     <p className="text-zinc-500 text-xs font-light px-4">
-                        Proteja suas memórias com uma senha segura.
+                        Para sua segurança, crie uma nova senha.
                     </p>
                 </div>
 
@@ -149,15 +151,10 @@ const ClientResetPasswordPage = () => {
                                 <Loader2 className="h-4 w-4 animate-spin" /> Salvando...
                             </div>
                         ) : (
-                            'Confirmar Acesso'
+                            'Confirmar e Acessar'
                         )}
                     </Button>
                 </form>
-            </div>
-
-            {/* Copyright Fixo */}
-            <div className="absolute bottom-6 text-center w-full text-[10px] uppercase tracking-widest text-zinc-300 pointer-events-none">
-                © {new Date().getFullYear()} Hellô Borges
             </div>
         </div>
     );
