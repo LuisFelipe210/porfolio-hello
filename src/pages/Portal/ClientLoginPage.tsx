@@ -11,7 +11,9 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import React from 'react';
-import Logo from "@/assets/logo.svg"; // CONFIRA SE O CAMINHO DA LOGO TÁ CERTO
+import Logo from "@/assets/logo.svg";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 // --- SCHEMA ---
 const formSchema = z.object({
@@ -24,6 +26,8 @@ interface LoginResponse {
     token: string;
     mustResetPassword?: boolean;
 }
+
+
 
 const loginAPI = async (data: z.infer<typeof formSchema>): Promise<LoginResponse> => {
     const response = await fetch('/api/portal?action=login', {
@@ -81,6 +85,8 @@ const ClientLoginPage = () => {
         form.clearErrors();
         loginMutation.mutate(data);
     };
+
+    const [showPassword, setShowPassword] = useState(false);
 
     return (
         <div className="min-h-screen w-full flex bg-white text-zinc-900 font-sans">
@@ -154,19 +160,38 @@ const ClientLoginPage = () => {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem className="space-y-1">
-                                        {/*<div className="flex justify-between items-end">*/}
-                                        {/*    <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold ml-1">Senha</Label>*/}
-                                        {/*    <Link to="/portal/forgot-password" className="text-xs text-zinc-400 hover:text-orange-600 transition-colors font-medium">*/}
-                                        {/*        Esqueceu?*/}
-                                        {/*    </Link>*/}
-                                        {/*</div>*/}
+                                        <div className="flex justify-between items-end">
+                                            <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold ml-1">
+                                                Senha
+                                            </Label>
+                                            <Link to="/portal/forgot-password" className="text-xs text-zinc-400 hover:text-orange-600 transition-colors font-medium">
+                                                Esqueceu?
+                                            </Link>
+                                        </div>
                                         <FormControl>
-                                            <Input
-                                                {...field}
-                                                type="password"
-                                                className="border-x-0 border-t-0 border-b border-zinc-300 rounded-none px-1 py-3 focus-visible:ring-0 focus-visible:border-orange-600 transition-all bg-transparent text-lg text-zinc-900 placeholder:text-zinc-200"
-                                                placeholder="••••••••"
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    {...field}
+                                                    // AQUI TÁ O SEGREDO: Alterna entre 'text' e 'password'
+                                                    type={showPassword ? "text" : "password"}
+                                                    autoComplete="new-password"
+                                                    className="border-x-0 border-t-0 border-b border-zinc-300 rounded-none px-1 py-3 pr-10 focus-visible:ring-0 focus-visible:border-orange-600 transition-all bg-transparent text-lg text-zinc-900 placeholder:text-zinc-200"
+                                                    placeholder="••••••••"
+                                                />
+                                                {/* Botão do Olhinho */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
+                                                    tabIndex={-1} // Pra não pegar foco no tab
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff size={18} strokeWidth={1.5} />
+                                                    ) : (
+                                                        <Eye size={18} strokeWidth={1.5} />
+                                                    )}
+                                                </button>
+                                            </div>
                                         </FormControl>
                                         <FormMessage className="text-red-500 text-xs" />
                                     </FormItem>
