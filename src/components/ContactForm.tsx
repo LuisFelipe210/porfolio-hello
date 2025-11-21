@@ -5,7 +5,6 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
-// Definimos os tipos das props que o formulário vai receber
 type ContactFormProps = {
     formData: { name: string; email: string; phone: string; service: string; message: string; };
     isSubmitting: boolean;
@@ -146,7 +145,6 @@ export function ContactForm({
                 disabled={isSubmitting}
             />
 
-            {/* Campo Tipo de Sessão (agora com componente temático) */}
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="service" className="text-right">
                     Sessão
@@ -184,7 +182,6 @@ export function ContactForm({
                 disabled={isSubmitting}
             />
 
-            {/* Botão de Envio com indicador de carregamento */}
             <Button type="submit" disabled={isSubmitting} className="w-full mt-2">
                 {renderButtonContent()}
             </Button>

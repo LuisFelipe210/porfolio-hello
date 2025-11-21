@@ -5,14 +5,14 @@ import 'react-lazy-load-image-component/src/effects/blur.css';
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import React from "react";
 import Masonry from 'react-masonry-css';
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 import ReactDOM from "react-dom";
+import { Link } from "react-router-dom";
 
-// Componentes da estrutura da página
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-
+import { Button } from "@/components/ui/button";
 
 interface PortfolioItem {
     id: string;
@@ -25,170 +25,74 @@ interface PortfolioItem {
     createdAt?: string;
 }
 
+const categoryNames: Record<string, string> = {
+    all: "Todos",
+    portrait: "Retratos",
+    wedding: "Casamentos",
+    maternity: "Maternidade",
+    family: "Família",
+    events: "Eventos"
+};
+
+// Imagem Minimalista (Sem bordas redondas)
 const PortfolioImage = ({ src, alt }: { src: string; alt?: string }) => {
     const [loaded, setLoaded] = useState(false);
     return (
-        <div className="relative w-full h-full bg-black/10 overflow-hidden rounded-lg">
-            {!loaded && <Skeleton className="absolute inset-0 w-full h-full" />}
+        <div className="relative w-full bg-zinc-100 overflow-hidden">
+            {!loaded && <Skeleton className="absolute inset-0 w-full h-full bg-zinc-200" />}
             <LazyLoadImage
                 src={src}
                 alt={alt}
                 effect="opacity"
                 afterLoad={() => setLoaded(true)}
-                className={`w-full h-auto object-cover ${loaded ? 'opacity-100 transition-opacity duration-500' : 'opacity-0'}`}
+                className={`w-full h-auto object-cover transition-all duration-700 ${loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
             />
         </div>
     );
 };
 
-// Componente MobileSwipeCard
-const MobileSwipeCard = ({ item, onOpenModal }: { item: PortfolioItem, onOpenModal: () => void }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const startX = useRef<number>(0);
-    const startY = useRef<number>(0);
-    const isSwiping = useRef<boolean>(false);
-    const cardRef = useRef<HTMLDivElement>(null);
-
-    const handleTouchStart = (e: React.TouchEvent) => {
-        startX.current = e.touches[0].clientX;
-        startY.current = e.touches[0].clientY;
-        isSwiping.current = false;
-    };
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-        if (startX.current === 0) return;
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
-        const diffX = Math.abs(startX.current - currentX);
-        const diffY = Math.abs(startY.current - currentY);
-
-        if (diffX > 20 && diffX > diffY) {
-            isSwiping.current = true;
-            e.preventDefault();
-        }
-    };
-
-    const handleTouchEnd = (e: React.TouchEvent) => {
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
-        const diffX = startX.current - endX;
-        const diffY = Math.abs(startY.current - endY);
-        const absDiffX = Math.abs(diffX);
-        const tapThreshold = 25;
-        const swipeThreshold = 100;
-
-        if (!isSwiping.current && absDiffX < tapThreshold && diffY < tapThreshold) {
-            e.preventDefault();
-            if (!isOpen) {
-                onOpenModal();
-            } else {
-                setIsOpen(false);
-            }
-            startX.current = 0;
-            startY.current = 0;
-            return;
-        }
-
-        if (isSwiping.current && absDiffX > swipeThreshold && absDiffX > diffY) {
-            if (diffX > 0 && !isOpen) {
-                setIsOpen(true);
-            } else if (diffX < 0 && isOpen) {
-                setIsOpen(false);
-            }
-        }
-
-        startX.current = 0;
-        startY.current = 0;
-        isSwiping.current = false;
-    };
-
-    const fullOverlayClasses = `absolute inset-0 transition-all duration-300 flex flex-col bg-black/70 z-20
-        ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`;
-
-    return (
-        <div
-            ref={cardRef}
-            className="relative w-full rounded-lg overflow-hidden shadow-xl cursor-pointer z-10"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-        >
-            <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_600")} alt={item.alt || item.title} />
-
-            <div className={fullOverlayClasses}>
-                <div className="p-0 w-full transition-all duration-300 translate-y-4 h-full flex flex-col">
-                    <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0 text-center">
-                        {item.title}
-                    </h3>
-                    <div className="flex-1 overflow-y-auto pr-1">
-                        <p className="text-sm text-white drop-shadow text-center">
-                            {item.description}
-                        </p>
-                    </div>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
-                        className="text-sm mt-3 self-center text-accent hover:text-accent/80 transition-colors uppercase font-medium"
-                    >
-                        Voltar
-                    </button>
-                </div>
-            </div>
-
-            {!isOpen && (
-                <div className="absolute bottom-2 left-2 transform-none bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-2 animate-pulse z-20">
-                    {/* Ícone FiArrowLeft removido para simplificar, pois não foi importado */}
-                    <span>Deslize para ver a descrição</span>
-                </div>
-            )}
-        </div>
-    );
-};
-
+// Card Desktop Minimalista
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
     return (
         <div
-            className={`relative group cursor-pointer rounded-none overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-lg w-full mb-4`}
+            className="group relative cursor-pointer mb-4 overflow-hidden"
             onClick={() => setSelectedIndex(index)}
         >
             <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")} alt={item.alt || item.title} />
 
-            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col p-5">
-                <div className="p-0 w-full transition-all duration-300 translate-y-4 group-hover:translate-y-0 h-full flex flex-col">
-                    <h3 className="text-lg font-medium text-white mb-1 drop-shadow uppercase flex-shrink-0">
+            {/* Overlay Editorial - Só aparece no hover */}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
+                <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-75">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-2 block">
+                        {categoryNames[item.category]}
+                    </span>
+                    <h3 className="text-xl font-serif italic text-white">
                         {item.title}
                     </h3>
-                    <div className="flex-1 overflow-y-auto pr-1">
-                        <p className="text-sm text-white drop-shadow">
-                            {item.description}
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
     );
 };
-// --- Fim: Componentes Internos ---
 
-
-// O componente da página principal
 const PortfolioPage = () => {
-    // Hooks e estado
     const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState("all");
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const categoriesScrollRef = useRef<HTMLDivElement>(null);
     const [isLightboxImageLoading, setIsLightboxImageLoading] = useState(true);
 
-    // Hooks de fetch e efeitos
+    // Scroll to Top on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     useEffect(() => {
         const fetchPortfolioItems = async () => {
             try {
                 setIsLoading(true);
                 const response = await fetch('/api/portfolio');
-                if (!response.ok) {
-                    throw new Error('Falha ao buscar os dados do portfólio.');
-                }
+                if (!response.ok) throw new Error('Falha ao buscar portfólio.');
                 const data = await response.json();
                 setPortfolioItems(data);
             } catch (error) {
@@ -205,15 +109,15 @@ const PortfolioPage = () => {
         : portfolioItems.filter(item => item.category === activeCategory);
 
     const categories = [
-        { id: "all", name: "TODOS" },
-        { id: "portrait", name: "RETRATOS" },
-        { id: "wedding", name: "CASAMENTOS" },
-        { id: "maternity", name: "MATERNIDADE" },
-        { id: "family", name: "FAMÍLIA" },
-        { id: "events", name: "EVENTOS" },
+        { id: "all", name: "Todos" },
+        { id: "wedding", name: "Casamentos" },
+        { id: "portrait", name: "Retratos" },
+        { id: "maternity", name: "Maternidade" },
+        { id: "family", name: "Família" },
+        { id: "events", name: "Eventos" },
     ];
 
-    // Lógica do Lightbox
+    // Lightbox Logic
     useEffect(() => {
         if (selectedIndex === null) return;
         const handleKey = (e: KeyboardEvent) => {
@@ -226,272 +130,198 @@ const PortfolioPage = () => {
     }, [selectedIndex, filteredItems.length]);
 
     useEffect(() => {
-        const isOverlayOpen = selectedIndex !== null;
-        if (isOverlayOpen) document.body.classList.add('overflow-hidden');
-        else document.body.classList.remove('overflow-hidden');
-        return () => document.body.classList.remove('overflow-hidden');
-    }, [selectedIndex]);
-
-    useEffect(() => {
-        if (selectedIndex === null) return;
-        const nextIndex = selectedIndex + 1;
-        if (nextIndex < filteredItems.length) (new Image()).src = optimizeCloudinaryUrl(filteredItems[nextIndex].image, "f_auto,q_auto,w_1200");
-        const prevIndex = selectedIndex - 1;
-        if (prevIndex >= 0) (new Image()).src = optimizeCloudinaryUrl(filteredItems[prevIndex].image, "f_auto,q_auto,w_1200");
-    }, [selectedIndex, filteredItems]);
-
-    useEffect(() => {
-        if (selectedIndex !== null) setIsLightboxImageLoading(true);
-    }, [selectedIndex]);
-
-    const scrollToCategory = (categoryId: string, index: number) => {
-        setActiveCategory(categoryId);
-        const scrollEl = categoriesScrollRef.current;
-        if (!scrollEl) return;
-        const button = scrollEl.children[index] as HTMLElement;
-        if (!button) return;
-        const containerWidth = scrollEl.offsetWidth;
-        const buttonLeft = button.offsetLeft;
-        const buttonWidth = button.offsetWidth;
-        const targetScrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
-        scrollEl.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
-    };
-
-    const touchStartX = useRef<number | null>(null);
-    const touchStartY = useRef<number | null>(null);
-    const isLightboxSwiping = useRef<boolean>(false);
-
-    const handleTouchStart = (e: React.TouchEvent) => {
-        touchStartX.current = e.touches[0].clientX;
-        touchStartY.current = e.touches[0].clientY;
-        isLightboxSwiping.current = false;
-    };
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-        if (touchStartX.current === null || touchStartY.current === null) return;
-        const diffX = Math.abs(e.touches[0].clientX - touchStartX.current);
-        const diffY = Math.abs(e.touches[0].clientY - touchStartY.current);
-
-        if (diffX > 30 && diffX > diffY * 1.5) {
-            isLightboxSwiping.current = true;
-            e.preventDefault();
+        if (selectedIndex !== null) {
+            document.body.style.overflow = 'hidden';
+            setIsLightboxImageLoading(true);
+        } else {
+            document.body.style.overflow = 'unset';
         }
-    };
-
-    const handleTouchEnd = (e: React.TouchEvent) => {
-        if (touchStartX.current === null || touchStartY.current === null) return;
-        const diffX = e.changedTouches[0].clientX - touchStartX.current;
-        const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-        const absDiffX = Math.abs(diffX);
-
-        if (isLightboxSwiping.current && absDiffX > 100 && absDiffX > diffY * 1.5) {
-            if (diffX > 0 && selectedIndex !== null && selectedIndex > 0) {
-                setSelectedIndex(selectedIndex - 1);
-            } else if (diffX < 0 && selectedIndex !== null && selectedIndex < filteredItems.length - 1) {
-                setSelectedIndex(selectedIndex + 1);
-            }
-        }
-
-        touchStartX.current = null;
-        touchStartY.current = null;
-        isLightboxSwiping.current = false;
-    };
-
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [selectedIndex]);
 
     const breakpointColumnsObj = {
-        default: 4,
+        default: 3, // Menos colunas pra foto ficar maior e mais chique
         1024: 3,
         768: 2,
         640: 1,
     };
 
-    // --- Início: JSX da Página ---
     return (
-        // ***** MODIFICAÇÃO: Fundo liso branco/preto *****
-        <div className="relative min-h-screen bg-white dark:bg-black text-black dark:text-white overflow-hidden">
+        <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
             <Helmet>
-                <title>Hellô Borges Fotografia | Portfólio Completo</title>
-                <meta
-                    name="description"
-                    content="Veja o portfólio completo de Hellô Borges, incluindo retratos, casamentos, família e mais."
-                />
+                <title>Portfólio | Hellô Borges Fotografia</title>
+                <meta name="description" content="Galeria de fotos: Casamentos, Retratos, Família e Eventos por Hellô Borges." />
             </Helmet>
 
-            <div className="fixed top-0 left-0 right-0 z-30">
-                <Header />
-            </div>
+            <Header />
 
-            {/* ***** MODIFICAÇÃO: Fundo com imagem e gradiente REMOVIDOS ***** */}
+            <main className="pt-32 md:pt-40 pb-20">
 
-            <main className="relative z-20 pt-24 md:pt-32">
-                <section id="portfolio" className="pt-4 pb-12 md:pt-12 md:pb-20">
-                    <div className="container mx-auto max-w-6xl px-6 md:px-12">
-                        <div className="hidden md:flex flex-wrap justify-center gap-4 mb-12 animate-fade-in">
-                            {categories.map((category) => (
-                                <button
-                                    key={category.id}
-                                    onClick={() => { setActiveCategory(category.id); }}
-                                    className={`px-6 py-2 text-sm font-light tracking-wide transition-all uppercase ${activeCategory === category.id
-                                        ? "text-foreground font-semibold border-b-2 border-accent"
-                                        : "text-muted-foreground hover:text-foreground"
-                                    }`}
-                                >
-                                    {category.name}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                {/* 1. HERO minimalista */}
+                <section className="container mx-auto px-6 mb-16 md:mb-24 text-center animate-fade-in-up">
+                    <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
+                        Trabalhos Selecionados
+                    </span>
+                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-6 leading-[0.9]">
+                        Histórias contadas <br />
+                        <span className="italic font-light text-zinc-400">através da luz.</span>
+                    </h1>
+                </section>
 
-                    <div className="relative md:hidden">
-                        <div
-                            ref={categoriesScrollRef}
-                            className="flex gap-6 mb-6 overflow-x-auto overflow-y-hidden no-scrollbar px-6 snap-x snap-mandatory justify-start relative z-10 scrollbar-none"
-                        >
-                            {categories.map((category, index) => (
-                                <button
-                                    key={category.id}
-                                    onClick={() => { scrollToCategory(category.id, index); }}
-                                    className={`relative pb-1 text-base tracking-wide font-light transition-all duration-300 whitespace-nowrap snap-center uppercase
-                                    ${activeCategory === category.id
-                                        ? "text-foreground font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1.Spx] after:bg-accent"
-                                        // ***** MODIFICAÇÃO: Cor do texto ajustada *****
-                                        : "text-muted-foreground hover:text-foreground after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-accent after:transition-all after:duration-300 hover:after:w-full"
-                                    }`}
-                                >
-                                    {category.name}
-                                </button>
-                            ))}
-                        </div>
-                        {/* Esta div de gradiente pode ser removida se o fundo for liso, mas não prejudica */}
-                        <div className="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-white dark:from-black to-transparent pointer-events-none z-20"></div>
-                    </div>
-
-                    <div className="overflow-visible">
-                        {isLoading ? (
-                            <div className="container mx-auto max-w-6xl px-6 md:px-12">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-                                    {Array.from({ length: 12 }).map((_, index) => (
-                                        <Skeleton key={`skeleton-${index}`} className="aspect-[4/3] w-full rounded-xl" />
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                                {/* Mostra 'filteredItems' diretamente */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden mb-4 px-6">
-                                    {filteredItems.map((item, index) => (
-                                        <MobileSwipeCard
-                                            key={item.id}
-                                            item={item}
-                                            onOpenModal={() => setSelectedIndex(index)}
-                                        />
-                                    ))}
-                                </div>
-
-                                {/* Mostra 'filteredItems' diretamente */}
-                                <div className="hidden md:block px-6 md:px-12">
-                                    <Masonry
-                                        breakpointCols={breakpointColumnsObj}
-                                        className="my-masonry-grid"
-                                        columnClassName="my-masonry-grid_column"
-                                    >
-                                        {filteredItems.map((item, index) => (
-                                            <MasonryPhotoCard
-                                                key={item.id}
-                                                item={item}
-                                                index={index}
-                                                setSelectedIndex={setSelectedIndex}
-                                            />
-                                        ))}
-                                    </Masonry>
-                                </div>
-
-                                {/* Botões de "Mostrar Mais/Menos" removidos */}
-                            </>
-                        )}
-
-                        {/* O Lightbox (Modal) permanece o mesmo */}
-                        {selectedIndex !== null &&
-                            ReactDOM.createPortal(
-                                <div
-                                    className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] cursor-pointer"
-                                    onClick={() => setSelectedIndex(null)}
-                                    onTouchMove={(e) => {
-                                        if (isLightboxSwiping.current) {
-                                            e.preventDefault();
-                                        }
-                                    }}
-                                >
-                                    <div className="relative w-full h-full flex items-center justify-center">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); setSelectedIndex(null); }}
-                                            className="absolute top-3 right-3 sm:top-5 sm:right-5 text-white text-3xl z-[10000] hover:text-accent transition-colors"
-                                            aria-label="Fechar visualização"
-                                        >
-                                            ×
-                                        </button>
-
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
-                                            }}
-                                            disabled={selectedIndex === 0}
-                                            className="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-[10000] text-white text-4xl p-2 bg-black/20 rounded-full hover:bg-black/40 transition-colors disabled:opacity-20 disabled:cursor-not-allowed touch-manipulation"
-                                            aria-label="Imagem Anterior"
-                                        >
-                                            ❮
-                                        </button>
-
-                                        <div
-                                            className="w-full h-full flex items-center justify-center p-2 sm:p-4"
-                                            onTouchStart={handleTouchStart}
-                                            onTouchMove={handleTouchMove}
-                                            onTouchEnd={handleTouchEnd}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            {isLightboxImageLoading && (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <Loader2 className="w-10 h-10 text-white animate-spin" />
-                                                </div>
-                                            )}
-                                            <img
-                                                src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1200")}
-                                                alt={filteredItems[selectedIndex].alt || filteredItems[selectedIndex].title}
-                                                onLoad={() => setIsLightboxImageLoading(false)}
-                                                className={`max-w-full max-h-full object-contain rounded-lg transition-opacity duration-300 pointer-events-none select-none ${
-                                                    isLightboxImageLoading ? 'opacity-0' : 'opacity-100'
-                                                }`}
-                                            />
-                                        </div>
-
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (selectedIndex < filteredItems.length - 1) setSelectedIndex(selectedIndex + 1);
-                                            }}
-                                            disabled={selectedIndex === filteredItems.length - 1}
-                                            className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-[10000] text-white text-4xl p-2 bg-black/20 rounded-full hover:bg-black/40 transition-colors disabled:opacity-20 disabled:cursor-not-allowed touch-manipulation"
-                                            aria-label="Próxima Imagem"
-                                        >
-                                            ❯
-                                        </button>
-
-                                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded-lg text-white text-sm opacity-80 pointer-events-none">
-                                            <span>{selectedIndex + 1} / {filteredItems.length}</span>
-                                        </div>
-                                    </div>
-                                </div>,
-                                document.body
-                            )
-                        }
+                {/* 2. FILTROS - Estilo Texto Limpo */}
+                <section className="container mx-auto px-6 mb-12 sticky top-24 z-30 bg-white/90 backdrop-blur-sm py-4 md:static md:bg-transparent md:py-0">
+                    <div className="flex flex-wrap justify-center gap-6 md:gap-10 border-b border-zinc-100 pb-4 md:pb-6">
+                        {categories.map((category) => (
+                            <button
+                                key={category.id}
+                                onClick={() => setActiveCategory(category.id)}
+                                className={`text-xs md:text-sm tracking-[0.2em] uppercase transition-all duration-300 pb-2 relative group ${
+                                    activeCategory === category.id
+                                        ? "text-orange-600 font-bold"
+                                        : "text-zinc-400 hover:text-zinc-900"
+                                }`}
+                            >
+                                {category.name}
+                                {/* Linha animada embaixo */}
+                                <span className={`absolute bottom-0 left-0 h-[2px] bg-orange-500 transition-all duration-300 ${
+                                    activeCategory === category.id ? "w-full" : "w-0 group-hover:w-1/3"
+                                }`}></span>
+                            </button>
+                        ))}
                     </div>
                 </section>
+
+                {/* 3. GALERIA */}
+                <section className="container mx-auto px-4 md:px-6 min-h-[50vh]">
+                    {isLoading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <Skeleton key={i} className="h-[400px] w-full bg-zinc-100" />
+                            ))}
+                        </div>
+                    ) : filteredItems.length === 0 ? (
+                        <div className="text-center py-32">
+                            <p className="text-zinc-400 italic font-serif text-xl">Nenhuma imagem encontrada nesta categoria.</p>
+                        </div>
+                    ) : (
+                        <Masonry
+                            breakpointCols={breakpointColumnsObj}
+                            className="my-masonry-grid flex w-auto -ml-4"
+                            columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
+                        >
+                            {filteredItems.map((item, index) => (
+                                <MasonryPhotoCard
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    setSelectedIndex={setSelectedIndex}
+                                />
+                            ))}
+                        </Masonry>
+                    )}
+                </section>
+
+                {/* 4. CTA FINAL - Clean */}
+                <section className="mt-32 container mx-auto px-6 text-center">
+                    <div className="max-w-2xl mx-auto border-t border-zinc-100 pt-16">
+                        <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 mb-6">
+                            Gostou do que viu?
+                        </h2>
+                        <p className="text-zinc-500 font-light mb-10 leading-relaxed">
+                            Cada ensaio é único, assim como você. Vamos conversar sobre como transformar suas ideias em realidade.
+                        </p>
+                        <Button asChild size="lg" className="rounded-none text-sm uppercase tracking-widest px-12 py-8 bg-zinc-900 hover:bg-orange-600 text-white transition-all duration-300">
+                            <a href="https://wa.me/5574991248392" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+                                Solicitar Orçamento <ArrowRight className="w-4 h-4" />
+                            </a>
+                        </Button>
+                    </div>
+                </section>
+
+                {/* 5. LIGHTBOX PROFISSIONAL */}
+                {selectedIndex !== null &&
+                    ReactDOM.createPortal(
+                        <div
+                            className="fixed inset-0 bg-zinc-950 z-[9999] flex flex-col animate-in fade-in duration-300"
+                            onClick={() => setSelectedIndex(null)}
+                        >
+                            {/* Header Lightbox */}
+                            <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-[10001] text-white/70">
+                                <span className="text-xs tracking-widest uppercase">
+                                    {selectedIndex + 1} — {filteredItems.length}
+                                </span>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setSelectedIndex(null); }}
+                                    className="hover:text-white hover:rotate-90 transition-all duration-300"
+                                >
+                                    <X size={32} strokeWidth={1} />
+                                </button>
+                            </div>
+
+                            {/* Container Imagem */}
+                            <div className="flex-1 relative flex items-center justify-center w-full h-full p-4 md:p-12">
+
+                                {/* Botão Anterior */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
+                                    }}
+                                    disabled={selectedIndex === 0}
+                                    className="absolute left-2 md:left-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
+                                >
+                                    <ChevronLeft size={48} strokeWidth={0.5} />
+                                </button>
+
+                                {/* Imagem */}
+                                <div
+                                    className="relative max-w-full max-h-full"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {isLightboxImageLoading && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                                        </div>
+                                    )}
+                                    <img
+                                        src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1600")}
+                                        alt={filteredItems[selectedIndex].title}
+                                        onLoad={() => setIsLightboxImageLoading(false)}
+                                        className={`max-h-[85vh] max-w-full object-contain shadow-2xl transition-opacity duration-500 ${
+                                            isLightboxImageLoading ? 'opacity-0' : 'opacity-100'
+                                        }`}
+                                    />
+                                </div>
+
+                                {/* Botão Próximo */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedIndex < filteredItems.length - 1) setSelectedIndex(selectedIndex + 1);
+                                    }}
+                                    disabled={selectedIndex === filteredItems.length - 1}
+                                    className="absolute right-2 md:right-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
+                                >
+                                    <ChevronRight size={48} strokeWidth={0.5} />
+                                </button>
+                            </div>
+
+                            {/* Caption Bottom */}
+                            <div className="absolute bottom-0 left-0 w-full p-6 text-center">
+                                <h3 className="text-white text-lg font-serif italic mb-1">
+                                    {filteredItems[selectedIndex].title}
+                                </h3>
+                                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em]">
+                                    {categoryNames[filteredItems[selectedIndex].category]}
+                                </p>
+                            </div>
+                        </div>,
+                        document.body
+                    )
+                }
             </main>
 
-            <div className="relative z-20">
-                <Footer />
-            </div>
+            <Footer />
         </div>
     );
 };

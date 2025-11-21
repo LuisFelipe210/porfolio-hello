@@ -1,18 +1,19 @@
 .preloader-container {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #000;
-    animation: preloader-fade-out 2s ease-out forwards;
+    background-color: #ffffff;
+    animation: preloader-fade-out 1.5s ease-out forwards;
+    animation-delay: 1.5s;
 }
 
 .logo-container {
     position: relative;
-    z-index: 101; /* Garante que o logo fique sobre as lâminas */
-    animation: logo-fade-out 2s ease-out forwards;
+    z-index: 101;
+    animation: logo-pulse 1.5s ease-in-out forwards;
 }
 
 .shutter-svg {
@@ -21,40 +22,35 @@
     width: 100%;
     height: 100%;
     z-index: 100;
+    opacity: 0.1;
 }
 
 .shutter-blade {
-    fill: #111; /* Cor escura para as lâminas */
+    fill: #18181b;
     transform-origin: 50% 50%;
-    animation: shutter-open 1.2s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards;
+    animation: shutter-open 1.5s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards;
 }
 
-/* Animação para abrir o obturador */
+@keyframes logo-pulse {
+    0% { opacity: 0; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.1); }
+}
+
 @keyframes shutter-open {
     0% {
-        transform: rotate(0deg) scale(2);
+        transform: rotate(0deg) scale(3);
     }
     100% {
         transform: rotate(45deg) scale(0);
     }
 }
 
-/* Animação para o logo sumir */
-@keyframes logo-fade-out {
-    0% { opacity: 1; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.1); }
-    80% { opacity: 0; transform: scale(0.5); }
-    100% { opacity: 0; transform: scale(0); }
-}
-
-/* Animação para o container inteiro do preloader sumir */
 @keyframes preloader-fade-out {
-    0% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
+    0% { opacity: 1; pointer-events: all; }
+    100% { opacity: 0; pointer-events: none; }
 }
 
-/* Adiciona um pequeno delay entre as lâminas para um efeito mais mecânico */
 .shutter-blade:nth-child(2) { animation-delay: 0.05s; }
 .shutter-blade:nth-child(3) { animation-delay: 0.1s; }
 .shutter-blade:nth-child(4) { animation-delay: 0.15s; }

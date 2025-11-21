@@ -1,6 +1,8 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import Logo from "../assets/logo.svg";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
     const location = useLocation();
@@ -10,33 +12,44 @@ const NotFound = () => {
     }, [location.pathname]);
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-black text-white dark:bg-zinc-950 dark:text-white px-4 transition-colors duration-300">
-            <div className="text-center p-10 rounded-3xl bg-black/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-[0_0_30px_rgba(255,115,0,0.2)] border border-zinc-800/50 max-w-lg w-full animate-fade-in transition-colors duration-300">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-white text-zinc-900 font-sans selection:bg-orange-200 relative overflow-hidden">
 
-                {/* Logo */}
-                <Link to="/" className="inline-block mb-10">
-                    <img src={Logo} alt="Hellô Borges Logo" className="h-14 w-auto mx-auto drop-shadow-[0_0_10px_rgba(255,115,0,0.3)]" />
-                </Link>
+            {/* Borda decorativa fina em volta da tela inteira */}
+            <div className="fixed inset-4 border border-zinc-100 pointer-events-none"></div>
 
-                {/* Título */}
-                <h1 className="text-[5rem] md:text-[7rem] font-extrabold text-orange-500 drop-shadow-[0_0_15px_rgba(255,115,0,0.3)] animate-fade-in-up">
+            <div className="text-center max-w-xl px-6 relative z-10">
+
+                {/* Logo Limpa */}
+                <div className="mb-12">
+                    <img src={Logo} alt="Hellô Borges" className="h-12 mx-auto" />
+                </div>
+
+                {/* O 404 Gigante e Sutil */}
+                <h1 className="text-[8rem] md:text-[12rem] font-serif leading-none text-zinc-100 select-none font-medium">
                     404
                 </h1>
 
-                {/* Mensagem */}
-                <p className="mt-4 mb-10 text-zinc-300 text-lg leading-relaxed animate-fade-in-up delay-100">
-                    Ops! A página que você procura não existe ou foi movida.
-                </p>
+                {/* Texto Sobreposto */}
+                <div className="-mt-12 md:-mt-20 relative">
+                    <h2 className="text-3xl md:text-4xl font-serif text-black mb-4">
+                        Página não encontrada
+                    </h2>
+                    <p className="text-zinc-500 font-light text-lg mb-10 leading-relaxed">
+                        O momento que você procura não está aqui.<br/>
+                        Talvez ele tenha sido movido ou nunca existiu.
+                    </p>
 
-                {/* Botão */}
-                <Link
-                    to="/"
-                    className="inline-block px-8 py-3 rounded-full font-semibold uppercase tracking-wide transition-all duration-300
-                        bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-400 dark:text-black dark:hover:bg-orange-300
-                        shadow-lg hover:shadow-[0_0_20px_rgba(255,115,0,0.4)] hover:scale-105"
-                >
-                    Voltar ao Início
-                </Link>
+                    {/* Botão Padrão do Site */}
+                    <Button
+                        asChild
+                        className="rounded-none bg-black text-white hover:bg-orange-600 uppercase tracking-[0.2em] px-10 py-7 text-xs font-bold transition-all duration-300 shadow-none hover:shadow-lg"
+                    >
+                        <Link to="/" className="flex items-center gap-3">
+                            <ArrowLeft className="w-4 h-4" />
+                            Voltar ao Início
+                        </Link>
+                    </Button>
+                </div>
             </div>
         </div>
     );

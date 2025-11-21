@@ -1,84 +1,134 @@
-import React from 'react';
+import React from "react";
+import { Helmet } from "react-helmet-async";
+import Header from "../components/Header.tsx";
+import Footer from "../components/Footer.tsx";
 
-// Reutilize os componentes de estilo do outro ficheiro
-const PageContainer = ({ children }: { children: React.ReactNode }) => (
-    <div className="container mx-auto max-w-4xl px-4 py-16 pt-24 md:pt-32">
-        {children}
-    </div>
-);
-const H1 = ({ children }: { children: React.ReactNode }) => (
-    <h1 className="text-3xl font-bold mb-6 mt-8 first:mt-0">{children}</h1>
-);
-const H3 = ({ children }: { children: React.ReactNode }) => (
-    <h3 className="text-xl font-semibold mb-3 mt-6">{children}</h3>
-);
-const P = ({ children }: { children: React.ReactNode }) => (
-    <p className="mb-4 leading-relaxed">{children}</p>
-);
-const UL = ({ children }: { children: React.ReactNode }) => (
-    <ul className="list-disc list-inside mb-4 pl-4">{children}</ul>
-);
-
-
-const PoliticaDePrivacidadePage: React.FC = () => {
+const PoliticaDePrivacidadePage = () => {
     return (
-        <PageContainer>
-            {/* Cole o seu HTML da Política de Privacidade aqui dentro */}
-            {/* Lembre-se de substituir o conteúdo de exemplo pelo seu texto final */}
+        <div className="min-h-screen bg-white font-sans selection:bg-orange-200">
+            <Helmet>
+                <title>Política de Privacidade | Hellô Borges Fotografia</title>
+                <meta name="description" content="Saiba como tratamos seus dados e protegemos sua privacidade." />
+            </Helmet>
 
-            <H1>Política de Privacidade – Hellô Borges Fotografia</H1>
-            <P>Última atualização: 06/11/2025</P>
-            <P>A sua privacidade é importante para nós. Esta Política de Privacidade explica como Hellô Borges Fotografia ("nós", "nosso") recolhe, utiliza, armazena e protege os seus dados pessoais quando você utiliza o nosso site www.hellofotografia.com.br.</P>
+            <Header />
 
-            <H3>1. Que Dados Recolhemos?</H3>
-            <P>Recolhemos informações pessoais de duas formas principais:</P>
-            <UL>
-                <li><strong>Informações que Você Fornece:</strong>
-                    <ul className="list-['-_'] list-inside ml-4">
-                        <li><strong>Formulário de Contato:</strong> Nome, endereço de email e a mensagem que nos envia.</li>
-                        <li><strong>Portal do Cliente:</strong> Endereço de email e senha para criação e acesso à sua conta de cliente.</li>
-                    </ul>
-                </li>
-                <li><strong>Informações Automáticas:</strong>
-                    <ul className="list-['-_'] list-inside ml-4">
-                        <li>Podemos recolher dados básicos de navegação (como tipo de navegador, páginas visitadas) através de cookies ou ferramentas de análise para melhorar a experiência no site.</li>
-                    </ul>
-                </li>
-            </UL>
+            <main className="pt-32 md:pt-40 pb-20 bg-white">
+                {/* CABEÇALHO */}
+                <div className="container mx-auto px-6 max-w-3xl text-center mb-20 animate-fade-in-up">
+                    <span className="text-orange-600 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
+                        Informações Legais
+                    </span>
+                    <h1 className="text-4xl md:text-6xl font-serif text-black mb-6 font-medium">
+                        Política de Privacidade
+                    </h1>
+                    <div className="w-px h-16 bg-zinc-300 mx-auto mb-6"></div>
+                    <p className="text-black text-sm font-bold uppercase tracking-widest">
+                        Última atualização: {new Date().toLocaleDateString()}
+                    </p>
+                </div>
 
-            <H3>2. Como Usamos os Seus Dados?</H3>
-            <P>Utilizamos os seus dados pessoais para as seguintes finalidades:</P>
-            <UL>
-                <li><strong>Para Responder a Si:</strong> Usamos os dados do formulário de contato para responder às suas questões e pedidos de orçamento (como gerido por `api/send-email.js` e `api/messages.js`).</li>
-                <li><strong>Para Prestar Serviços:</strong> Usamos os dados da conta do Cliente para autenticar o seu acesso ao Portal do Cliente e permitir que veja e selecione as suas galerias de fotos (como gerido por `api/auth.js` e `api/portal/index.js`).</li>
-                <li><strong>Para Melhorar o Site:</strong> Dados de navegação ajudam-nos a entender como os utilizadores interagem com o nosso portfólio e blog.</li>
-            </UL>
+                {/* CONTEÚDO */}
+                <div className="container mx-auto px-6 max-w-3xl">
+                    <div className="space-y-16">
 
-            <H3>3. Partilha de Dados</H3>
-            <P>Nós não vendemos nem alugamos os seus dados pessoais a terceiros.</P>
-            <P>Podemos partilhar os seus dados com fornecedores de serviços essenciais que nos ajudam a operar o site, tais como:</P>
-            <UL>
-                <li><strong>Serviços de Email:</strong> Para o envio de emails de resposta ou recuperação de senha (Ex: O serviço usado em `api/send-email.js`).</li>
-                <li><strong>Serviços de Hospedagem:</strong> Onde os dados do site e das galerias são armazenados.</li>
-            </UL>
-            <P>Exigimos que estes fornecedores protejam os seus dados e os utilizem apenas para os fins contratados.</P>
+                        {/* INTRODUÇÃO */}
+                        <section>
+                            <p className="leading-relaxed text-black text-base font-normal p-6 bg-zinc-100 border-l-4 border-orange-600">
+                                A sua privacidade é importante para nós. É política do Hellô Borges Fotografia respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar no site <a href="https://helloborges.com.br" className="text-black font-bold hover:text-orange-600 underline decoration-orange-600 decoration-2 underline-offset-4">Hellô Borges Fotografia</a>, e outros sites que possuímos e operamos.
+                            </p>
+                        </section>
 
-            <H3>4. Segurança dos Dados</H3>
-            <P>Implementamos medidas de segurança técnicas e administrativas para proteger os seus dados pessoais, incluindo o uso de senhas (hash) para contas de clientes.</P>
+                        {/* SEÇÃO 1 */}
+                        <section>
+                            <h3 className="text-2xl font-serif mb-6 flex items-baseline gap-4 text-black">
+                                <span className="text-orange-600 font-sans text-sm font-bold tracking-widest">01.</span>
+                                Informações que coletamos
+                            </h3>
+                            <p className="leading-relaxed text-black text-base font-normal">
+                                Solicitamos informações pessoais apenas quando realmente precisamos delas para lhe fornecer um serviço. Fazemo-lo por meios justos e legais, com o seu conhecimento e consentimento. Também informamos por que estamos coletando e como será usado.
+                            </p>
+                        </section>
 
-            <H3>5. Os Seus Direitos (LGPD)</H3>
-            <P>Dependendo da sua localização, você tem o direito de:</P>
-            <UL>
-                <li><strong>Aceder:</strong> Solicitar uma cópia dos dados pessoais que temos sobre si.</li>
-                <li><strong>Corrigir:</strong> Pedir a correção de dados incompletos ou incorretos.</li>
-                <li><strong>Excluir:</strong> Solicitar a remoção dos seus dados pessoais dos nossos sistemas.</li>
-            </UL>
-            <P>Para exercer estes direitos, por favor, entre em contato connosco.</P>
+                        <div className="w-full h-px bg-zinc-200"></div>
 
-            <H3>6. Contato</H3>
-            <P>Se tiver dúvidas sobre esta Política de Privacidade, entre em contato através do hello@contato.com.</P>
+                        {/* SEÇÃO 2 */}
+                        <section>
+                            <h3 className="text-2xl font-serif mb-6 flex items-baseline gap-4 text-black">
+                                <span className="text-orange-600 font-sans text-sm font-bold tracking-widest">02.</span>
+                                Uso de Dados
+                            </h3>
+                            <p className="leading-relaxed text-black text-base font-normal">
+                                Apenas retemos as informações coletadas pelo tempo necessário para fornecer o serviço solicitado. Quando armazenamos dados, protegemos dentro de meios comercialmente aceitáveis ​​para evitar perdas e roubos, bem como acesso, divulgação, cópia, uso ou modificação não autorizados.
+                            </p>
+                        </section>
 
-        </PageContainer>
+                        <div className="w-full h-px bg-zinc-200"></div>
+
+                        {/* SEÇÃO 3 */}
+                        <section>
+                            <h3 className="text-2xl font-serif mb-6 flex items-baseline gap-4 text-black">
+                                <span className="text-orange-600 font-sans text-sm font-bold tracking-widest">03.</span>
+                                Compartilhamento
+                            </h3>
+                            <p className="leading-relaxed text-black text-base font-normal">
+                                Não compartilhamos informações de identificação pessoal publicamente ou com terceiros, exceto quando exigido por lei.
+                            </p>
+                        </section>
+
+                        <div className="w-full h-px bg-zinc-200"></div>
+
+                        {/* SEÇÃO 4 */}
+                        <section>
+                            <h3 className="text-2xl font-serif mb-6 flex items-baseline gap-4 text-black">
+                                <span className="text-orange-600 font-sans text-sm font-bold tracking-widest">04.</span>
+                                Cookies
+                            </h3>
+                            <p className="leading-relaxed text-black text-base font-normal">
+                                O nosso site pode usar "cookies" para melhorar a experiência do usuário. Você tem a opção de aceitar ou recusar esses cookies e saber quando um cookie está sendo enviado para o seu dispositivo.
+                            </p>
+                        </section>
+
+                        <div className="w-full h-px bg-zinc-200"></div>
+
+                        {/* SEÇÃO 5 */}
+                        <section>
+                            <h3 className="text-2xl font-serif mb-6 flex items-baseline gap-4 text-black">
+                                <span className="text-orange-600 font-sans text-sm font-bold tracking-widest">05.</span>
+                                Compromisso do Usuário
+                            </h3>
+                            <p className="leading-relaxed mb-6 text-black text-base font-normal">
+                                O usuário se compromete a fazer uso adequado dos conteúdos e da informação que o Hellô Borges Fotografia oferece no site e com caráter enunciativo, mas não limitativo:
+                            </p>
+
+                            <ul className="space-y-4 pl-6 border-l-2 border-zinc-300 ml-2 marker:text-orange-600">
+                                <li className="leading-relaxed text-black text-base font-normal">
+                                    <strong className="text-black mr-2">A)</strong> Não se envolver em atividades que sejam ilegais ou contrárias à boa fé a à ordem pública;
+                                </li>
+                                <li className="leading-relaxed text-black text-base font-normal">
+                                    <strong className="text-black mr-2">B)</strong> Não difundir propaganda ou conteúdo de natureza racista, xenofóbica, casas de apostas, jogos de sorte e azar, qualquer tipo de pornografia ilegal, de apologia ao terrorismo ou contra os direitos humanos;
+                                </li>
+                                <li className="leading-relaxed text-black text-base font-normal">
+                                    <strong className="text-black mr-2">C)</strong> Não causar danos aos sistemas físicos (hardwares) e lógicos (softwares) do Hellô Borges Fotografia, de seus fornecedores ou terceiros.
+                                </li>
+                            </ul>
+                        </section>
+
+                        <div className="w-full h-px bg-zinc-200"></div>
+
+                        {/* SEÇÃO 6 */}
+                        <section className="pt-4">
+                            <h3 className="text-xl font-bold mb-4 text-black uppercase tracking-widest text-sm">Mais informações</h3>
+                            <p className="leading-relaxed text-black text-base font-normal">
+                                Esperemos que esteja esclarecido e, como mencionado anteriormente, se houver algo que você não tem certeza se precisa ou não, geralmente é mais seguro deixar os cookies ativados, caso interaja com um dos recursos que você usa em nosso site.
+                            </p>
+                        </section>
+                    </div>
+                </div>
+            </main>
+
+            <Footer />
+        </div>
     );
 };
 

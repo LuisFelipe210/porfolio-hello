@@ -7,20 +7,21 @@ import { ThemeProvider } from "./components/ThemeProvider.tsx";
 import { MessagesProvider } from "./context/MessagesContext.tsx";
 import { HelmetProvider } from 'react-helmet-async';
 
-// Componentes Globais e Utilitários
 import ShutterPreloader from "./components/ShutterPreloader.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
 import PublicLayout from "./pages/PublicLayout.tsx";
 
-// --- Páginas com Lazy Loading ---
 const Index = lazy(() => import("./pages/Index.tsx"));
+const AboutPage = lazy(() => import("./pages/AboutPage.tsx"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage.tsx"));
 const BlogPage = lazy(() => import("./pages/BlogPage.tsx"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage.tsx"));
+const TermosDeUsoPage = lazy(() => import("./pages/TermosDeUsoPage.tsx"));
+const PoliticaDePrivacidadePage = lazy(() => import("./pages/PoliticaDePrivacidadePage.tsx"));
 
-// --- Páginas do Admin ---
 const AdminAvailability = lazy(() => import("./pages/Admin/AdminAvailability.tsx"));
 const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard.tsx"));
 const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin.tsx"));
@@ -35,15 +36,12 @@ const AdminBlog = lazy(() => import("./pages/Admin/AdminBlog.tsx"));
 const AdminClients = lazy(() => import("./pages/Admin/AdminClients.tsx"));
 const AdminClientGalleries = lazy(() => import("./pages/Admin/AdminClientGalleries.tsx"));
 
-// --- Páginas do Portal do Cliente ---
 const ClientLoginPage = lazy(() => import("./pages/Portal/ClientLoginPage.tsx"));
 const ClientLayout = lazy(() => import("./pages/Portal/ClientLayout.tsx"));
 const ClientGalleryPage = lazy(() => import("./pages/Portal/ClientGalleryPage.tsx"));
 const ClientResetPasswordPage = lazy(() => import("./pages/Portal/ClientResetPasswordPage.tsx"));
 const ForgotPasswordPage = lazy(() => import("./pages/Portal/ForgotPasswordPage.tsx"));
 const ResetPasswordWithTokenPage = lazy(() => import("./pages/Portal/ResetPasswordWithTokenPage.tsx"));
-const TermosDeUsoPage = lazy(() => import("./pages/TermosDeUsoPage.tsx"));
-const PoliticaDePrivacidadePage = lazy(() => import("./pages/PoliticaDePrivacidadePage.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -52,7 +50,6 @@ const PageLoader = () => (
         <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
     </div>
 );
-
 
 const AppContent = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -75,10 +72,10 @@ const AppContent = () => {
                 <Suspense fallback={<PageLoader />}>
                     <MessagesProvider>
                         <Routes>
-
-                            {/* --- Rotas Públicas agrupadas sob o PublicLayout --- */}
                             <Route element={<PublicLayout />}>
                                 <Route path="/" element={<Index />} />
+                                <Route path="/about" element={<AboutPage />} />
+                                <Route path="/services" element={<ServicesPage />} />
                                 <Route path="/blog" element={<BlogPage />} />
                                 <Route path="/blog/:slug" element={<BlogPostPage />} />
                                 <Route path="/portfolio" element={<PortfolioPage />} />
@@ -86,8 +83,6 @@ const AppContent = () => {
                                 <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidadePage />} />
                             </Route>
 
-
-                            {/* --- Rotas Clientes --- */}
                             <Route path="/portal/login" element={<ClientLoginPage />} />
                             <Route path="/portal/forgot-password" element={<ForgotPasswordPage />} />
                             <Route path="/portal/reset-password/:token" element={<ResetPasswordWithTokenPage />} />
@@ -96,7 +91,6 @@ const AppContent = () => {
                                 <Route path="reset-password" element={<ClientResetPasswordPage />} />
                             </Route>
 
-                            {/* --- Rotas Admin --- */}
                             <Route path="/admin/login" element={<AdminLogin />} />
                             <Route path="/admin" element={<AdminLayout />}>
                                 <Route index element={<AdminDashboard />} />
@@ -124,7 +118,7 @@ const AppContent = () => {
 const App = () => {
     return (
         <QueryClientProvider client={queryClient}>
-            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme" attribute="class">
                 <TooltipProvider>
                     <Toaster />
                     <HelmetProvider>

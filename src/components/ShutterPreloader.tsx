@@ -1,25 +1,26 @@
 import Logo from "../assets/logo.svg";
-import './ShutterPreloader.css';
 
 const ShutterPreloader = () => {
     return (
-        <div className="preloader-container">
-            <div className="logo-container">
-                <img src={Logo} alt="Hellô Borges" className="h-36 w-auto" />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white animate-preloader-exit pointer-events-none">
+
+            <div className="flex items-center gap-4 md:gap-6 animate-pulse-slow">
+
+                <img
+                    src={Logo}
+                    alt="Hellô Borges Logo"
+                    className="h-16 md:h-24 w-auto"
+                />
+
+                <div className="flex flex-col items-start justify-center">
+                    <h1 className="text-3xl md:text-5xl font-serif text-zinc-900 leading-none">
+                        Hellô Borges
+                    </h1>
+                    <span className="text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-orange-600 mt-1 md:mt-2 ml-1">
+                        Fotografia
+                    </span>
+                </div>
             </div>
-            <svg className="shutter-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-                <g>
-                    {/* As 6 lâminas do obturador */}
-                    {[0, 60, 120, 180, 240, 300].map((angle) => (
-                        <path
-                            key={angle}
-                            className="shutter-blade"
-                            transform={`rotate(${angle} 50 50)`}
-                            d="M 50 50 L 30 0 C 40 10, 60 10, 70 0 L 50 50 Z"
-                        />
-                    ))}
-                </g>
-            </svg>
         </div>
     );
 };

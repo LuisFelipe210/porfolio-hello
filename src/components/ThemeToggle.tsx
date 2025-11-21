@@ -8,7 +8,6 @@ export function ThemeToggle() {
     const { resolvedTheme, setTheme } = useTheme();
     const [currentTheme, setCurrentTheme] = useState(resolvedTheme || "light");
 
-    // Sincroniza com resolvedTheme (incluindo preferência do sistema)
     useEffect(() => {
         setCurrentTheme(resolvedTheme || "light");
     }, [resolvedTheme]);

@@ -1,65 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Cookie } from 'lucide-react';
 
-// Chave que usaremos para guardar a decisão no localStorage
 const COOKIE_CONSENT_KEY = "helloBorgesCookieConsent";
 
 const CookieConsentBanner: React.FC = () => {
-    // Estado para controlar se o banner deve ser visível
     const [isVisible, setIsVisible] = useState(false);
 
-    // No momento em que o componente é carregado, verificamos o localStorage
     useEffect(() => {
         const consentGiven = localStorage.getItem(COOKIE_CONSENT_KEY);
-        // Se o consentimento ainda NÃO foi dado ("true"), mostramos o banner
         if (consentGiven !== "true") {
             setIsVisible(true);
         }
     }, []);
 
-    // Função para aceitar e esconder o banner
     const handleAccept = () => {
-        // Guarda a decisão no localStorage para não perguntar de novo
         localStorage.setItem(COOKIE_CONSENT_KEY, "true");
         setIsVisible(false);
     };
 
-    // Se não for para ser visível (já aceitou), não renderiza nada
     if (!isVisible) {
         return null;
     }
 
-    // Renderiza o banner usando os componentes Alert e Button do seu site
     return (
-        <Alert className="fixed bottom-4 left-4 md:bottom-8 md:left-8 w-[calc(100%-2rem)] max-w-md z-50 shadow-lg border-primary/20 bg-background/90 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-4">
+        <div className="fixed bottom-0 left-0 w-full md:w-auto md:bottom-8 md:left-8 z-[9999] p-4 md:p-0 animate-in slide-in-from-bottom-4 duration-700">
 
-            {/* Ícone a condizer */}
-            <Cookie className="h-5 w-5 text-primary" />
+            <div className="bg-white border border-zinc-200 shadow-[0_10px_40px_rgba(0,0,0,0.1)] p-8 max-w-md relative">
 
-            <AlertTitle className="font-bold text-lg text-foreground">
-                Usamos cookies
-            </AlertTitle>
+                <div className="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
 
-            <AlertDescription className="text-sm text-muted-foreground pr-4">
-                Nós usamos cookies essenciais e de preferência para melhorar sua experiência.
-                Ao continuar, você concorda com nossa{" "}
-                <Link
-                    to="/politica-de-privacidade"
-                    className="font-semibold text-primary underline hover:text-primary/80"
-                >
-                    Política de Privacidade
-                </Link>.
-            </AlertDescription>
+                <div className="flex items-start gap-5">
+                    <div className="mt-1 p-2 bg-zinc-50 border border-zinc-100 shrink-0 text-orange-600">
+                        <Cookie className="h-6 w-6" strokeWidth={1.5} />
+                    </div>
 
-            <div className="mt-4 flex justify-end">
-                <Button onClick={handleAccept} size="sm">
-                    Entendi
-                </Button>
+                    <div className="space-y-3">
+                        <h3 className="font-serif text-xl text-zinc-900 leading-none">
+                            Privacidade & Cookies
+                        </h3>
+
+                        <p className="text-sm text-zinc-600 font-light leading-relaxed">
+                            Utilizamos cookies para melhorar sua experiência visual. Ao continuar navegando, você concorda com nossa{" "}
+                            <Link
+                                to="/politica-de-privacidade"
+                                className="text-zinc-900 font-bold border-b border-zinc-300 hover:text-orange-600 hover:border-orange-600 transition-all"
+                            >
+                                Política de Privacidade
+                            </Link>.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-8 flex justify-end">
+                    <Button
+                        onClick={handleAccept}
+                        className="rounded-none bg-zinc-900 text-white hover:bg-orange-600 uppercase tracking-widest text-xs px-8 py-6 h-auto transition-all duration-300 w-full md:w-auto shadow-none"
+                    >
+                        Concordar e Fechar
+                    </Button>
+                </div>
             </div>
-        </Alert>
+        </div>
     );
 };
 

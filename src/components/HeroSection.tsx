@@ -1,74 +1,76 @@
 import { ArrowDown } from "lucide-react";
-import Logo from "../assets/logo.svg";
 import { optimizeCloudinaryUrl, generateCloudinarySrcSet } from "@/lib/utils";
-
-// 1. ARRANQUEI A API E O useQuery DAQUI, PORRA
 
 const HeroSection = () => {
 
-    // 2. TIREI O useQuery, o fetchSettings e o isLoading
-
-    const scrollToPortfolio = () => {
-        document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" });
+    const handleScrollDown = () => {
+        window.scrollBy({
+            top: window.innerHeight,
+            behavior: "smooth"
+        });
     };
 
     const heroImageUrl = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
-    const widths = [400, 800, 1200, 1920];
+    const widths = [600, 1200, 1920];
     const baseTransforms = "f_auto,q_auto";
 
     return (
-        <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <section id="home" className="relative h-screen w-full overflow-hidden bg-zinc-950">
+
             <div className="absolute inset-0 z-0">
                 <img
                     src={optimizeCloudinaryUrl(heroImageUrl, `${baseTransforms},w_${widths[0]}`)}
                     srcSet={generateCloudinarySrcSet(heroImageUrl, widths, baseTransforms)}
                     sizes="100vw"
-                    alt="Hello Borges"
-                    className="w-full h-full min-h-screen object-cover"
+                    alt="Hellô Borges Fotografia"
+                    className="w-full h-full object-cover opacity-80 brightness-[0.6] scale-105 animate-pulse-slow"
+                    style={{ animationDuration: '10s' }}
                     loading="eager"
-                    fetchPriority="high"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
-                <div
-                    className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0a0a0a]/100 via-[#0a0a0a]/40 to-transparent"></div>
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
             </div>
 
-            <div className="relative z-10 text-left text-white px-12 max-w-6xl mx-auto w-full">
+            <div className="relative z-10 h-full container mx-auto px-6 md:px-12 grid grid-rows-[1fr_auto] pb-12 md:pb-16">
 
-                {/* 3. TIREI O WRAPPER !isLoading */}
-                <div className="flex flex-col items-center justify-center w-full">
+                <div className="hidden md:block"></div>
 
-                    <div className="flex items-end gap-3 mb-2 animate-fade-in-up">
+                <div className="flex flex-col md:flex-row items-end justify-between gap-8 md:gap-6 w-full">
 
-                        <img
-                            src={Logo}
-                            alt="Hellô Borges Logo"
-                            className="h-12 sm:h-22 md:h-32 w-auto shrink-0"
-                        />
-
-                        <div className="flex flex-col">
-                            <h1 className="text-4xl sm:text-6xl md:text-8xl font-title leading-none text-white">
-                                Hellô Borges
-                            </h1>
-                            <p className="text-xs sm:text-2xl md:text-4xl font-sans font-light tracking-[0.4em] uppercase leading-tight -mt-1 md:-mt-3 text-white">
-                                FOTOGRAFIA
+                    <div className="flex flex-col justify-end md:justify-end h-full md:h-auto w-full md:w-auto mb-10 md:mb-0">
+                        <div className="overflow-hidden">
+                            <p className="text-orange-500 text-xs md:text-sm font-bold tracking-[0.4em] uppercase mb-4 animate-fade-in-up">
+                                Portfolio &bull; {new Date().getFullYear()}
                             </p>
                         </div>
+
+                        <h1 className="text-[5rem] leading-[0.85] md:text-[7rem] lg:text-[8rem] xl:text-[10rem] font-serif text-white mix-blend-overlay opacity-90 animate-fade-in-up delay-100 tracking-tight">
+                            Hellô <br className="md:hidden" />
+                            <span className="italic font-light ml-2 md:ml-0">Borges</span>
+                        </h1>
+                    </div>
+
+                    <div className="flex flex-col items-start md:items-end gap-8 md:gap-12 animate-fade-in-up delay-300 w-full md:w-auto border-t border-white/20 md:border-t-0 pt-8 md:pt-0">
+
+                        <p className="text-zinc-300 font-light text-base md:text-lg max-w-xs leading-relaxed md:text-right">
+                            Sentimento em forma de foto 🧡
+                            <span className="block mt-2 text-white font-medium tracking-wide">Bahia, Brasil.</span>
+                        </p>
+
+                        <button
+                            onClick={handleScrollDown}
+                            className="group flex flex-col items-center gap-4 text-white/70 hover:text-orange-500 transition-all duration-500 cursor-pointer"
+                            aria-label="Rolar para baixo"
+                        >
+                            <span className="text-[10px] uppercase tracking-[0.3em] font-bold group-hover:tracking-[0.4em] transition-all">
+                                Explorar
+                            </span>
+
+                            <div className="h-12 w-[1px] bg-white/30 group-hover:h-20 group-hover:bg-orange-500 transition-all duration-500 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-1/2 bg-orange-500 animate-bounce-slow"></div>
+                            </div>
+                        </button>
                     </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-                </div>
-            </div>
-
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-float">
-                <button
-                    onClick={scrollToPortfolio}
-                    className="text-white hover:text-white/70 transition-colors"
-                    aria-label="Rolar para o portfólio"
-                >
-                    <ArrowDown size={24} />
-                </button>
             </div>
         </section>
     );

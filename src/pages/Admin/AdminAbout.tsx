@@ -203,9 +203,7 @@ const AdminAbout = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                {/* Grid Layout Responsivo */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* Card de Textos - Ocupa 2 colunas em telas grandes */}
                     <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10 lg:col-span-2">
                         <CardHeader className="flex flex-row items-center justify-between pb-3">
                             <div>
@@ -228,7 +226,6 @@ const AdminAbout = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Card de Imagem */}
                     <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                         <CardHeader className="flex flex-row items-center justify-between pb-3">
                             <div>
@@ -253,8 +250,7 @@ const AdminAbout = () => {
                             )}
                         </CardContent>
                     </Card>
-
-                    {/* Card de Estatísticas */}
+]
                     <Card className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md border-white/10">
                         <CardHeader className="flex flex-row items-center justify-between pb-3">
                             <div>

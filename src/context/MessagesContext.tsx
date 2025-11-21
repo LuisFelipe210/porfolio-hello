@@ -5,7 +5,6 @@ interface MessagesContextType {
     refreshMessages: () => Promise<void>;
 }
 
-// O valor padrão pode ser undefined para apanhar erros se o provider não for usado
 const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
 
 export const MessagesProvider = ({ children }: { children: ReactNode }) => {
@@ -19,7 +18,6 @@ export const MessagesProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
 
-            // --- CORREÇÃO: Adicionado o parâmetro ?action=getGalleries ---
             const response = await fetch("/api/messages?action=getGalleries", {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -30,7 +28,6 @@ export const MessagesProvider = ({ children }: { children: ReactNode }) => {
 
             const data = await response.json();
 
-            // A sua lógica aqui já estava perfeita!
             const unreadContactMessages = data.messages?.some((msg: { read: boolean }) => !msg.read) || false;
             const unreadSelections = data.selections?.some((sel: { read: boolean }) => !sel.read) || false;
 

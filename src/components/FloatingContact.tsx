@@ -85,7 +85,7 @@ const FloatingContact = () => {
             });
 
             setFormData({ name: "", email: "", phone: "", service: "", message: "" });
-            setIsDialogOpen(false); // Fecha o diálogo após o envio
+            setIsDialogOpen(false);
 
         } catch (error) {
             console.error(error);
@@ -103,15 +103,13 @@ const FloatingContact = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Função separada para o componente Select
     const handleServiceChange = (value: string) => {
         setFormData({ ...formData, service: value });
     };
 
     return (
-        <div className="fixed bottom-6 left-6 z-50 flex flex-col items-center gap-3">
+        <div className="fixed bottom-2 right-3 z-50 flex flex-col items-center gap-2">
 
-            {/* Botão do WhatsApp */}
             <FloatingButton
                 icon={<FaWhatsapp size={24} />}
                 href="https://wa.me/5574991248392?text=Olá,%20gostaria%20de%20solicitar%20um%20orçamento."
@@ -120,7 +118,6 @@ const FloatingContact = () => {
                 ariaLabel="WhatsApp"
             />
 
-            {/* Botão de Email que abre o diálogo */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                     <FloatingButton
@@ -138,7 +135,6 @@ const FloatingContact = () => {
                             Preencha o formulário e vamos criar algo incrível juntos.
                         </DialogDescription>
                     </DialogHeader>
-                    {/* Renderiza o componente de formulário separado */}
                     <ContactForm
                         formData={formData}
                         isSubmitting={isSubmitting}

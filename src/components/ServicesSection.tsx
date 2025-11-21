@@ -1,135 +1,17 @@
-import { Camera, Heart, Users, UserPlus, Check, Hand } from "lucide-react";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Skeleton } from "./ui/skeleton";
-import { optimizeCloudinaryUrl } from "@/lib/utils";
+import { ArrowUpRight, Check } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
+import { optimizeCloudinaryUrl } from "@/lib/utils";
+import { Skeleton } from "./ui/skeleton";
 
-// --- Interface e Mapeamento de Ícones ---
 interface Service {
     _id: string;
     title: string;
     description: string;
-    icon: keyof typeof iconMap;
+    icon: string;
     features: string[];
     imageUrl: string;
-    alt?: string;
 }
 
-const iconMap: { [key: string]: React.ElementType } = {
-    Camera: Camera,
-    Heart: Heart,
-    UserPlus: UserPlus,
-    Users: Users,
-};
-
-// --- Componente do Card Individual ---
-const ServiceCard = ({ service }: { service: Service }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const Icon = iconMap[service.icon] || Camera;
-
-    const optimizedImageUrl = optimizeCloudinaryUrl(
-        service.imageUrl,
-        'f_auto,q_auto,w_600'
-    );
-
-    const handleCardClick = () => {
-        // No desktop, não faz nada (hover funciona)
-        // No mobile, abre/fecha
-        if (window.innerWidth < 1024) {
-            setIsOpen(!isOpen);
-        }
-    };
-
-    return (
-        <div
-            onClick={handleCardClick}
-            className={`
-                group relative flex-shrink-0 w-full h-[45vh] md:h-[55vh] max-h-[480px]
-                rounded-2xl overflow-hidden shadow-2xl transform-gpu snap-center
-                cursor-pointer transition-all duration-300
-            `}
-        >
-            <img
-                src={optimizedImageUrl}
-                alt={service.alt || service.title}
-                loading="lazy"
-                className={`absolute inset-0 w-full h-full object-cover
-                           transition-all duration-700 ease-in-out
-                           lg:group-hover:scale-110 lg:group-hover:blur-sm
-                           ${isOpen ? 'scale-110 blur-sm' : ''}`}
-            />
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent 
-                            transition-all duration-500 lg:group-hover:bg-black/80
-                            ${isOpen ? 'bg-black/80' : ''}`}
-            />
-
-            {/* Indicador de clique (apenas mobile) */}
-            <div className="lg:hidden absolute top-4 right-4 z-10">
-                <div className={`w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center 
-                               border border-white/30 transition-all duration-300
-                               ${isOpen ? 'opacity-0' : 'opacity-100'}`}
-                     style={{
-                         animation: isOpen ? 'none' : 'pulse-slow 3s ease-in-out infinite'
-                     }}>
-                    <Hand className="w-5 h-5 text-white" />
-                </div>
-            </div>
-
-            <style>{`
-                @keyframes pulse-slow {
-                    0%, 100% {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                    50% {
-                        opacity: 0.6;
-                        transform: scale(1.1);
-                    }
-                }
-            `}</style>
-
-            <div className="relative z-20 h-full flex flex-col justify-end p-6 md:p-8 text-white pointer-events-auto">
-                <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
-                        <Icon className="w-5 h-5 text-orange-400" />
-                    </div>
-                    <h3 className="text-2xl font-bold">{service.title}</h3>
-                </div>
-
-                <div className={`transition-all duration-500 ease-in-out
-                                lg:group-hover:opacity-100 lg:group-hover:max-h-96 lg:group-hover:mt-6 lg:group-hover:translate-y-0
-                                lg:opacity-0 lg:max-h-0 lg:translate-y-4
-                                lg:group-hover:pointer-events-auto
-                                ${isOpen ? 'opacity-100 max-h-96 mt-6 translate-y-0' : 'opacity-0 max-h-0 translate-y-4'}`}
-                >
-                    <p className="text-white/80 leading-relaxed text-sm mb-4">{service.description}</p>
-                    {service.features && service.features.length > 0 && (
-                        <ul className="space-y-1.5 mb-4">
-                            {service.features.map((f: string, idx: number) => (
-                                <li key={idx} className="text-sm text-white/90 flex items-start">
-                                    <Check className="w-4 h-4 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                                    {f}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                    <a
-                        href={`https://api.whatsapp.com/send?phone=5574991248392&text=${encodeURIComponent('Olá, gostaria de saber os valores para o serviço ' + service.title + '.')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="relative z-30 bg-orange-500 text-white dark:text-black font-semibold px-4 py-1.5 rounded-lg
-                                   hover:bg-orange-600 transition-colors inline-block self-start text-xs md:text-sm shadow-lg"
-                    >
-                        Consultar Valores
-                    </a>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --- Componente Principal da Seção de Serviços ---
 const fetchServices = async (): Promise<Service[]> => {
     const response = await fetch('/api/services');
     if (!response.ok) throw new Error('Falha ao buscar serviços');
@@ -140,114 +22,89 @@ const ServicesSection = () => {
     const { data: services = [], isLoading } = useQuery<Service[], Error>({
         queryKey: ['services'],
         queryFn: fetchServices,
-        staleTime: 1000 * 60 * 5, // opcional: cache 5 minutos
     });
 
-    const [activeIndex, setActiveIndex] = useState(0);
-    const carouselRef = useRef<HTMLDivElement | null>(null);
-
-    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
-
-    const updateCarouselState = useCallback(() => {
-        if (isDesktop || !carouselRef.current) return;
-        const el = carouselRef.current;
-        const cardContainer = el.children[0];
-        if (!cardContainer) return;
-
-        const cardWidth = (cardContainer as HTMLElement).clientWidth;
-        const gap = 16;
-        const newActiveIndex = Math.round(el.scrollLeft / (cardWidth + gap));
-        setActiveIndex(newActiveIndex);
-    }, [isDesktop]);
-
-    useEffect(() => {
-        const el = carouselRef.current;
-        if (!el || isLoading) return;
-        updateCarouselState();
-        if (!isDesktop) {
-            el.addEventListener("scroll", updateCarouselState, { passive: true });
-        }
-        return () => {
-            if (!isDesktop) el.removeEventListener("scroll", updateCarouselState);
-        };
-    }, [isDesktop, isLoading, updateCarouselState]);
-
-    const scrollToIndex = (index: number) => {
-        if (!carouselRef.current) return;
-        const el = carouselRef.current;
-        const cardWidth = el.children[0]?.clientWidth || el.clientWidth;
-        const gap = 16;
-        el.scrollTo({ left: index * (cardWidth + gap), behavior: "smooth" });
-    };
-
     return (
-        <section id="services" className="py-16 md:py-24 bg-background">
-            <div className="container mx-auto max-w-screen-2xl">
-                <div className="mb-16 px-4">
-                    <div className="flex justify-center">
-                        <h2 className="text-4xl md:text-5xl font-semibold animate-fade-in text-center">SERVIÇOS</h2>
-                    </div>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in text-center mt-4">
-                        Oferecendo diferentes tipos de sessões fotográficas, para capturar o que há de mais especial.
+        <section id="services" className="py-24 bg-white border-t border-zinc-100">
+            <div className="container mx-auto px-6">
+
+                <div className="mb-16 flex flex-col md:flex-row justify-between items-end border-b border-zinc-200 pb-8">
+                    <h2 className="text-4xl md:text-6xl font-serif text-zinc-900 leading-none">
+                        Experiências <br />
+                        <span className="italic text-zinc-400 text-3xl md:text-5xl">Fotográficas</span>
+                    </h2>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] max-w-xs text-right hidden md:block text-orange-600">
+                        Memórias tangíveis
                     </p>
                 </div>
 
-                <div className="relative">
-                    <div
-                        ref={carouselRef}
-                        style={{
-                            scrollbarWidth: !isDesktop ? 'none' : undefined,
-                            msOverflowStyle: !isDesktop ? 'none' : undefined,
-                            WebkitOverflowScrolling: !isDesktop ? 'touch' : undefined
-                        }}
-                        className={`${!isDesktop ? "flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 gap-4" : "lg:grid lg:grid-cols-4 lg:gap-6 lg:px-4"}`}
-                        data-carousel-scroll={!isDesktop ? true : undefined}
-                    >
-                        {isLoading ? (
-                            Array.from({ length: 4 }).map((_, idx) => (
-                                <div key={idx} className="flex-shrink-0 basis-[90%] sm:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto">
-                                    <Skeleton className="h-[45vh] md:h-[55vh] max-h-[480px] w-full rounded-2xl bg-zinc-800" />
-                                </div>
-                            ))
-                        ) : services.length === 0 ? (
-                            <div className="col-span-4 text-center py-12">
-                                <p className="text-muted-foreground">Nenhum serviço disponível no momento.</p>
-                            </div>
-                        ) : (
-                            services.map((service) => (
-                                <div
-                                    key={service._id}
-                                    className="flex-shrink-0 basis-[90%] sm:basis-[calc(50%-8px)] md:basis-[calc(50%-8px)] lg:basis-auto lg:w-auto snap-start"
-                                >
-                                    <ServiceCard service={service} />
-                                </div>
-                            ))
-                        )}
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <Skeleton className="h-[500px] w-full rounded-none" />
+                        <Skeleton className="h-[500px] w-full rounded-none" />
                     </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
+                        {services.map((service, index) => (
+                            <div
+                                key={service._id}
+                                className="group relative bg-white h-auto min-h-[500px] flex flex-col justify-between p-8 md:p-12 hover:bg-zinc-50 transition-colors duration-500"
+                            >
+                                <div className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-700 pointer-events-none">
+                                    <img
+                                        src={optimizeCloudinaryUrl(service.imageUrl, 'f_auto,q_auto,w_800')}
+                                        className="w-full h-full object-cover grayscale opacity-90"
+                                        alt=""
+                                    />
+                                </div>
 
-                    {!isLoading && !isDesktop && services.length > 1 && (
-                        <div className="flex justify-center space-x-2 mt-8 lg:hidden">
-                            {services.map((_, idx) => (
-                                <button
-                                    key={idx}
-                                    className={
-                                        `w-2.5 h-2.5 rounded-full transition-transform duration-300 ` +
-                                        (idx === activeIndex
-                                            ? "bg-black dark:bg-white scale-150"
-                                            : "bg-gray-400 scale-100")
-                                    }
-                                    onClick={() => scrollToIndex(idx)}
-                                    aria-label={`Ir para o serviço ${services[idx]?.title || ''}`}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-8">
+                                        <span className="text-lg font-serif text-zinc-300 group-hover:text-orange-500 transition-colors">
+                                            0{index + 1}
+                                        </span>
+
+                                        <div className="p-2 rounded-full border border-zinc-100 group-hover:border-orange-500 group-hover:bg-orange-500 transition-all duration-500">
+                                            <ArrowUpRight
+                                                className="w-5 h-5 text-zinc-400 group-hover:text-white group-hover:rotate-45 transition-all duration-500"
+                                                strokeWidth={1.5}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <h3 className="text-3xl md:text-4xl font-serif text-zinc-900 mb-6 group-hover:translate-x-1 transition-transform duration-500 drop-shadow-sm">
+                                        {service.title}
+                                    </h3>
+
+                                    <p className="text-zinc-700 font-light leading-relaxed text-sm md:text-base max-w-md drop-shadow-sm">
+                                        {service.description}
+                                    </p>
+                                </div>
+
+                                <div className="relative z-10 mt-10 pt-8 border-t border-zinc-100 group-hover:border-zinc-300 transition-colors">
+                                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 mb-8">
+                                        {service.features.slice(0, 4).map((feature, idx) => (
+                                            <li key={idx} className="text-xs font-medium uppercase tracking-wide text-zinc-600 flex items-center gap-3 drop-shadow-sm">
+                                                <Check className="w-3 h-3 text-orange-500" strokeWidth={3} />
+                                                {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    <a
+                                        href={`https://wa.me/5574991248392?text=Olá, gostaria de saber sobre ${service.title}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 border-b-2 border-zinc-200 pb-1 hover:text-orange-600 hover:border-orange-600 transition-all drop-shadow-sm"
+                                    >
+                                        Consultar Valores
+                                    </a>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
-            <style>{`
-                [data-carousel-scroll]::-webkit-scrollbar { display: none; }
-                [data-carousel-scroll] { -webkit-overflow-scrolling: touch; scrollbar-width: none; ms-overflow-style: none; }
-            `}</style>
         </section>
     );
 };

@@ -13,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function optimizeCloudinaryUrl(url: string, transformations: string): string {
     if (!url || !url.includes('/upload/')) {
-        return url; // Retorna o URL original se não for um URL válido do Cloudinary
+        return url;
     }
 
     const parts = url.split('/upload/');
@@ -38,12 +38,11 @@ export function generateCloudinarySrcSet(
     baseTransforms: string = "f_auto,q_auto"
 ): string {
     if (!baseUrl || !baseUrl.includes('/upload/')) {
-        return ''; // Retorna vazio se não for um URL válido
+        return '';
     }
 
     const parts = baseUrl.split('/upload/');
     const prefix = `${parts[0]}/upload/`;
-    // parts[1] já contém o ID da versão e da imagem (ex: v176.../hero-portrait.jpg)
     const suffix = parts[1];
 
     return widths

@@ -1,120 +1,164 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
-import { ThemeToggle } from "./ThemeToggle.tsx";
 
-interface HeaderProps {
-    variant?: "default" | "minimal";
-    isLoginPage?: boolean;
-}
-
-const Header = ({ variant = "default", isLoginPage = false }: HeaderProps) => {
+const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+    const location = useLocation();
+
+    const isDarkHeroPage = location.pathname === "/";
 
     useEffect(() => {
-        document.body.style.overflow = isMenuOpen ? 'hidden' : 'unset';
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 50);
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    useEffect(() => {
+        if (isMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
         return () => { document.body.style.overflow = 'unset'; };
     }, [isMenuOpen]);
 
-    const scrollToSection = (sectionId: string) => {
-        if (window.location.pathname === '/') {
-            const element = document.getElementById(sectionId);
-            if (element) element.scrollIntoView({ behavior: "smooth" });
-        }
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         setIsMenuOpen(false);
     };
 
     const navLinks = [
-        { id: "home", label: "Início", isPage: false },
-        { id: "about", label: "Sobre", isPage: false },
-        { id: "portfolio", label: "Portfólio", isPage: false },
-        { id: "services", label: "Serviços", isPage: false },
-        { id: "blog", label: "Blog", isPage: true },
+        { id: "", label: "Início" },
+        { id: "about", label: "Sobre" },
+        { id: "portfolio", label: "Portfólio" },
+        { id: "services", label: "Investimento" },
+        { id: "blog", label: "Journal" },
     ];
 
-    const visibleNavLinks = navLinks;
+    const isTransparentState = isDarkHeroPage && !scrolled && !isMenuOpen;
 
-    const linkClasses = "drop-shadow-lg font-bold whitespace-nowrap text-black dark:text-white hover:text-orange-500 dark:hover:text-orange-500 transition-colors uppercase";
-    const buttonIconClasses = "text-black dark:text-white";
+    const headerClasses = `fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b
+        ${isTransparentState
+        ? "bg-transparent border-transparent py-6"
+        : "bg-white/95 backdrop-blur-md shadow-sm border-zinc-100 py-3"
+    }`;
+
+    const textColorClass = isTransparentState ? "text-white" : "text-zinc-900";
+    const hoverColorClass = isTransparentState ? "hover:text-orange-400" : "hover:text-orange-600";
 
     return (
         <>
-            <header
-                className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500
-                    bg-white/50 dark:bg-zinc-900/20 backdrop-blur-md shadow-inner border border-white/20 dark:border-zinc-800/20 rounded-xl
-                    h-[70px] w-[95%] sm:w-[90%] md:w-[70%]`}
-            >
-                <nav className="px-3 sm:px-4 md:px-5 py-4 sm:py-3 md:py-3 flex flex-nowrap items-center justify-between">
-                    <div className="flex items-center shrink-0">
-                        <Link to="/" onClick={() => scrollToSection("home")} className="focus:outline-none">
-                            <img src={Logo} alt="Logo da Hellô Borges" className="h-10 sm:h-10 md:h-12 w-auto cursor-pointer" />
+            <header className={headerClasses}>
+                <nav className="container mx-auto px-6 md:px-12 flex items-center justify-between relative">
+
+                    {/* LOGO */}
+                    <div className="flex items-center shrink-0 z-50">
+                        <Link to="/" onClick={scrollToTop} className="focus:outline-none group">
+                            <img
+                                src={Logo}
+                                alt="Hellô Borges"
+                                className={`transition-all duration-500 w-auto ${scrolled ? "h-8" : "h-10"}`}
+                            />
                         </Link>
                     </div>
 
-                    <div className="hidden lg:flex items-center sm:space-x-2 md:space-x-6 flex-nowrap">
-                        {visibleNavLinks.map(({ id, label, isPage }) => isPage ? (
-                            <Link key={id} to={`/${id}`} className={linkClasses}>{label}</Link>
-                        ) : (
-                            <Link key={id} to={`/#${id}`} onClick={() => scrollToSection(id)} className={linkClasses}>{label}</Link>
-                        ))}
+                    {/* DESKTOP MENU */}
+                    <div className="hidden lg:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full pointer-events-none">
+                        <div className="pointer-events-auto flex gap-10">
+                            {navLinks.map(({ id, label }) => {
+                                const isActive = location.pathname === (id === "" ? "/" : `/${id}`);
+
+                                return (
+                                    <Link
+                                        key={id}
+                                        to={id === "" ? "/" : `/${id}`}
+                                        onClick={scrollToTop}
+                                        className={`text-xs font-bold uppercase tracking-[0.2em] transition-colors relative group py-2 ${
+                                            isActive
+                                                ? "text-orange-500"
+                                                : `${textColorClass} ${hoverColorClass}`
+                                        }`}
+                                    >
+                                        {label}
+                                        <span className={`absolute bottom-0 left-0 h-[1px] bg-orange-500 transition-all duration-300 ${isActive ? "w-full opacity-100" : "w-0 group-hover:w-full opacity-0 group-hover:opacity-100"}`}></span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    <div className="hidden lg:flex items-center gap-1 sm:gap-2 shrink-0">
+                    {/* BOTÃO ÁREA DO CLIENTE */}
+                    <div className="hidden lg:flex items-center gap-6 shrink-0 z-50">
                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="gap-2 whitespace-nowrap text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 px-4 py-2 relative flex items-center justify-center w-8 h-8 rounded-full bg-white/20 dark:bg-black/20 text-neutral-900 dark:text-white backdrop-blur-sm transition-all duration-300 active:scale-95"
+                            asChild
+                            variant="outline"
+                            className={`
+                                rounded-none uppercase tracking-widest text-[10px] px-6 py-5 border font-bold transition-all duration-300
+                                ${isTransparentState
+                                ? "bg-transparent border-white text-white hover:bg-white hover:text-black"
+                                : "bg-transparent border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white"
+                            }
+                            `}
                         >
-                            <ThemeToggle />
-                        </Button>
-                        <Button variant="ghost" asChild className={`p-2 rounded-xl font-bold ${buttonIconClasses} uppercase`}>
-                            <Link to="/portal/login" className="flex items-center text-black dark:text-white">
-                                <User className="mr-2 h-5 w-5" /> Entrar
+                            <Link to="/portal/login" className="flex items-center gap-2">
+                                <User size={14} />
+                                <span>Área do Cliente</span>
                             </Link>
                         </Button>
                     </div>
 
-                    {/* Mobile Menu Toggle */}
-                    <div className="flex items-center gap-1 lg:hidden shrink-0">
-                        <ThemeToggle />
-                        <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} className={`${buttonIconClasses} relative z-[60] h-8 w-8`}>
-                            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                        </Button>
+                    <div className="flex items-center lg:hidden shrink-0 z-50">
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className={`p-2 transition-colors ${textColorClass} hover:text-orange-500`}
+                        >
+                            {isMenuOpen ? <X size={28} strokeWidth={1} /> : <Menu size={28} strokeWidth={1} />}
+                        </button>
                     </div>
                 </nav>
             </header>
 
-            {/* Menu Mobile Full Screen */}
-            <div className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)}>
-                <div className={`h-full w-full flex flex-col items-center justify-center transition-all duration-300 ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
-                    <div className="flex flex-col items-center space-y-8 px-6 w-full">
-                        {visibleNavLinks.map(({ id, label, isPage }, index) => {
-                            const linkTarget = isPage ? `/${id}` : `/#${id}`;
-                            return (
-                                <Link
-                                    key={id}
-                                    to={linkTarget}
-                                    onClick={(e) => { e.stopPropagation(); scrollToSection(id); setIsMenuOpen(false); }}
-                                    className="text-2xl font-bold text-black dark:text-white hover:text-orange-500 transition-all duration-300 uppercase tracking-wide hover:scale-110 active:scale-95"
-                                    style={{ transitionDelay: isMenuOpen ? `${index * 50}ms` : '0ms' }}
-                                >
-                                    {label}
-                                </Link>
-                            );
-                        })}
+            <div
+                className={`fixed inset-0 z-40 lg:hidden transition-all duration-700 bg-white flex flex-col justify-center ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+            >
+                <div className="relative z-10 flex flex-col items-center space-y-8 p-6">
+                    {navLinks.map(({ id, label }, index) => {
+                        const isActive = location.pathname === (id === "" ? "/" : `/${id}`);
+                        return (
+                            <Link
+                                key={id}
+                                to={id === "" ? "/" : `/${id}`}
+                                onClick={() => { setIsMenuOpen(false); scrollToTop(); }}
+                                className={`
+                                    text-4xl font-serif transition-all duration-500 
+                                    ${isActive ? "text-orange-600 italic scale-110" : "text-zinc-900 hover:text-orange-500 hover:italic"}
+                                    ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}
+                                `}
+                                style={{ transitionDelay: `${index * 100}ms` }}
+                            >
+                                {label}
+                            </Link>
+                        );
+                    })}
 
-                        <div className="w-16 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent my-4" />
+                    <div className={`w-12 h-px bg-zinc-200 my-4 transition-all duration-700 delay-500 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} />
 
-                        <Link
-                            to="/portal/login"
-                            onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); }}
-                            className="flex items-center gap-3 text-lg font-bold text-black dark:text-white hover:text-orange-500 transition-all duration-300 uppercase hover:scale-110 active:scale-95 border-2 border-orange-500/30 px-6 py-3 rounded-xl hover:border-orange-500"
-                        >
-                            <User className="h-5 w-5" /> Portal do Cliente
-                        </Link>
-                    </div>
+                    <Link
+                        to="/portal/login"
+                        onClick={() => { setIsMenuOpen(false); }}
+                        className={`
+                            text-sm font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-orange-600 transition-all duration-500 delay-700
+                            ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}
+                        `}
+                    >
+                        Área do Cliente
+                    </Link>
                 </div>
             </div>
         </>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Skeleton } from './ui/skeleton';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
 import { Button } from './ui/button';
-import TestimonialCard from './TestimonialCard';
 import { useQuery } from '@tanstack/react-query';
+import { optimizeCloudinaryUrl } from "@/lib/utils";
 
 interface TestimonialFromAPI {
     _id: string;
@@ -15,8 +15,6 @@ interface TestimonialFromAPI {
     alt?: string;
 }
 
-const cardRotations = [3, -1, 2, -3, 2, -3, 3];
-
 const fetchTestimonials = async (): Promise<TestimonialFromAPI[]> => {
     const response = await fetch('/api/testimonials');
     if (!response.ok) throw new Error('Falha ao buscar depoimentos.');
@@ -24,13 +22,55 @@ const fetchTestimonials = async (): Promise<TestimonialFromAPI[]> => {
     return data.map((item: any) => ({
         ...item,
         source: item.role,
-        alt: item.alt || `Foto de ${item.author}` || 'Cliente satisfeito'
+        alt: item.alt || `Foto de ${item.author}`
     }));
+};
+
+// COMPONENTE POLAROID (VERSÃO MAIS LARGA - WIDESCREEN)
+const FineArtPolaroid = ({ text, author, source, imageUrl, alt, index }: any) => {
+    const rotationClass = index % 2 === 0 ? 'rotate-1' : '-rotate-1';
+
+    return (
+        <div className={`group relative bg-white p-3 pb-5 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.15)] transition-all duration-500 transform hover:-translate-y-2 hover:rotate-0 ${rotationClass} w-full max-w-[380px] mx-auto border border-zinc-100`}>
+
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-20 h-5 bg-orange-100/40 backdrop-blur-sm rotate-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+            <div className="aspect-[4/3] overflow-hidden bg-zinc-100 mb-4 relative border-b border-zinc-50">
+                <img
+                    src={optimizeCloudinaryUrl(imageUrl, "f_auto,q_auto,w_400,h_300,c_fill,g_face")}
+                    alt={alt}
+                    className="w-full h-full object-cover filter grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
+                />
+                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-md p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-sm">
+                    <Quote size={12} className="text-orange-500 fill-orange-500" />
+                </div>
+            </div>
+
+            <div className="px-2 text-center">
+                <p className="font-serif text-zinc-600 italic text-sm leading-relaxed mb-4 line-clamp-3 min-h-[3.5rem]">
+                    "{text}"
+                </p>
+
+                <div className="pt-3 border-t border-dashed border-zinc-200">
+                    <h4 className="font-bold text-zinc-900 text-[10px] tracking-[0.2em] uppercase mb-0.5">
+                        {author}
+                    </h4>
+                    <span className="text-[9px] text-orange-500 font-bold uppercase tracking-widest">
+                        {source}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const TestimonialsSection = () => {
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'center' });
+    const [emblaRef, emblaApi] = useEmblaCarousel({
+        loop: true,
+        align: 'center',
+        skipSnaps: false
+    });
 
     const { data: testimonials = [], isLoading } = useQuery<TestimonialFromAPI[], Error>({
         queryKey: ['testimonials'],
@@ -56,75 +96,67 @@ const TestimonialsSection = () => {
         };
     }, [emblaApi, onSelect]);
 
-    const scrollSnaps = emblaApi ? emblaApi.scrollSnapList() : [];
-
     return (
-        <section id="testimonials" className="py-20 md:py-28 bg-gray-100 dark:bg-zinc-900 overflow-hidden">
-            <div className="container mx-auto px-4 max-w-screen-xl">
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl sm:text-5xl font-semibold text-gray-900 dark:text-white">
-                        MEMÓRIAS DE NOSSOS CLIENTES
-                    </h2>
-                    <p className="text-lg text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">
-                        Momentos reais capturados através de parcerias de sucesso.
-                    </p>
-                </div>
+        <section id="testimonials" className="py-24 bg-zinc-50 border-t border-zinc-100 overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-200 to-transparent"></div>
 
-                <div className="relative">
-                    <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 w-full justify-between z-20">
+            <div className="container mx-auto px-6">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-16 px-4">
+                    <div className="max-w-xl">
+                        <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-4 block">
+                            Depoimentos
+                        </span>
+                        <h2 className="text-4xl md:text-5xl font-serif text-zinc-900 leading-tight">
+                            Histórias de quem <br/>
+                            <span className="italic text-zinc-400">já viveu a experiência.</span>
+                        </h2>
+                    </div>
+
+                    <div className="hidden md:flex gap-3">
                         <Button
                             onClick={scrollPrev}
-                            className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-800 rounded-full h-12 w-12 -ml-20"
-                            size="icon"
-                            aria-label="Depoimento anterior"
+                            variant="outline"
+                            className="rounded-none border-zinc-300 hover:bg-zinc-900 hover:text-white w-12 h-12 p-0 transition-all"
+                            aria-label="Anterior"
                         >
-                            <ChevronLeft className="h-6 w-6" />
+                            <ArrowLeft className="h-4 w-4" />
                         </Button>
                         <Button
                             onClick={scrollNext}
-                            className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-800 rounded-full h-12 w-12 -mr-20"
-                            size="icon"
-                            aria-label="Próximo depoimento"
+                            variant="outline"
+                            className="rounded-none border-zinc-300 hover:bg-zinc-900 hover:text-white w-12 h-12 p-0 transition-all"
+                            aria-label="Próximo"
                         >
-                            <ChevronRight className="h-6 w-6" />
+                            <ArrowRight className="h-4 w-4" />
                         </Button>
                     </div>
+                </div>
 
-                    <div className="overflow-hidden -mx-2" ref={emblaRef}>
-                        <div className="flex -ml-3 -space-x-4">
+                <div className="relative px-0 md:px-0">
+                    <div className="overflow-visible" ref={emblaRef}>
+                        <div className="flex -ml-2 md:-ml-3 py-12">
                             {isLoading ? (
                                 Array.from({ length: 3 }).map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6"
-                                    >
-                                        <div className="py-6">
-                                            <Skeleton className="h-[18rem] sm:h-[20rem] w-full rounded-sm bg-gray-200 dark:bg-zinc-800" />
-                                        </div>
+                                    <div key={index} className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_35%] pl-2 md:pl-3">
+                                        <Skeleton className="h-[400px] w-full bg-zinc-200" />
                                     </div>
                                 ))
                             ) : testimonials.length === 0 ? (
                                 <div className="w-full text-center py-12">
-                                    <p className="text-gray-600 dark:text-gray-400">
-                                        Nenhum depoimento disponível no momento.
+                                    <p className="text-zinc-400 italic font-serif">
+                                        Nenhuma história contada ainda...
                                     </p>
                                 </div>
                             ) : (
                                 testimonials.map((testimonial, index) => (
                                     <div
                                         key={testimonial._id}
-                                        className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_28%] pl-3 sm:pl-6"
+                                        className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_35%] pl-2 md:pl-3"
                                     >
-                                        <div className="h-full py-6">
-                                            <TestimonialCard
-                                                text={testimonial.text}
-                                                author={testimonial.author}
-                                                source={testimonial.source}
-                                                imageUrl={testimonial.imageUrl}
-                                                alt={testimonial.alt}
-                                                rotation={cardRotations[index % cardRotations.length]}
-                                            />
-                                        </div>
+                                        <FineArtPolaroid
+                                            {...testimonial}
+                                            index={index}
+                                        />
                                     </div>
                                 ))
                             )}
@@ -133,17 +165,17 @@ const TestimonialsSection = () => {
                 </div>
 
                 {!isLoading && testimonials.length > 0 && (
-                    <div className="flex justify-center space-x-3 mt-12">
-                        {scrollSnaps.map((_, index) => (
+                    <div className="flex justify-center gap-3 mt-4 md:hidden">
+                        {testimonials.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => scrollTo(index)}
-                                className={`rounded-full transition-all duration-300 ${
+                                className={`h-1 transition-all duration-500 ${
                                     index === selectedIndex
-                                        ? 'bg-zinc-800 dark:bg-white w-6 h-3'
-                                        : 'bg-gray-400 dark:bg-gray-500 w-3 h-3'
+                                        ? 'bg-orange-500 w-8'
+                                        : 'bg-zinc-300 w-4'
                                 }`}
-                                aria-label={`Ir para o depoimento ${index + 1}`}
+                                aria-label={`Ir para depoimento ${index + 1}`}
                             />
                         ))}
                     </div>
