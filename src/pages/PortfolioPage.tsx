@@ -34,7 +34,7 @@ const categoryNames: Record<string, string> = {
     events: "Eventos"
 };
 
-// Imagem Minimalista (Sem bordas redondas)
+// Imagem Minimalista
 const PortfolioImage = ({ src, alt }: { src: string; alt?: string }) => {
     const [loaded, setLoaded] = useState(false);
     return (
@@ -51,7 +51,7 @@ const PortfolioImage = ({ src, alt }: { src: string; alt?: string }) => {
     );
 };
 
-// Card Desktop Minimalista
+// Card Desktop - AGORA COM DESCRIÇÃO
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
     return (
         <div
@@ -60,15 +60,19 @@ const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioIt
         >
             <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")} alt={item.alt || item.title} />
 
-            {/* Overlay Editorial - Só aparece no hover */}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
+            {/* Overlay Editorial */}
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
                 <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-75">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-2 block">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-1 block">
                         {categoryNames[item.category]}
                     </span>
-                    <h3 className="text-xl font-serif italic text-white">
+                    <h3 className="text-xl font-serif italic text-white mb-2">
                         {item.title}
                     </h3>
+                    {/* AQUI ESTÁ A DESCRIÇÃO RESTAURADA */}
+                    <p className="text-white/80 text-xs font-light leading-relaxed line-clamp-3">
+                        {item.description}
+                    </p>
                 </div>
             </div>
         </div>
@@ -82,7 +86,6 @@ const PortfolioPage = () => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [isLightboxImageLoading, setIsLightboxImageLoading] = useState(true);
 
-    // Scroll to Top on mount
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
@@ -140,7 +143,7 @@ const PortfolioPage = () => {
     }, [selectedIndex]);
 
     const breakpointColumnsObj = {
-        default: 3, // Menos colunas pra foto ficar maior e mais chique
+        default: 3,
         1024: 3,
         768: 2,
         640: 1,
@@ -157,7 +160,7 @@ const PortfolioPage = () => {
 
             <main className="pt-32 md:pt-40 pb-20">
 
-                {/* 1. HERO minimalista */}
+                {/* 1. HERO */}
                 <section className="container mx-auto px-6 mb-16 md:mb-24 text-center animate-fade-in-up">
                     <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
                         Trabalhos Selecionados
@@ -168,7 +171,7 @@ const PortfolioPage = () => {
                     </h1>
                 </section>
 
-                {/* 2. FILTROS - Estilo Texto Limpo */}
+                {/* 2. FILTROS */}
                 <section className="container mx-auto px-6 mb-12 sticky top-24 z-30 bg-white/90 backdrop-blur-sm py-4 md:static md:bg-transparent md:py-0">
                     <div className="flex flex-wrap justify-center gap-6 md:gap-10 border-b border-zinc-100 pb-4 md:pb-6">
                         {categories.map((category) => (
@@ -182,7 +185,6 @@ const PortfolioPage = () => {
                                 }`}
                             >
                                 {category.name}
-                                {/* Linha animada embaixo */}
                                 <span className={`absolute bottom-0 left-0 h-[2px] bg-orange-500 transition-all duration-300 ${
                                     activeCategory === category.id ? "w-full" : "w-0 group-hover:w-1/3"
                                 }`}></span>
@@ -221,7 +223,7 @@ const PortfolioPage = () => {
                     )}
                 </section>
 
-                {/* 4. CTA FINAL - Clean */}
+                {/* 4. CTA */}
                 <section className="mt-32 container mx-auto px-6 text-center">
                     <div className="max-w-2xl mx-auto border-t border-zinc-100 pt-16">
                         <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 mb-6">
@@ -238,14 +240,13 @@ const PortfolioPage = () => {
                     </div>
                 </section>
 
-                {/* 5. LIGHTBOX PROFISSIONAL */}
+                {/* 5. LIGHTBOX */}
                 {selectedIndex !== null &&
                     ReactDOM.createPortal(
                         <div
                             className="fixed inset-0 bg-zinc-950 z-[9999] flex flex-col animate-in fade-in duration-300"
                             onClick={() => setSelectedIndex(null)}
                         >
-                            {/* Header Lightbox */}
                             <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-[10001] text-white/70">
                                 <span className="text-xs tracking-widest uppercase">
                                     {selectedIndex + 1} — {filteredItems.length}
@@ -258,10 +259,7 @@ const PortfolioPage = () => {
                                 </button>
                             </div>
 
-                            {/* Container Imagem */}
                             <div className="flex-1 relative flex items-center justify-center w-full h-full p-4 md:p-12">
-
-                                {/* Botão Anterior */}
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -273,9 +271,8 @@ const PortfolioPage = () => {
                                     <ChevronLeft size={48} strokeWidth={0.5} />
                                 </button>
 
-                                {/* Imagem */}
                                 <div
-                                    className="relative max-w-full max-h-full"
+                                    className="relative max-w-full max-h-full flex flex-col justify-center"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     {isLightboxImageLoading && (
@@ -287,13 +284,12 @@ const PortfolioPage = () => {
                                         src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1600")}
                                         alt={filteredItems[selectedIndex].title}
                                         onLoad={() => setIsLightboxImageLoading(false)}
-                                        className={`max-h-[85vh] max-w-full object-contain shadow-2xl transition-opacity duration-500 ${
+                                        className={`max-h-[80vh] max-w-full object-contain shadow-2xl transition-opacity duration-500 ${
                                             isLightboxImageLoading ? 'opacity-0' : 'opacity-100'
                                         }`}
                                     />
                                 </div>
 
-                                {/* Botão Próximo */}
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -306,14 +302,20 @@ const PortfolioPage = () => {
                                 </button>
                             </div>
 
-                            {/* Caption Bottom */}
-                            <div className="absolute bottom-0 left-0 w-full p-6 text-center">
-                                <h3 className="text-white text-lg font-serif italic mb-1">
+                            {/* LEGENDAS DO LIGHTBOX COM DESCRIÇÃO */}
+                            <div className="absolute bottom-0 left-0 w-full p-6 text-center bg-gradient-to-t from-black/90 to-transparent pb-10">
+                                <h3 className="text-white text-xl font-serif italic mb-1">
                                     {filteredItems[selectedIndex].title}
                                 </h3>
-                                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em]">
+                                <p className="text-orange-500 text-[10px] uppercase tracking-[0.2em] font-bold mb-3">
                                     {categoryNames[filteredItems[selectedIndex].category]}
                                 </p>
+                                {/* DESCRIÇÃO COMPLETA AQUI */}
+                                {filteredItems[selectedIndex].description && (
+                                    <p className="text-zinc-300 text-sm font-light max-w-2xl mx-auto leading-relaxed opacity-90 hidden md:block">
+                                        {filteredItems[selectedIndex].description}
+                                    </p>
+                                )}
                             </div>
                         </div>,
                         document.body
