@@ -1,7 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import 'react-lazy-load-image-component/src/effects/blur.css';
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import React from "react";
 import Masonry from 'react-masonry-css';
@@ -21,8 +19,6 @@ interface PortfolioItem {
     image: string;
     category: 'portrait' | 'wedding' | 'maternity' | 'family' | 'events' | 'other';
     alt?: string;
-    tags?: string[];
-    createdAt?: string;
 }
 
 const categoryNames: Record<string, string> = {
@@ -34,34 +30,47 @@ const categoryNames: Record<string, string> = {
     events: "Eventos"
 };
 
-// Imagem Minimalista
-const PortfolioImage = ({ src, alt }: { src: string; alt?: string }) => {
+// --- COMPONENTE DE IMAGEM TURBINADO ---
+const PortfolioImage = ({ src, alt, priority = false }: { src: string; alt?: string, priority?: boolean }) => {
     const [loaded, setLoaded] = useState(false);
+
+    // URLs OTIMIZADAS PELO CLOUDINARY
+    // w_600 é suficiente para a grade (card), q_auto ajusta a qualidade automaticamente
+    const thumbnailSrc = optimizeCloudinaryUrl(src, "f_auto,q_auto,w_600,c_limit");
+
     return (
-        <div className="relative w-full bg-zinc-100 overflow-hidden">
-            {!loaded && <Skeleton className="absolute inset-0 w-full h-full bg-zinc-200" />}
-            <LazyLoadImage
-                src={src}
+        <div className="relative w-full bg-zinc-100 overflow-hidden min-h-[200px]">
+            {/* Skeleton some quando a imagem carrega */}
+            <div className={`absolute inset-0 bg-zinc-200 animate-pulse transition-opacity duration-500 ${loaded ? 'opacity-0' : 'opacity-100'}`} />
+
+            <img
+                src={thumbnailSrc}
                 alt={alt}
-                effect="opacity"
-                afterLoad={() => setLoaded(true)}
-                className={`w-full h-auto object-cover transition-all duration-700 ${loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+                // Se for priority (as primeiras fotos), carrega Eager. Se não, Lazy.
+                loading={priority ? "eager" : "lazy"}
+                onLoad={() => setLoaded(true)}
+                className={`w-full h-auto object-cover transition-all duration-700 transform ${
+                    loaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-105 blur-sm'
+                }`}
             />
         </div>
     );
 };
 
-// Card Desktop - AGORA COM DESCRIÇÃO
+// Card Desktop
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
+    // As primeiras 6 fotos carregam com prioridade pra dar sensação de velocidade
+    const isPriority = index < 6;
+
     return (
         <div
-            className="group relative cursor-pointer mb-4 overflow-hidden"
+            className="group relative cursor-pointer mb-4 overflow-hidden bg-zinc-100"
             onClick={() => setSelectedIndex(index)}
         >
-            <PortfolioImage src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800")} alt={item.alt || item.title} />
+            <PortfolioImage src={item.image} alt={item.title} priority={isPriority} />
 
             {/* Overlay Editorial */}
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
                 <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-75">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-1 block">
                         {categoryNames[item.category]}
@@ -69,10 +78,12 @@ const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioIt
                     <h3 className="text-xl font-serif italic text-white mb-2">
                         {item.title}
                     </h3>
-                    {/* AQUI ESTÁ A DESCRIÇÃO RESTAURADA */}
-                    <p className="text-white/80 text-xs font-light leading-relaxed line-clamp-3">
-                        {item.description}
-                    </p>
+                    {/* Descrição Resumida no Hover */}
+                    {item.description && (
+                        <p className="text-white/80 text-xs font-light leading-relaxed line-clamp-3">
+                            {item.description}
+                        </p>
+                    )}
                 </div>
             </div>
         </div>
@@ -94,6 +105,7 @@ const PortfolioPage = () => {
         const fetchPortfolioItems = async () => {
             try {
                 setIsLoading(true);
+                // DICA: Se puder, limite a quantidade na API (ex: ?limit=50)
                 const response = await fetch('/api/portfolio');
                 if (!response.ok) throw new Error('Falha ao buscar portfólio.');
                 const data = await response.json();
@@ -142,6 +154,22 @@ const PortfolioPage = () => {
         return () => { document.body.style.overflow = 'unset'; };
     }, [selectedIndex]);
 
+    // Pré-carregamento das próximas imagens do Lightbox (UX foda)
+    useEffect(() => {
+        if (selectedIndex === null) return;
+        const nextIndex = selectedIndex + 1;
+        const prevIndex = selectedIndex - 1;
+
+        if (nextIndex < filteredItems.length) {
+            const img = new Image();
+            img.src = optimizeCloudinaryUrl(filteredItems[nextIndex].image, "f_auto,q_auto,w_1600");
+        }
+        if (prevIndex >= 0) {
+            const img = new Image();
+            img.src = optimizeCloudinaryUrl(filteredItems[prevIndex].image, "f_auto,q_auto,w_1600");
+        }
+    }, [selectedIndex, filteredItems]);
+
     const breakpointColumnsObj = {
         default: 3,
         1024: 3,
@@ -160,7 +188,6 @@ const PortfolioPage = () => {
 
             <main className="pt-32 md:pt-40 pb-20">
 
-                {/* 1. HERO */}
                 <section className="container mx-auto px-6 mb-16 md:mb-24 text-center animate-fade-in-up">
                     <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
                         Trabalhos Selecionados
@@ -171,9 +198,9 @@ const PortfolioPage = () => {
                     </h1>
                 </section>
 
-                {/* 2. FILTROS */}
-                <section className="container mx-auto px-6 mb-12 sticky top-24 z-30 bg-white/90 backdrop-blur-sm py-4 md:static md:bg-transparent md:py-0">
-                    <div className="flex flex-wrap justify-center gap-6 md:gap-10 border-b border-zinc-100 pb-4 md:pb-6">
+                {/* FILTROS */}
+                <section className="container mx-auto px-6 mb-12 sticky top-24 z-30 bg-white/95 backdrop-blur-sm py-4 md:static md:bg-transparent md:py-0 border-b border-zinc-100 md:border-none">
+                    <div className="flex flex-wrap justify-center gap-6 md:gap-10 pb-2 md:pb-6">
                         {categories.map((category) => (
                             <button
                                 key={category.id}
@@ -193,12 +220,12 @@ const PortfolioPage = () => {
                     </div>
                 </section>
 
-                {/* 3. GALERIA */}
+                {/* GALERIA */}
                 <section className="container mx-auto px-4 md:px-6 min-h-[50vh]">
                     {isLoading ? (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <Skeleton key={i} className="h-[400px] w-full bg-zinc-100" />
+                            {Array.from({ length: 9 }).map((_, i) => (
+                                <Skeleton key={i} className="h-[400px] w-full bg-zinc-200 rounded-none" />
                             ))}
                         </div>
                     ) : filteredItems.length === 0 ? (
@@ -223,7 +250,7 @@ const PortfolioPage = () => {
                     )}
                 </section>
 
-                {/* 4. CTA */}
+                {/* CTA */}
                 <section className="mt-32 container mx-auto px-6 text-center">
                     <div className="max-w-2xl mx-auto border-t border-zinc-100 pt-16">
                         <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 mb-6">
@@ -240,7 +267,7 @@ const PortfolioPage = () => {
                     </div>
                 </section>
 
-                {/* 5. LIGHTBOX */}
+                {/* LIGHTBOX OTIMIZADO */}
                 {selectedIndex !== null &&
                     ReactDOM.createPortal(
                         <div
@@ -266,7 +293,7 @@ const PortfolioPage = () => {
                                         if (selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
                                     }}
                                     disabled={selectedIndex === 0}
-                                    className="absolute left-2 md:left-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
+                                    className="absolute left-2 md:left-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001] hidden sm:block"
                                 >
                                     <ChevronLeft size={48} strokeWidth={0.5} />
                                 </button>
@@ -281,6 +308,7 @@ const PortfolioPage = () => {
                                         </div>
                                     )}
                                     <img
+                                        // AQUI PEDE A FOTO GRANDE SÓ QUANDO ABRE
                                         src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1600")}
                                         alt={filteredItems[selectedIndex].title}
                                         onLoad={() => setIsLightboxImageLoading(false)}
@@ -296,13 +324,13 @@ const PortfolioPage = () => {
                                         if (selectedIndex < filteredItems.length - 1) setSelectedIndex(selectedIndex + 1);
                                     }}
                                     disabled={selectedIndex === filteredItems.length - 1}
-                                    className="absolute right-2 md:right-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
+                                    className="absolute right-2 md:right-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001] hidden sm:block"
                                 >
                                     <ChevronRight size={48} strokeWidth={0.5} />
                                 </button>
                             </div>
 
-                            {/* LEGENDAS DO LIGHTBOX COM DESCRIÇÃO */}
+                            {/* LEGENDAS */}
                             <div className="absolute bottom-0 left-0 w-full p-6 text-center bg-gradient-to-t from-black/90 to-transparent pb-10">
                                 <h3 className="text-white text-xl font-serif italic mb-1">
                                     {filteredItems[selectedIndex].title}
@@ -310,7 +338,6 @@ const PortfolioPage = () => {
                                 <p className="text-orange-500 text-[10px] uppercase tracking-[0.2em] font-bold mb-3">
                                     {categoryNames[filteredItems[selectedIndex].category]}
                                 </p>
-                                {/* DESCRIÇÃO COMPLETA AQUI */}
                                 {filteredItems[selectedIndex].description && (
                                     <p className="text-zinc-300 text-sm font-light max-w-2xl mx-auto leading-relaxed opacity-90 hidden md:block">
                                         {filteredItems[selectedIndex].description}

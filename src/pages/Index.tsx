@@ -7,9 +7,9 @@ import PortfolioSection from "../components/PortfolioSection.tsx";
 import TestimonialsSection from "../components/TestimonialsSection.tsx";
 import Footer from "../components/Footer.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { Skeleton } from "@/components/ui/skeleton"; // NÃO ESQUECE DE IMPORTAR ESSA DESGRAÇA
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
     const bgImageFallback = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
@@ -21,13 +21,12 @@ const Index = () => {
         events: bgImageFallback
     });
 
-    // ESTADO DE CARREGAMENTO
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchCategoryImages = async () => {
             try {
-                setIsLoading(true); // Começa carregando
+                setIsLoading(true);
                 const response = await fetch('/api/portfolio');
                 if (!response.ok) return;
                 const data = await response.json();
@@ -45,7 +44,7 @@ const Index = () => {
             } catch (error) {
                 console.error("Erro ao carregar imagens", error);
             } finally {
-                setIsLoading(false); // Terminou, tira o skeleton
+                setIsLoading(false);
             }
         };
 
@@ -114,13 +113,13 @@ const Index = () => {
 
                 <PortfolioSection />
 
-                {/* CATEGORIAS - COM SKELETON AGORA, PORRA */}
+                {/* --- ÁREAS DE ATUAÇÃO (AQUI QUE EU MEXI) --- */}
                 <section className="py-24 bg-zinc-50">
                     <div className="container mx-auto px-6">
                         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
                             <div>
                                 <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-3 block">
-                                    Áreas de Atuação
+                                    Especialidades
                                 </span>
                                 <h2 className="text-3xl md:text-4xl font-serif text-zinc-900">O que eu fotografo</h2>
                             </div>
@@ -132,35 +131,41 @@ const Index = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white border border-white">
 
                             {isLoading ? (
-                                // SKELETONS (Carregamento)
+                                // Skeletons enquanto carrega
                                 <>
-                                    <div className="h-[500px] bg-zinc-200 animate-pulse"></div>
-                                    <div className="h-[500px] bg-zinc-200 animate-pulse delay-100"></div>
-                                    <div className="h-[500px] bg-zinc-200 animate-pulse delay-200"></div>
+                                    <Skeleton className="h-[500px] w-full bg-zinc-200 rounded-none" />
+                                    <Skeleton className="h-[500px] w-full bg-zinc-200 rounded-none" />
+                                    <Skeleton className="h-[500px] w-full bg-zinc-200 rounded-none" />
                                 </>
                             ) : (
-                                // CONTEÚDO REAL
+                                // CARDS OTIMIZADOS
                                 [
                                     { title: "Casamentos", img: categoryImages.wedding, desc: "O início de uma nova história." },
                                     { title: "Ensaios", img: categoryImages.portrait, desc: "A sua melhor versão, registrada." },
                                     { title: "Eventos", img: categoryImages.events, desc: "Celebrações que merecem memória." }
                                 ].map((cat, idx) => (
-                                    <Link key={idx} to="/portfolio" className="group relative h-[500px] overflow-hidden block">
+                                    <Link key={idx} to="/portfolio" className="group relative h-[500px] overflow-hidden block bg-zinc-100">
+                                        {/* IMAGEM DE FUNDO */}
                                         <div className="absolute inset-0 bg-zinc-200">
                                             <img
-                                                src={optimizeCloudinaryUrl(cat.img, "f_auto,q_auto,w_600,h_900,c_fill")}
+                                                // w_800: Tamanho ideal (nem gigante, nem pixelado)
+                                                // c_fill: Garante que preencha o card todo sem esticar
+                                                // q_auto: Cloudinary decide a melhor compressão
+                                                src={optimizeCloudinaryUrl(cat.img, "f_auto,q_auto,w_800,h_1000,c_fill")}
                                                 alt={cat.title}
+                                                loading="lazy" // Carregamento preguiçoso pra site rápido
                                                 className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 filter grayscale-[30%] group-hover:grayscale-0"
                                             />
                                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"></div>
                                         </div>
 
+                                        {/* TEXTO */}
                                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                                            <h3 className="text-3xl font-serif text-white mb-3 tracking-wide transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                            <h3 className="text-3xl font-serif text-white mb-3 tracking-wide transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 drop-shadow-md">
                                                 {cat.title}
                                             </h3>
                                             <div className="w-8 h-[1px] bg-white/60 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100"></div>
-                                            <p className="text-white/90 text-sm font-light tracking-wide opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100">
+                                            <p className="text-white/90 text-sm font-light tracking-wide opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100 drop-shadow-sm">
                                                 {cat.desc}
                                             </p>
                                         </div>
