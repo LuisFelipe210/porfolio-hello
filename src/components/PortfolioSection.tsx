@@ -227,7 +227,6 @@ const PortfolioSection = () => {
                             </button>
                         </div>
 
-                        {/* LEGENDA - SEM DESCRIÇÃO, SÓ TÍTULO E CATEGORIA */}
                         <div className="absolute bottom-0 left-0 w-full p-6 text-center bg-gradient-to-t from-black/90 to-transparent pb-10">
                             <h3 className="text-white text-xl font-serif italic mb-1">
                                 {items[selectedIndex].title}
