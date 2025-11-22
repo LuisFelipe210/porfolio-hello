@@ -36,7 +36,6 @@ const PortfolioSection = () => {
                 const response = await fetch('/api/portfolio');
                 if (!response.ok) throw new Error('Falha ao buscar portfólio');
                 const data = await response.json();
-                // Pega apenas os 8 primeiros para a Home
                 setItems(data.slice(0, 8));
             } catch (error) {
                 console.error(error);
@@ -47,7 +46,7 @@ const PortfolioSection = () => {
         fetchItems();
     }, []);
 
-    // Layout estilo Bento Grid
+    // Grid Layout
     const getGridClass = (index: number) => {
         if (index === 0) return "md:col-span-2 md:row-span-2 h-[600px]";
         if (index === 3) return "md:col-span-2 h-[290px]";
@@ -76,7 +75,7 @@ const PortfolioSection = () => {
         return () => { document.body.style.overflow = 'unset'; };
     }, [selectedIndex]);
 
-    // Pré-carregamento inteligente do Lightbox (Deixa instantâneo)
+    // Preload Next Image
     useEffect(() => {
         if (selectedIndex === null) return;
         const nextIndex = selectedIndex + 1;
@@ -127,24 +126,23 @@ const PortfolioSection = () => {
                                 onClick={() => setSelectedIndex(index)}
                                 className={`relative group overflow-hidden cursor-pointer bg-zinc-100 ${getGridClass(index)}`}
                             >
-                                {/* IMAGEM OTIMIZADA (w_800 é leve para o grid) */}
                                 <img
                                     src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_800,c_fill")}
                                     alt={item.title}
-                                    loading={index < 4 ? "eager" : "lazy"} // As primeiras carregam rápido
+                                    loading={index < 4 ? "eager" : "lazy"}
                                     className="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105"
                                 />
 
-                                {/* Overlay Editorial com Descrição */}
+                                {/* Overlay do Card (Aqui mantém a descrição resumida se quiser, ou tira também) */}
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
                                     <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                                         <span className="text-orange-400 text-[10px] font-bold uppercase tracking-widest mb-1 block">
                                             {categoryNames[item.category] || item.category}
                                         </span>
                                         <h3 className="text-white text-xl font-serif italic mb-2">{item.title}</h3>
-                                        {/* Descrição Resumida */}
+                                        {/* Mantive aqui só pro card não ficar vazio, mas no modal sumiu */}
                                         {item.description && (
-                                            <p className="text-zinc-300 text-xs font-light line-clamp-3 leading-relaxed">
+                                            <p className="text-zinc-300 text-xs font-light line-clamp-2 leading-relaxed">
                                                 {item.description}
                                             </p>
                                         )}
@@ -155,7 +153,6 @@ const PortfolioSection = () => {
                     </div>
                 )}
 
-                {/* Botão Mobile */}
                 <div className="mt-12 md:hidden text-center">
                     <Button asChild variant="outline" className="w-full rounded-none border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white uppercase tracking-widest py-6">
                         <Link to="/portfolio">
@@ -165,13 +162,14 @@ const PortfolioSection = () => {
                 </div>
             </div>
 
-            {/* --- LIGHTBOX --- */}
+            {/* --- LIGHTBOX (MODAL) --- */}
             {selectedIndex !== null &&
                 ReactDOM.createPortal(
                     <div
                         className="fixed inset-0 bg-zinc-950 z-[9999] flex flex-col animate-in fade-in duration-300"
                         onClick={() => setSelectedIndex(null)}
                     >
+                        {/* Top Bar */}
                         <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-[10001] text-white/80">
                             <span className="text-xs tracking-widest uppercase opacity-50">
                                 {selectedIndex + 1} / {items.length}
@@ -184,6 +182,7 @@ const PortfolioSection = () => {
                             </button>
                         </div>
 
+                        {/* Main Image Area */}
                         <div className="flex-1 relative flex items-center justify-center w-full h-full p-4 md:p-12">
 
                             <button
@@ -192,7 +191,7 @@ const PortfolioSection = () => {
                                     if (selectedIndex > 0) setSelectedIndex(selectedIndex - 1);
                                 }}
                                 disabled={selectedIndex === 0}
-                                className="absolute left-2 md:left-8 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
+                                className="absolute left-2 md:left-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
                             >
                                 <ChevronLeft size={48} strokeWidth={0.5} />
                             </button>
@@ -206,7 +205,6 @@ const PortfolioSection = () => {
                                         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
                                     </div>
                                 )}
-                                {/* FOTO EM ALTA SÓ AQUI (w_1600) */}
                                 <img
                                     src={optimizeCloudinaryUrl(items[selectedIndex].image, "f_auto,q_auto,w_1600")}
                                     alt={items[selectedIndex].title}
@@ -223,25 +221,20 @@ const PortfolioSection = () => {
                                     if (selectedIndex < items.length - 1) setSelectedIndex(selectedIndex + 1);
                                 }}
                                 disabled={selectedIndex === items.length - 1}
-                                className="absolute right-2 md:right-8 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
+                                className="absolute right-2 md:right-8 p-4 text-white/50 hover:text-white transition-colors disabled:opacity-0 z-[10001]"
                             >
                                 <ChevronRight size={48} strokeWidth={0.5} />
                             </button>
                         </div>
 
-                        {/* LEGENDA COM DESCRIÇÃO COMPLETA */}
-                        <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/90 to-transparent z-[10000] pb-10">
-                            <div className="container mx-auto text-center">
-                                <h3 className="text-white font-serif text-xl italic">{items[selectedIndex].title}</h3>
-                                <p className="text-orange-500 text-[10px] uppercase tracking-widest mb-2 font-bold">
-                                    {categoryNames[items[selectedIndex].category] || items[selectedIndex].category}
-                                </p>
-                                {items[selectedIndex].description && (
-                                    <p className="text-zinc-300 text-sm font-light max-w-2xl mx-auto leading-relaxed hidden md:block">
-                                        {items[selectedIndex].description}
-                                    </p>
-                                )}
-                            </div>
+                        {/* LEGENDA - SEM DESCRIÇÃO, SÓ TÍTULO E CATEGORIA */}
+                        <div className="absolute bottom-0 left-0 w-full p-6 text-center bg-gradient-to-t from-black/90 to-transparent pb-10">
+                            <h3 className="text-white text-xl font-serif italic mb-1">
+                                {items[selectedIndex].title}
+                            </h3>
+                            <p className="text-orange-500 text-[10px] uppercase tracking-[0.2em] font-bold">
+                                {categoryNames[items[selectedIndex].category] || items[selectedIndex].category}
+                            </p>
                         </div>
                     </div>,
                     document.body
