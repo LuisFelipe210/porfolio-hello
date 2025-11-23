@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMessages } from '@/context/MessagesContext';
-import { ArrowRight, Plus, ImageIcon, Users, MessageSquare, UserPlus, Inbox, Clock, Calendar, ChevronRight } from 'lucide-react';
+import { ArrowRight, Plus, ImageIcon, Users, MessageSquare, UserPlus, Inbox, Clock, Calendar, ChevronRight, Loader2, RefreshCw, Copy, Lock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import QuickNotes from './components/QuickNotes';
@@ -18,17 +18,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Loader2 } from 'lucide-react';
 
-// --- Schemas (Mantidos) ---
+// --- Schemas ---
 const clientFormSchema = z.object({
     name: z.string().min(3, "Nome obrigatório."),
     email: z.string().email("Email inválido."),
     phone: z.string().optional(),
     password: z.string().min(1, "Senha obrigatória."),
-    phrase: z.string().optional(),
+    phrase: z.string().optional(), // Campo da frase
 });
 
 const portfolioFormSchema = z.object({
@@ -48,11 +45,19 @@ const AdminDashboard = () => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
+    // Dialogs
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
     const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
     const [pFile, setPFile] = useState<File | null>(null);
 
-    const clientForm = useForm<z.infer<typeof clientFormSchema>>({ resolver: zodResolver(clientFormSchema) });
+    // Estado de loading manual para o Portfolio
+    const [isPortfolioSubmitting, setIsPortfolioSubmitting] = useState(false);
+
+    const clientForm = useForm<z.infer<typeof clientFormSchema>>({
+        resolver: zodResolver(clientFormSchema),
+        defaultValues: { name: "", email: "", phone: "", password: "", phrase: "" },
+    });
+
     const portfolioForm = useForm<z.infer<typeof portfolioFormSchema>>({ resolver: zodResolver(portfolioFormSchema) });
 
     useEffect(() => {
@@ -62,6 +67,31 @@ const AdminDashboard = () => {
         else setGreeting("Boa noite");
     }, []);
 
+    // --- Helpers para Gerar Dados (Copiados do AdminClients) ---
+    const generateRandomEmail = useCallback(() => {
+        const randomString = Math.random().toString(36).substring(2, 10);
+        const newEmail = `${randomString}@hello.com`;
+        clientForm.setValue('email', newEmail);
+        toast({ title: 'Email gerado', description: newEmail });
+    }, [toast, clientForm]);
+
+    const generateRandomPassword = useCallback(() => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%.&*_';
+        let result = '';
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        clientForm.setValue('password', result);
+        toast({ title: 'Senha gerada', description: 'Senha aleatória criada.' });
+    }, [toast, clientForm]);
+
+    const copyToClipboard = useCallback((text: string | undefined, label: string) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            toast({ title: 'Copiado!', description: `${label} copiado.` });
+        });
+    }, [toast]);
+
     // --- Upload e Submits ---
     const handleCloudinaryUpload = async (file: File) => {
         const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); fd.append('folder', 'borges-captures/portfolio');
@@ -69,10 +99,10 @@ const AdminDashboard = () => {
         return (await res.json()).secure_url;
     };
 
-    const onClientSubmit = async (data: any) => {
+    const onClientSubmit = async (formData: z.infer<typeof clientFormSchema>) => {
         try {
             const token = localStorage.getItem('authToken');
-            const res = await fetch('/api/admin/portal?action=createClient', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+            const res = await fetch('/api/admin/portal?action=createClient', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(formData) });
             if (!res.ok) throw new Error('Erro ao criar.');
             toast({ title: 'Sucesso!', description: 'Cliente criado.' }); clientForm.reset(); setIsClientDialogOpen(false); queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
         } catch (e: any) { toast({ variant: 'destructive', title: 'Erro', description: e.message }); }
@@ -80,6 +110,9 @@ const AdminDashboard = () => {
 
     const onPortfolioSubmit = async (data: any) => {
         if (!pFile) { toast({ variant: 'destructive', title: 'Erro', description: 'Selecione uma imagem.' }); return; }
+
+        setIsPortfolioSubmitting(true);
+
         try {
             const url = await handleCloudinaryUpload(pFile);
             const token = localStorage.getItem('authToken');
@@ -87,22 +120,19 @@ const AdminDashboard = () => {
             const res = await fetch('/api/portfolio', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error('Erro ao salvar.');
             toast({ title: 'Sucesso!', description: 'Item adicionado.' }); portfolioForm.reset(); setPFile(null); setIsPortfolioDialogOpen(false); queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
-        } catch (e: any) { toast({ variant: 'destructive', title: 'Erro', description: e.message }); }
+        } catch (e: any) {
+            toast({ variant: 'destructive', title: 'Erro', description: e.message });
+        } finally {
+            setIsPortfolioSubmitting(false);
+        }
     };
 
     const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
-
-    const categoryTranslations: { [key: string]: string } = {
-        portrait: 'Retratos', wedding: 'Casamentos', maternity: 'Maternidade',
-        family: 'Família', events: 'Eventos'
-    };
-
+    const categoryTranslations: { [key: string]: string } = { portrait: 'Retratos', wedding: 'Casamentos', maternity: 'Maternidade', family: 'Família', events: 'Eventos' };
     const chartData = data?.stats.portfolioByCategory.map(item => ({ name: categoryTranslations[item._id] || item._id, total: item.count })) || [];
+    const COLORS = ['#f97316', '#fb923c', '#fdba74', '#fed7aa', '#ffedd5'];
 
-    // CORES COLORIDAS RESTAURADAS
-    const COLORS = ['#FF8042', '#FFBB28', '#00C49F', '#0088FE', '#8884d8'];
-
-    // --- Componentes de UI ---
+    // --- Componentes ---
     const ShortcutCard = ({ title, icon: Icon, link, onClick, badge }: any) => (
         <Button
             asChild={!!link}
@@ -161,18 +191,17 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
                 {/* 2. COLUNA PRINCIPAL */}
                 <div className="lg:col-span-2 space-y-8">
-
                     {/* Ações Rápidas */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <ShortcutCard title="Mensagens" icon={Inbox} link="/admin/messages" badge={hasUnreadMessages} />
-                        <ShortcutCard title="Novo Cliente" icon={UserPlus} onClick={() => { clientForm.reset(); setIsClientDialogOpen(true); }} />
-                        <ShortcutCard title="Add Foto" icon={Plus} onClick={() => { portfolioForm.reset(); setPFile(null); setIsPortfolioDialogOpen(true); }} />
+                        <ShortcutButton label="Ver Mensagens" icon={Inbox} link="/admin/messages" badge={hasUnreadMessages} />
+                        <ShortcutButton label="Novo Cliente" icon={UserPlus} onClick={() => { clientForm.reset(); setIsClientDialogOpen(true); }} />
+                        <ShortcutButton label="Add Foto" icon={Plus} onClick={() => { portfolioForm.reset(); setPFile(null); setIsPortfolioDialogOpen(true); }} />
                     </div>
 
-                    {/* Grid de Agenda e Recentes */}
+                    {/* ... Restante do layout mantido ... */}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Sessões */}
                         <Card className="bg-white border border-zinc-200 shadow-sm rounded-none flex flex-col">
@@ -224,7 +253,6 @@ const AdminDashboard = () => {
                         </Card>
                     </div>
 
-                    {/* GRÁFICO COLORIDO */}
                     <Card className="bg-white border border-zinc-200 shadow-sm rounded-none">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base font-serif text-zinc-900">Balanço do Portfólio</CardTitle>
@@ -235,11 +263,7 @@ const AdminDashboard = () => {
                                     <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <XAxis type="number" hide />
                                         <YAxis type="category" dataKey="name" stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} width={90} />
-                                        <Tooltip
-                                            cursor={{ fill: '#f4f4f5' }}
-                                            contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '0px', color: '#18181b' }}
-                                        />
-                                        {/* USANDO A PALETA COLORIDA */}
+                                        <Tooltip cursor={{ fill: '#f4f4f5' }} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '0px', color: '#18181b' }} />
                                         <Bar dataKey="total" radius={[0, 2, 2, 0]} barSize={24}>
                                             {chartData.map((_, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                                         </Bar>
@@ -252,7 +276,6 @@ const AdminDashboard = () => {
 
                 {/* 3. COLUNA LATERAL */}
                 <div className="space-y-8">
-                    {/* Últimos Clientes */}
                     <Card className="bg-white border border-zinc-200 shadow-sm rounded-none">
                         <CardHeader className="pb-4 border-b border-zinc-100">
                             <CardTitle className="text-lg font-serif text-zinc-900">Últimos Clientes</CardTitle>
@@ -279,17 +302,65 @@ const AdminDashboard = () => {
                             }
                         </CardContent>
                     </Card>
-
-                    {/* Notas Rápidas */}
                     <QuickNotes />
                 </div>
             </div>
 
-            {/* DIALOGS */}
-            <Dialog open={isClientDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) clientForm.reset(); setIsClientDialogOpen(isOpen); }}><DialogContent className="bg-white text-zinc-900 rounded-none max-w-lg border-zinc-200"><DialogHeader><DialogTitle className="font-serif">Novo Cliente</DialogTitle></DialogHeader><form onSubmit={clientForm.handleSubmit(onClientSubmit)} className="space-y-4 mt-2"><Input placeholder="Nome" {...clientForm.register('name')} className="rounded-none border-zinc-300" /><Input placeholder="Email" {...clientForm.register('email')} className="rounded-none border-zinc-300" /><Input placeholder="Senha" {...clientForm.register('password')} className="rounded-none border-zinc-300" /><Button type="submit" className="w-full rounded-none bg-zinc-900 hover:bg-orange-600">Criar</Button></form></DialogContent></Dialog>
-            <Dialog open={isPortfolioDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) portfolioForm.reset(); setIsPortfolioDialogOpen(isOpen); }}><DialogContent className="bg-white text-zinc-900 rounded-none max-w-lg border-zinc-200"><DialogHeader><DialogTitle className="font-serif">Novo Item</DialogTitle></DialogHeader><form onSubmit={portfolioForm.handleSubmit(onPortfolioSubmit)} className="space-y-4 mt-2"><Input placeholder="Título" {...portfolioForm.register('title')} className="rounded-none border-zinc-300" /><Select onValueChange={v => portfolioForm.setValue('category', v)}><SelectTrigger className="rounded-none border-zinc-300"><SelectValue placeholder="Categoria" /></SelectTrigger><SelectContent className="bg-white"><SelectItem value="wedding">Casamento</SelectItem><SelectItem value="portrait">Ensaio</SelectItem><SelectItem value="events">Eventos</SelectItem></SelectContent></Select><Textarea placeholder="Descrição" {...portfolioForm.register('description')} className="rounded-none border-zinc-300" /><Input type="file" onChange={e => setPFile(e.target.files?.[0] || null)} className="rounded-none border-zinc-300" /><Button type="submit" className="w-full rounded-none bg-zinc-900 hover:bg-orange-600">Salvar</Button></form></DialogContent></Dialog>
+            {/* DIALOG NOVO CLIENTE */}
+            <Dialog open={isClientDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) clientForm.reset(); setIsClientDialogOpen(isOpen); }}>
+                <DialogContent className="bg-white text-zinc-900 rounded-none max-w-lg border-zinc-200">
+                    <DialogHeader><DialogTitle className="font-serif">Novo Cliente</DialogTitle></DialogHeader>
+                    <div className="text-zinc-500 font-light text-sm mb-4">Preencha os dados de acesso.</div>
+
+                    {/* --- FORMULÁRIO COM FRASE DE SEGURANÇA --- */}
+                    <form onSubmit={clientForm.handleSubmit(onClientSubmit)} className="space-y-4">
+                        <div><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Nome</Label><Input {...clientForm.register('name')} className="rounded-none border-zinc-300" /></div>
+
+                        <div><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Email</Label>
+                            <div className="flex gap-2"><Input {...clientForm.register('email')} className="rounded-none border-zinc-300" /><Button type="button" onClick={generateRandomEmail} className="rounded-none border-zinc-300 text-zinc-500 hover:bg-zinc-100" size="icon"><RefreshCw className="h-4 w-4" /></Button><Button type="button" onClick={() => copyToClipboard(clientForm.getValues('email'), 'Email')} className="rounded-none border-zinc-300 text-zinc-500 hover:bg-zinc-100" size="icon"><Copy className="h-4 w-4" /></Button></div>
+                        </div>
+
+                        <div><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Senha</Label>
+                            <div className="flex gap-2"><Input {...clientForm.register('password')} className="rounded-none border-zinc-300" /><Button type="button" onClick={generateRandomPassword} className="rounded-none border-zinc-300 text-zinc-500 hover:bg-zinc-100" size="icon"><RefreshCw className="h-4 w-4" /></Button><Button type="button" onClick={() => copyToClipboard(clientForm.getValues('password'), 'Senha')} className="rounded-none border-zinc-300 text-zinc-500 hover:bg-zinc-100" size="icon"><Copy className="h-4 w-4" /></Button></div>
+                        </div>
+
+                        {/* CAMPO FRASE ADICIONADO */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-1"><Lock size={12} className="text-orange-600" /><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Guardar Senha Provisória</Label></div>
+                            <Input {...clientForm.register('phrase')} placeholder="Ex: Frase secreta do cliente" className="rounded-none border-zinc-300" />
+                        </div>
+
+                        <Button type="submit" disabled={clientForm.formState.isSubmitting} className="w-full rounded-none bg-zinc-900 hover:bg-orange-600 mt-4">
+                            {clientForm.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Criar Cliente'}
+                        </Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* DIALOG NOVO ITEM */}
+            <Dialog open={isPortfolioDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) portfolioForm.reset(); setIsPortfolioDialogOpen(isOpen); }}>
+                <DialogContent className="bg-white text-zinc-900 rounded-none max-w-lg border-zinc-200">
+                    <DialogHeader><DialogTitle className="font-serif">Novo Item</DialogTitle></DialogHeader>
+                    <form onSubmit={portfolioForm.handleSubmit(onPortfolioSubmit)} className="space-y-4 mt-2">
+                        <Input placeholder="Título" {...portfolioForm.register('title')} className="rounded-none border-zinc-300" />
+                        <Select onValueChange={v => portfolioForm.setValue('category', v)}><SelectTrigger className="rounded-none border-zinc-300"><SelectValue placeholder="Categoria" /></SelectTrigger><SelectContent className="bg-white"><SelectItem value="wedding">Casamento</SelectItem><SelectItem value="portrait">Ensaio</SelectItem><SelectItem value="events">Eventos</SelectItem></SelectContent></Select>
+                        <Textarea placeholder="Descrição" {...portfolioForm.register('description')} className="rounded-none border-zinc-300" />
+                        <Input type="file" onChange={e => setPFile(e.target.files?.[0] || null)} className="rounded-none border-zinc-300" />
+                        <Button type="submit" disabled={portfolioForm.formState.isSubmitting || isPortfolioSubmitting} className="w-full rounded-none bg-zinc-900 hover:bg-orange-600">
+                            {(portfolioForm.formState.isSubmitting || isPortfolioSubmitting) ? <Loader2 className="animate-spin" /> : 'Salvar'}
+                        </Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
+
+// Helper
+const ShortcutButton = ({ label, icon: Icon, onClick, link, badge }: any) => (
+    <Button asChild={!!link} onClick={onClick} variant="outline" className="h-14 w-full justify-start gap-3 bg-white border-zinc-200 text-zinc-600 hover:text-orange-600 hover:border-orange-200 hover:bg-orange-50 rounded-none font-medium text-sm shadow-sm">
+        {link ? <Link to={link} className="relative w-full flex items-center"><Icon size={16} /> <span>{label}</span>{badge && <span className="ml-auto h-2 w-2 bg-orange-500 rounded-full animate-pulse" />}</Link> : <><Icon size={16} /> {label}</>}
+    </Button>
+);
 
 export default AdminDashboard;

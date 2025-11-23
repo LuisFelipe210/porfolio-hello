@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, RefreshCw, Copy, Search, Loader2, Edit, FolderKanban } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Copy, Search, Loader2, Edit, FolderKanban, Lock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ClientCard from './components/ClientCard';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -21,7 +21,7 @@ const clientFormSchema = z.object({
     email: z.string().email({ message: "Insira um email válido." }),
     phone: z.string().optional(),
     password: z.string(),
-    phrase: z.string().optional(),
+    phrase: z.string().optional(), // CAMPO DA FRASE AQUI
 });
 
 interface Client {
@@ -70,7 +70,13 @@ const AdminClients = () => {
         resetForm();
         if (client) {
             setCurrentClient(client);
-            form.reset({ name: client.name, email: client.email, phone: client.phone || '', password: '', phrase: client.phrase || '' });
+            form.reset({
+                name: client.name,
+                email: client.email,
+                phone: client.phone || '',
+                password: '',
+                phrase: client.phrase || '' // PREENCHE A FRASE SE EXISTIR
+            });
         }
         setIsDialogOpen(true);
     }, [form]);
@@ -110,7 +116,14 @@ const AdminClients = () => {
             const token = localStorage.getItem('authToken');
             const url = isEditing ? `/api/admin/portal?action=updateClient&clientId=${currentClient._id}` : '/api/admin/portal?action=createClient';
             const method = isEditing ? 'PUT' : 'POST';
-            const body: any = { name: data.name, email: data.email, phone: data.phone, phrase: data.phrase || null };
+
+            // INCLUÍ A 'phrase' NO CORPO DA REQUISIÇÃO
+            const body: any = {
+                name: data.name,
+                email: data.email,
+                phone: data.phone,
+                phrase: data.phrase || null
+            };
             if (!isEditing) body.password = data.password;
 
             const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
@@ -268,10 +281,38 @@ const AdminClients = () => {
                     </DialogHeader>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 mt-4">
+
+                            {/* Nome */}
                             <FormField control={form.control} name="name" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Nome</Label><FormControl><Input className="border-zinc-300 rounded-none focus-visible:ring-orange-500" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+                            {/* Email */}
                             <FormField control={form.control} name="email" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Email</Label><div className="flex gap-2"><FormControl><Input className="border-zinc-300 rounded-none focus-visible:ring-orange-500" {...field} /></FormControl>{!currentClient && <Button type="button" size="icon" onClick={generateRandomEmail} className="rounded-none border-zinc-300 hover:bg-zinc-100 text-zinc-600" title="Gerar Email"><RefreshCw className="h-4 w-4" /></Button>}</div><FormMessage /></FormItem>)} />
+
+                            {/* Telefone */}
                             <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Telefone</Label><FormControl><Input className="border-zinc-300 rounded-none focus-visible:ring-orange-500" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+                            {/* Senha Provisória (Só aparece se for Novo Cliente) */}
                             {!currentClient && (<FormField control={form.control} name="password" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Senha Provisória</Label><div className="flex gap-2"><FormControl><Input className="border-zinc-300 rounded-none focus-visible:ring-orange-500" {...field} /></FormControl><Button type="button" size="icon" onClick={generateRandomPassword} className="rounded-none border-zinc-300 hover:bg-zinc-100 text-zinc-600"><RefreshCw className="h-4 w-4" /></Button><Button type="button" size="icon" onClick={() => copyToClipboard(field.value, 'Senha')} className="rounded-none border-zinc-300 hover:bg-zinc-100 text-zinc-600"><Copy className="h-4 w-4" /></Button></div><FormMessage /></FormItem>)} />)}
+
+                            {/* --- CAMPO NOVO: FRASE SECRETA --- */}
+                            <FormField control={form.control} name="phrase" render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center gap-2">
+                                        <Lock size={12} className="text-orange-600" />
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Guardar Senha Provisória (Criptografada)</Label>
+                                    </div>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="Ex: Frase secreta do cliente"
+                                            className="border-zinc-300 rounded-none focus-visible:ring-orange-500"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <p className="text-[10px] text-zinc-400">Esta frase é salva de forma segura e usada para recuperação.</p>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+
                             <DialogFooter className="pt-4">
                                 <DialogClose asChild><Button type="button" variant="outline" className="rounded-none border-zinc-300 text-zinc-600 hover:bg-zinc-50">Cancelar</Button></DialogClose>
                                 <Button type="submit" disabled={form.formState.isSubmitting} className="rounded-none bg-zinc-900 hover:bg-orange-600 text-white font-bold uppercase tracking-widest">{form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar'}</Button>
