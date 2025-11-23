@@ -14,11 +14,13 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
-        caveat: ['Caveat', 'cursive'],
-        serif: ['Libre Baskerville', 'serif'],
-        title: ['Didot', 'serif'], // ou Vogue se você tiver a fonte
-        subtitle: ['Montserrat', 'sans-serif'],
+          montserrat: ['Montserrat', 'sans-serif'],
+          sans: ['Poppins', 'sans-serif'],
+          caveat: ['Caveat', 'cursive'],
+          serif: ['Libre Baskerville', 'serif'],
+          title: ['Didot', 'serif'],
+          subtitle: ['Montserrat', 'sans-serif'],
+          noto: ['"Noto Serif JP"', 'serif'],
       },
       colors: {
           'petal-green': '#A3E6B0', // Ajuste para o tom exato

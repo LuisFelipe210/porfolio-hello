@@ -43,9 +43,9 @@ const HeroSection = () => {
                             </p>
                         </div>
 
-                        <h1 className="text-[5rem] leading-[0.85] md:text-[7rem] lg:text-[8rem] xl:text-[10rem] font-serif text-white mix-blend-overlay opacity-90 animate-fade-in-up delay-100 tracking-tight">
+                        <h1 className="text-[5rem] leading-[0.85] md:text-[7rem] lg:text-[8rem] xl:text-[10rem] font-noto font-extralight text-white mix-blend-overlay opacity-90 animate-fade-in-up delay-100 tracking-tight">
                             Hellô <br className="md:hidden" />
-                            <span className="italic font-light ml-2 md:ml-0">Borges</span>
+                            <span className="font-extralight ml-2 md:ml-0">Borges</span>
                         </h1>
                     </div>
 
