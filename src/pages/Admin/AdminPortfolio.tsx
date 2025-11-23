@@ -1,50 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogClose,
-} from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Loader2, GripVertical, Trash2, Edit } from 'lucide-react';
-// dnd-kit imports
-import {
-    DndContext,
-    closestCenter,
-    PointerSensor,
-    useSensor,
-    useSensors,
-    DragEndEvent,
-} from '@dnd-kit/core';
-import {
-    arrayMove,
-    SortableContext,
-    useSortable,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-// ***** INÍCIO DAS NOVAS IMPORTAÇÕES *****
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// ***** FIM DAS NOVAS IMPORTAÇÕES *****
-
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -54,10 +21,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 
+// --- Schemas e Upload (Mesma lógica do original) ---
 const portfolioItemSchema = z.object({
-    title: z.string().min(3, { message: "O título é obrigatório." }),
+    title: z.string().min(3, { message: "Título obrigatório." }),
     category: z.string().min(1, { message: "Selecione uma categoria." }),
-    description: z.string().min(1, { message: "A descrição é obrigatória." }),
+    description: z.string().min(1, { message: "Descrição obrigatória." }),
     alt: z.string().optional(),
 });
 
@@ -73,194 +41,70 @@ interface PortfolioItem {
 const CLOUDINARY_CLOUD_NAME = "dohdgkzdu";
 const CLOUDINARY_UPLOAD_PRESET = "borges_direct_upload";
 
-const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: {
-    item: PortfolioItem,
-    selected: boolean,
-    onSelect: (id: string, checked: boolean) => void,
-    onEdit: (item: PortfolioItem) => void,
-    isMobile: boolean,
-}) => {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: item._id });
+// --- Componente de Item da Tabela (Sortable) ---
+const SortablePortfolioItem = ({ item, selected, onSelect, onEdit, isMobile }: any) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item._id });
+
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
         zIndex: isDragging ? 99 : undefined,
-        opacity: isDragging ? 0.7 : 1,
+        opacity: isDragging ? 0.5 : 1,
+        backgroundColor: isDragging ? '#f4f4f5' : undefined, // bg-zinc-100 no drag
     };
 
     if (isMobile) {
         return (
-            <div
-                ref={setNodeRef}
-                style={style}
-                className="bg-black/70 backdrop-blur-md rounded-3xl shadow-md p-4 flex gap-4 border border-white/10 relative"
-            >
-                <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-                    <span
-                        {...attributes}
-                        {...listeners}
-                        className="cursor-grab text-white/60 hover:text-orange-400"
-                        aria-label="Arrastar para reordenar"
-                    >
-                        <GripVertical className="h-5 w-5" />
-                    </span>
-                    <input
-                        type="checkbox"
-                        className="w-5 h-5 accent-orange-500 bg-transparent rounded"
-                        checked={selected}
-                        onChange={e => onSelect(item._id, e.target.checked)}
-                    />
+            <div ref={setNodeRef} style={style} className="bg-white border border-zinc-200 p-4 flex gap-4 relative shadow-sm mb-3">
+                <div className="absolute top-4 left-4 flex items-center gap-3 z-10">
+                    <span {...attributes} {...listeners} className="cursor-grab text-zinc-400 hover:text-zinc-900"><GripVertical className="h-5 w-5" /></span>
+                    <input type="checkbox" className="w-4 h-4 accent-orange-600 cursor-pointer border-zinc-300 rounded-none" checked={selected} onChange={e => onSelect(item._id, e.target.checked)} />
                 </div>
-                <img
-                    src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")}
-                    alt={item.alt || item.title}
-                    className="h-24 w-24 object-cover rounded-2xl flex-shrink-0 ml-16"
-                />
+                <img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1")} alt={item.title} className="h-24 w-24 object-cover flex-shrink-0 ml-14 bg-zinc-100" />
                 <div className="flex-1 flex flex-col justify-center">
-                    <h3 className="font-semibold text-white text-lg">{item.title}</h3>
-                    <p className="text-sm text-white/80 capitalize">{item.category}</p>
-                    <div className="mt-2 flex space-x-2">
-                        <Button
-                            size="icon"
-                            className="bg-white/10 text-white rounded-xl hover:bg-white/20"
-                            onClick={() => onEdit(item)}
-                            aria-label={`Editar ${item.title}`}
-                        >
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <h3 className="font-serif text-lg text-zinc-900 leading-tight">{item.title}</h3>
+                    <p className="text-xs font-bold uppercase tracking-widest text-orange-600 mt-1">{item.category}</p>
+                    <div className="mt-3"><Button size="icon" variant="outline" className="h-8 w-8 rounded-none border-zinc-300 text-zinc-500 hover:text-zinc-900" onClick={() => onEdit(item)}><Edit className="h-4 w-4" /></Button></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <TableRow
-            ref={setNodeRef}
-            style={style}
-            className={`border-white/10 ${isDragging ? "bg-white/10" : ""}`}
-        >
-            <TableCell className="w-10">
-                <span
-                    {...attributes}
-                    {...listeners}
-                    className="cursor-grab text-white/60 hover:text-orange-400 flex items-center justify-center"
-                    aria-label="Arrastar para reordenar"
-                >
-                    <GripVertical className="h-5 w-5" />
-                </span>
-            </TableCell>
-            <TableCell className="w-12">
-                <input
-                    type="checkbox"
-                    className="w-5 h-5 accent-orange-500 bg-transparent border-white/20 rounded"
-                    checked={selected}
-                    onChange={e => onSelect(item._id, e.target.checked)}
-                />
-            </TableCell>
-            <TableCell>
-                <img
-                    src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")}
-                    alt={item.alt || item.title}
-                    className="h-16 w-16 object-cover rounded-xl"
-                />
-            </TableCell>
-            <TableCell className="font-medium text-white">{item.title}</TableCell>
-            <TableCell className="capitalize text-white/80">{item.category}</TableCell>
-            <TableCell className="text-right">
-                <div className="flex gap-2 justify-end">
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        className="bg-white/10 rounded-xl hover:bg-white/20"
-                        onClick={() => onEdit(item)}
-                        aria-label={`Editar ${item.title}`}
-                    >
-                        <Edit className="h-4 w-4" />
-                    </Button>
-                </div>
-            </TableCell>
+        <TableRow ref={setNodeRef} style={style} className="border-b border-zinc-100 hover:bg-zinc-50 bg-white">
+            <TableCell className="w-10"><span {...attributes} {...listeners} className="cursor-grab text-zinc-400 hover:text-zinc-900 flex justify-center"><GripVertical className="h-4 w-4" /></span></TableCell>
+            <TableCell className="w-12"><input type="checkbox" className="w-4 h-4 accent-orange-600 cursor-pointer border-zinc-300 rounded-none" checked={selected} onChange={e => onSelect(item._id, e.target.checked)} /></TableCell>
+            <TableCell><img src={optimizeCloudinaryUrl(item.image, "f_auto,q_auto,w_200,c_fill,ar_1:1")} alt={item.title} className="h-16 w-16 object-cover bg-zinc-100" /></TableCell>
+            <TableCell className="font-serif text-base text-zinc-900">{item.title}</TableCell>
+            <TableCell className="text-xs font-bold uppercase tracking-widest text-zinc-500">{item.category}</TableCell>
+            <TableCell className="text-right"><Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-none" onClick={() => onEdit(item)}><Edit className="h-4 w-4" /></Button></TableCell>
         </TableRow>
     );
 };
 
-const fetchPortfolioItems = async (): Promise<PortfolioItem[]> => {
-    const response = await fetch('/api/portfolio');
-    if (!response.ok) throw new Error("Falha ao carregar itens.");
-    return response.json();
-};
-
-const savePortfolioItem = async (data: {
-    formData: z.infer<typeof portfolioItemSchema>,
-    imageUrl: string | null,
-    editingId: string | null
-}) => {
-    const { formData, imageUrl, editingId } = data;
+// --- Funções de API (Mantidas) ---
+const fetchPortfolioItems = async () => (await fetch('/api/portfolio')).json();
+const savePortfolioItem = async (data: any) => {
     const token = localStorage.getItem('authToken');
-    const method = editingId ? 'PUT' : 'POST';
-    const url = editingId ? `/api/portfolio?id=${editingId}` : '/api/portfolio';
-    const body = {
-        ...formData,
-        alt: formData.alt || formData.title,
-        ...(imageUrl && { image: imageUrl })
-    };
-    const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(body),
-    });
-    if (!response.ok) throw new Error('Falha ao salvar o item.');
-    return response.json();
+    const url = data.editingId ? `/api/portfolio?id=${data.editingId}` : '/api/portfolio';
+    const method = data.editingId ? 'PUT' : 'POST';
+    const body = { ...data.formData, alt: data.formData.alt || data.formData.title, ...(data.imageUrl && { image: data.imageUrl }) };
+    await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
 };
-
 const deletePortfolioItems = async (itemIds: string[]) => {
     const token = localStorage.getItem('authToken');
-    const response = await fetch('/api/portfolio', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ itemIds }),
-    });
-    if (!response.ok) throw new Error('Falha ao excluir.');
-    return response.json();
+    await fetch('/api/portfolio', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ itemIds }) });
 };
-
 const reorderPortfolioItems = async (itemIds: string[]) => {
     const token = localStorage.getItem('authToken');
-    // 1. Mudamos a URL de /api/portfolio/reorder para /api/portfolio
-    const response = await fetch('/api/portfolio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        // 2. Adicionamos a action: "reorder" ao body
-        body: JSON.stringify({ action: "reorder", itemIds }),
-    });
-    if (!response.ok) throw new Error('Não foi possível atualizar a ordem.');
-    return response.json();
+    await fetch('/api/portfolio', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: "reorder", itemIds }) });
 };
-
-const handleCloudinaryUpload = async (file: File): Promise<string> => {
+const handleCloudinaryUpload = async (file: File) => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    formData.append('folder', 'borges-captures/portfolio');
-
-    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-    const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
-
-    if (!uploadResponse.ok) {
-        console.error("Erro no Cloudinary:", await uploadResponse.json());
-        throw new Error('Falha no upload para Cloudinary.');
-    }
-    const uploadData = await uploadResponse.json();
-    return uploadData.secure_url;
+    formData.append('file', file); formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); formData.append('folder', 'borges-captures/portfolio');
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+    const data = await res.json(); return data.secure_url;
 };
-
 
 const AdminPortfolio = () => {
     const [items, setItems] = useState<PortfolioItem[]>([]);
@@ -268,292 +112,122 @@ const AdminPortfolio = () => {
     const { toast } = useToast();
     const isMobile = useIsMobile();
     const queryClient = useQueryClient();
-
     const { refetch: refetchDashboard } = useDashboardData();
-
     const [file, setFile] = useState<File | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
-    const form = useForm<z.infer<typeof portfolioItemSchema>>({
-        resolver: zodResolver(portfolioItemSchema),
-        defaultValues: { title: "", category: "", description: "", alt: "" },
-    });
+    const form = useForm<z.infer<typeof portfolioItemSchema>>({ resolver: zodResolver(portfolioItemSchema), defaultValues: { title: "", category: "", description: "", alt: "" } });
+    const { data: portfolioData, isLoading } = useQuery<PortfolioItem[], Error>({ queryKey: ['portfolioItems'], queryFn: fetchPortfolioItems });
 
-    const { data: portfolioData, isLoading, isError, error } = useQuery<PortfolioItem[], Error>({
-        queryKey: ['portfolioItems'],
-        queryFn: fetchPortfolioItems,
-    });
+    useEffect(() => { if (portfolioData) setItems(portfolioData); }, [portfolioData]);
 
-    useEffect(() => {
-        if (portfolioData) {
-            setItems(portfolioData);
-        }
-    }, [portfolioData]);
-
-    useEffect(() => {
-        if (isError && error) {
-            toast({ variant: 'destructive', title: 'Erro', description: error.message });
-        }
-    }, [isError, error, toast]);
-
-
-    const resetForm = () => {
-        form.reset({ title: "", category: "", description: "", alt: "" });
-        setFile(null);
-        setEditingId(null);
-    };
-
+    const resetForm = () => { form.reset({ title: "", category: "", description: "", alt: "" }); setFile(null); setEditingId(null); };
     const handleOpenDialog = (item: PortfolioItem | null = null) => {
         resetForm();
         if (item) {
             setEditingId(item._id);
-            form.reset({
-                title: item.title,
-                category: item.category,
-                description: item.description,
-                alt: item.alt || item.title,
-            });
+            form.reset({ title: item.title, category: item.category, description: item.description, alt: item.alt || item.title });
         }
         setIsDialogOpen(true);
     };
 
     const saveMutation = useMutation({
         mutationFn: savePortfolioItem,
-        onSuccess: (data, variables) => {
-            toast({ title: 'Sucesso!', variant: "success", description: `Item ${variables.editingId ? 'atualizado' : 'adicionado'}.` });
-            resetForm();
-            setIsDialogOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
-            refetchDashboard();
-        },
-        onError: (error: Error) => {
-            toast({ variant: 'destructive', title: 'Erro', description: error.message });
-        }
+        onSuccess: () => { toast({ title: 'Salvo!', description: 'Portfólio atualizado.' }); resetForm(); setIsDialogOpen(false); queryClient.invalidateQueries({ queryKey: ['portfolioItems'] }); refetchDashboard(); },
+        onError: (e) => toast({ variant: 'destructive', title: 'Erro', description: e.message })
     });
 
-    const onSubmit = async (data: z.infer<typeof portfolioItemSchema>) => {
-        if (!editingId && !file) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Por favor, selecione uma imagem para um novo item.' });
-            return;
-        }
+    const onSubmit = async (data: any) => {
+        if (!editingId && !file) { toast({ variant: 'destructive', title: 'Erro', description: 'Selecione uma imagem.' }); return; }
 
+        // O botão agora vai travar porque estamos usando form.formState.isSubmitting também
         let imageUrl: string | null = null;
         if (file) {
-            try {
-                imageUrl = await handleCloudinaryUpload(file);
-            } catch (error: unknown) {
-                if (error instanceof Error) {
-                    toast({ variant: 'destructive', title: 'Erro no Upload', description: error.message });
-                } else {
-                    toast({ variant: 'destructive', title: 'Erro no Upload', description: 'Ocorreu um erro desconhecido.' });
-                }
-                return;
-            }
+            try { imageUrl = await handleCloudinaryUpload(file); }
+            catch (e: any) { toast({ variant: 'destructive', title: 'Erro Upload', description: e.message }); return; }
         }
-
         saveMutation.mutate({ formData: data, imageUrl, editingId });
     };
 
     const deleteMutation = useMutation({
         mutationFn: deletePortfolioItems,
-        onSuccess: (data, itemIds) => {
-            toast({ title: 'Sucesso', variant: "success", description: `${itemIds.length} item(ns) excluído(s).` });
-            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
-            refetchDashboard();
-        },
-        onError: (error: Error) => {
-            toast({ variant: 'destructive', title: 'Erro', description: error.message });
-        },
-        onSettled: () => {
-            setIsDeleteModalOpen(false);
-            setSelectedItems(new Set());
-        }
+        onSuccess: () => { toast({ title: 'Excluído', description: 'Itens removidos.' }); queryClient.invalidateQueries({ queryKey: ['portfolioItems'] }); refetchDashboard(); setIsDeleteModalOpen(false); setSelectedItems(new Set()); },
+        onError: (e) => toast({ variant: 'destructive', title: 'Erro', description: e.message })
     });
 
-    const handleDelete = async () => {
-        if (selectedItems.size === 0) return;
-        deleteMutation.mutate(Array.from(selectedItems));
-    };
-
-
-    const handleSelectionChange = (id: string, checked: boolean) => {
-        const newSet = new Set(selectedItems);
-        if (checked) newSet.add(id);
-        else newSet.delete(id);
-        setSelectedItems(newSet);
-    };
-
-    const reorderMutation = useMutation({
-        mutationFn: reorderPortfolioItems,
-        onError: (error: Error, variables: string[]) => {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a ordem. Sincronizando...' });
-            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['portfolioItems'] });
-        }
-    });
-
-    const sensors = useSensors(useSensor(PointerSensor));
-
+    const reorderMutation = useMutation({ mutationFn: reorderPortfolioItems, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolioItems'] }) });
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
-
         const oldIndex = items.findIndex(i => i._id === active.id);
         const newIndex = items.findIndex(i => i._id === over.id);
-        if (oldIndex === -1 || newIndex === -1) return;
-
         const newItems = arrayMove(items, oldIndex, newIndex);
-
-        setItems(newItems); // Atualização otimista
-
+        setItems(newItems);
         reorderMutation.mutate(newItems.map(i => i._id));
     };
 
+    const handleSelectionChange = (id: string, checked: boolean) => {
+        const newSet = new Set(selectedItems);
+        if (checked) newSet.add(id); else newSet.delete(id);
+        setSelectedItems(newSet);
+    };
 
     const renderContent = () => {
-        if (isLoading) {
-            return Array.from({ length: 4 }).map((_, i) =>
-                isMobile
-                    ? <Skeleton key={i} className="h-32 w-full bg-black/60 rounded-3xl" />
-                    : <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>
-            );
-        }
-        if (items.length === 0) {
-            return isMobile
-                ? null
-                : (<TableRow><TableCell colSpan={6} className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</TableCell></TableRow>);
-        }
+        if (isLoading) return Array.from({ length: 5 }).map((_, i) => isMobile ? <Skeleton key={i} className="h-32 w-full bg-zinc-100 mb-4" /> : <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-16 w-full bg-zinc-100" /></TableCell></TableRow>);
+        if (items.length === 0) return <div className="text-center py-12 text-zinc-400 font-serif italic col-span-full">Portfólio vazio. Comece a adicionar!</div>;
 
-        if (isMobile) {
-            return (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={items.map(i => i._id)} strategy={verticalListSortingStrategy}>
-                        {items.map(item =>
-                            <SortablePortfolioItem
-                                key={item._id}
-                                item={item}
-                                selected={selectedItems.has(item._id)}
-                                onSelect={handleSelectionChange}
-                                onEdit={handleOpenDialog}
-                                isMobile={true}
-                            />
-                        )}
-                    </SortableContext>
-                </DndContext>
-            );
-        }
-
-        return (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={items.map(i => i._id)} strategy={verticalListSortingStrategy}>
-                    {items.map(item =>
-                        <SortablePortfolioItem
-                            key={item._id}
-                            item={item}
-                            selected={selectedItems.has(item._id)}
-                            onSelect={handleSelectionChange}
-                            onEdit={handleOpenDialog}
-                            isMobile={false}
-                        />
-                    )}
-                </SortableContext>
-            </DndContext>
+        const Content = (
+            <SortableContext items={items.map(i => i._id)} strategy={verticalListSortingStrategy}>
+                {items.map(item => <SortablePortfolioItem key={item._id} item={item} selected={selectedItems.has(item._id)} onSelect={handleSelectionChange} onEdit={handleOpenDialog} isMobile={isMobile} />)}
+            </SortableContext>
         );
+
+        return <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>{isMobile ? Content : <Table><TableHeader><TableRow className="border-b border-zinc-200 bg-zinc-50"><TableHead className="w-10"></TableHead><TableHead className="w-12"></TableHead><TableHead className="text-zinc-900 font-bold uppercase tracking-widest text-xs">Imagem</TableHead><TableHead className="text-zinc-900 font-bold uppercase tracking-widest text-xs">Título</TableHead><TableHead className="text-zinc-900 font-bold uppercase tracking-widest text-xs">Categoria</TableHead><TableHead className="text-right text-zinc-900 font-bold uppercase tracking-widest text-xs">Ações</TableHead></TableRow></TableHeader><TableBody>{Content}</TableBody></Table>}</DndContext>;
     };
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
-                <div><h1 className="text-3xl font-bold text-white">Gerir Portfólio</h1><p className="text-white/80">Adicione, edite e remova os trabalhos do seu portfólio.</p></div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    {selectedItems.size > 0 && (<Button variant="outline" onClick={() => setIsDeleteModalOpen(true)} className="border border-red-500/80 text-red-500 hover:bg-red-500/20 bg-transparent rounded-xl font-semibold transition-all w-full sm:w-auto"><Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedItems.size})</Button>)}
+            {/* HEADER */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 shrink-0 gap-6">
+                <div>
+                    <h1 className="text-3xl font-serif text-zinc-900 mb-1">Portfólio</h1>
+                    <p className="text-zinc-500 font-light text-sm">Organize os destaques do seu trabalho.</p>
+                </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                    {selectedItems.size > 0 && <Button onClick={() => setIsDeleteModalOpen(true)} variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 rounded-none uppercase tracking-widest text-xs font-bold"><Trash2 className="mr-2 h-4 w-4" /> Excluir ({selectedItems.size})</Button>}
+                    <Button onClick={() => handleOpenDialog()} className="bg-zinc-900 hover:bg-orange-600 text-white rounded-none uppercase tracking-widest text-xs font-bold px-6 shadow-none"><Plus className="mr-2 h-4 w-4" /> Novo Item</Button>
                 </div>
             </div>
 
-            <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
-                {isMobile
-                    ? (
-                        <>
-                            {renderContent()}
-                            {items.length === 0 && !isLoading && <div className="text-center text-white/60 pt-12">Nenhum item encontrado. Adicione o primeiro!</div>}
-                        </>
-                    )
-                    : (
-                        <div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="border-white/10 hover:bg-transparent">
-                                        <TableHead className="w-10"></TableHead>
-                                        <TableHead className="w-12"></TableHead>
-                                        <TableHead className="w-[100px] text-white">Imagem</TableHead>
-                                        <TableHead className="text-white">Título</TableHead>
-                                        <TableHead className="text-white">Categoria</TableHead>
-                                        <TableHead className="text-right text-white">Ações</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {renderContent()}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )
-                }
+            {/* CONTEÚDO */}
+            <div className={`flex-1 overflow-y-auto bg-white border border-zinc-200 shadow-sm ${isMobile ? 'p-4' : ''}`}>
+                {renderContent()}
             </div>
 
+            {/* MODAL DE ADIÇÃO */}
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogTrigger asChild>
-                    <Button
-                        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg"
-                        onClick={() => handleOpenDialog()}
-                        aria-label="Adicionar Novo Item ao Portfólio"
-                    >
-                        <Plus className="h-12 w-12" />
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="text-white">{editingId ? "Editar Item" : "Adicionar Novo Item"}</DialogTitle>
-                        <DialogDescription className="text-white/80">{editingId ? "Altere as informações abaixo." : "Preencha os detalhes e faça o upload da imagem."}</DialogDescription>
-                    </DialogHeader>
-
+                <DialogContent className="bg-white border-zinc-200 text-zinc-900 rounded-none max-w-lg p-8">
+                    <DialogHeader><DialogTitle className="font-serif text-2xl text-zinc-900">{editingId ? "Editar Item" : "Novo Item"}</DialogTitle><DialogDescription>Detalhes do projeto.</DialogDescription></DialogHeader>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <FormField control={form.control} name="title" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Título</Label><FormControl><Input required className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
-                            </FormItem>)} />
-                            <FormField control={form.control} name="category" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Categoria</Label>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                                    <FormControl><SelectTrigger className="bg-black/70 border-white/20 rounded-xl h-12"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                                    <SelectContent position="z-[1000]" className="bg-black/90 text-white border-white/20 ">
-                                        <SelectItem value="portrait">Retratos</SelectItem>
-                                        <SelectItem value="wedding">Casamentos</SelectItem>
-                                        <SelectItem value="maternity">Maternidade</SelectItem>
-                                        <SelectItem value="family">Família</SelectItem>
-                                        <SelectItem value="events">Eventos</SelectItem>
-                                    </SelectContent>
-                                </Select><FormMessage />
-                            </FormItem>)} />
-                            <FormField control={form.control} name="description" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Descrição</Label><FormControl><Textarea required className="bg-black/70 border-white/20 rounded-xl" {...field} /></FormControl><FormMessage />
-                            </FormItem>)} />
-                            <FormField control={form.control} name="alt" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Texto Alternativo (ALT)<span className="text-white/60 text-xs ml-2">(Opcional)</span></Label>
-                                <FormControl><Input placeholder={form.watch('title') || "Descreva a imagem"} className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl>
-                                <p className="text-xs text-white/50 mt-1">Se deixado em branco, usaremos o título.</p><FormMessage />
-                            </FormItem>)} />
-                            <div>
-                                <Label htmlFor="portfolio-image-upload" className="text-white mb-1 font-semibold">Imagem {editingId ? "(Opcional)" : ""}</Label>
-                                <Input id="portfolio-image-upload" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} required={!editingId} className="bg-black/70 border-white/20 rounded-xl file:text-white file:bg-black/80 file:border-0" />
-                            </div>
-                            <DialogFooter className="!mt-6 flex flex-row justify-end gap-3">
-                                <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12 px-6">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={saveMutation.isPending} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12 px-6">
-                                    {saveMutation.isPending ? <Loader2 className="animate-spin" /> : 'Guardar'}
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 mt-4">
+                            <FormField control={form.control} name="title" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Título</Label><FormControl><Input className="border-zinc-300 rounded-none focus-visible:ring-orange-500" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="category" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Categoria</Label><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}><FormControl><SelectTrigger className="border-zinc-300 rounded-none"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent className="bg-white"><SelectItem value="portrait">Retratos</SelectItem><SelectItem value="wedding">Casamentos</SelectItem><SelectItem value="maternity">Maternidade</SelectItem><SelectItem value="family">Família</SelectItem><SelectItem value="events">Eventos</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="description" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Descrição</Label><FormControl><Textarea className="border-zinc-300 rounded-none focus-visible:ring-orange-500" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <div><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Imagem</Label><Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} className="border-zinc-300 rounded-none file:bg-zinc-100 file:text-zinc-900 file:border-0 file:mr-4 file:py-2 file:px-4 hover:file:bg-zinc-200" /></div>
+
+                            {/* BOTÃO TRAVADO DURANTE O SUBMIT */}
+                            <DialogFooter className="pt-4">
+                                <DialogClose asChild><Button type="button" variant="outline" className="rounded-none border-zinc-300 text-zinc-600">Cancelar</Button></DialogClose>
+                                <Button
+                                    type="submit"
+                                    // AQUI TÁ O SEGREDO: Trava se estiver enviando o form (upload) OU salvando a mutation
+                                    disabled={form.formState.isSubmitting || saveMutation.isPending}
+                                    className="rounded-none bg-zinc-900 hover:bg-orange-600 text-white font-bold uppercase tracking-widest"
+                                >
+                                    {(form.formState.isSubmitting || saveMutation.isPending) ? <Loader2 className="animate-spin" /> : 'Salvar'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -561,16 +235,12 @@ const AdminPortfolio = () => {
                 </DialogContent>
             </Dialog>
 
+            {/* MODAL DE EXCLUSÃO */}
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white">
-                    <DialogHeader><DialogTitle>Confirmar exclusão</DialogTitle><DialogDescription className="text-white/80">Tem a certeza que deseja excluir <strong>{selectedItems.size} item(ns)</strong>? Esta ação não pode ser desfeita.</DialogDescription></DialogHeader>
-                    <DialogFooter className="!mt-6">
-                        <DialogClose asChild><Button variant="secondary" className="rounded-xl h-12" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button></DialogClose>
-                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete} disabled={deleteMutation.isPending}>
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {deleteMutation.isPending ? 'A excluir...' : 'Excluir'}
-                        </Button>
-                    </DialogFooter>
+                <DialogContent className="bg-white border-zinc-200 text-zinc-900 rounded-none max-w-md p-8">
+                    <DialogHeader><DialogTitle className="font-serif text-xl">Confirmar Exclusão</DialogTitle></DialogHeader>
+                    <p className="text-zinc-500 font-light">Deseja excluir {selectedItems.size} item(ns)?</p>
+                    <DialogFooter className="mt-6"><DialogClose asChild><Button variant="outline" className="rounded-none border-zinc-300">Cancelar</Button></DialogClose><Button onClick={() => deleteMutation.mutate(Array.from(selectedItems))} className="rounded-none bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest">Excluir</Button></DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

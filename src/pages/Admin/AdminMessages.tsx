@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMessages } from '@/context/MessagesContext';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +12,6 @@ import { ptBR } from 'date-fns/locale';
 import { ViewSelectionsDialog } from './components/ViewSelectionsDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 interface Message { _id: string; name: string; email: string; phone?: string; service: string; message: string; createdAt: string; read: boolean; }
 interface Selection { _id: string; name: string; selections: string[]; selectionDate: string; clientInfo: { name: string }; read: boolean; }
@@ -22,14 +20,12 @@ const AdminMessages = () => {
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
     const [selectedGallery, setSelectedGallery] = useState<Selection | null>(null);
     const { toast } = useToast();
-
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'message' | 'selection' } | null>(null);
-
     const [searchTerm, setSearchTerm] = useState('');
     const { refreshMessages } = useMessages();
-
     const queryClient = useQueryClient();
+
     const query = useQuery<{ messages: Message[]; selections: Selection[] }, Error>({
         queryKey: ['adminMessages'],
         queryFn: async () => {
@@ -39,15 +35,9 @@ const AdminMessages = () => {
             return response.json();
         },
     });
+
     const data = query.data;
     const isLoading = query.isLoading;
-
-    useEffect(() => {
-        if (query.isError) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar a caixa de entrada.' });
-        }
-    }, [query.isError, toast]);
-
     const messages = data?.messages || [];
     const selections = data?.selections || [];
 
@@ -69,9 +59,7 @@ const AdminMessages = () => {
             await fetch(url, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
             await queryClient.invalidateQueries({ queryKey: ['adminMessages'] });
             await refreshMessages();
-        } catch (error) {
-            console.error("Erro ao marcar como lida:", error);
-        }
+        } catch (error) { console.error(error); }
     };
 
     const handleDelete = async () => {
@@ -80,149 +68,105 @@ const AdminMessages = () => {
             const token = localStorage.getItem('authToken');
             if (itemToDelete.type === 'message') {
                 await fetch(`/api/messages?id=${itemToDelete.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                toast({ title: 'Sucesso', variant: "success", description: 'Mensagem excluída.' });
+                toast({ title: 'Sucesso', description: 'Mensagem excluída.' });
                 await queryClient.invalidateQueries({ queryKey: ['adminMessages'] });
             }
             await refreshMessages();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir.' });
-        } finally {
-            setIsDeleteDialogOpen(false);
-            setItemToDelete(null);
-        }
+        } catch (error) { toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao excluir.' }); }
+        finally { setIsDeleteDialogOpen(false); setItemToDelete(null); }
     };
 
-    const openViewDialog = (gallery: Selection) => {
-        setSelectedGallery(gallery);
-        setIsViewDialogOpen(true);
-        // Marca como lida ao abrir
-        handleMarkAsRead(gallery._id, 'selection');
-    };
-
-    const filteredMessages = messages.filter((msg) =>
-        msg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        msg.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const filteredSelections = selections.filter((gallery) =>
-        (gallery.clientInfo?.name.toLowerCase() || '').includes(searchTerm.toLowerCase())
-    );
-
-    const unreadMessagesCount = messages.filter(m => !m.read).length;
-    const unreadSelectionsCount = selections.filter(s => !s.read).length;
+    const filteredMessages = messages.filter((msg) => msg.name.toLowerCase().includes(searchTerm.toLowerCase()) || msg.email.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredSelections = selections.filter((gallery) => (gallery.clientInfo?.name.toLowerCase() || '').includes(searchTerm.toLowerCase()));
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Caixa de Entrada</h1>
-                    <p className="text-white/80">Gira as mensagens de contato e notificações de seleção.</p>
-                </div>
+            <div className="mb-8 shrink-0">
+                <h1 className="text-3xl font-serif text-zinc-900 mb-1">Caixa de Entrada</h1>
+                <p className="text-zinc-500 font-light text-sm">Mensagens de contato e seleções de fotos.</p>
             </div>
 
             <Tabs defaultValue="messages" className="flex flex-col flex-1 overflow-hidden">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 shrink-0">
-                    <TabsList className="grid grid-cols-2 w-full sm:w-auto bg-black/70 p-1 rounded-xl h-auto">
-                        <TabsTrigger value="messages" className="flex-1 rounded-lg h-10 data-[state=active]:bg-orange-500 relative">
-                            Mensagens
-                            {unreadMessagesCount > 0 && <span className="absolute top-2 right-2 h-2 w-2 bg-white rounded-full animate-pulse"></span>}
+                    <TabsList className="bg-zinc-100 p-1 rounded-none border border-zinc-200">
+                        <TabsTrigger value="messages" className="rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-orange-600 px-6">
+                            Mensagens {messages.filter(m => !m.read).length > 0 && <span className="ml-2 h-1.5 w-1.5 rounded-full bg-orange-500" />}
                         </TabsTrigger>
-                        <TabsTrigger value="selections" className="flex-1 rounded-lg h-10 data-[state=active]:bg-orange-500 relative">
-                            Seleções
-                            {unreadSelectionsCount > 0 && <span className="absolute top-2 right-2 h-2 w-2 bg-white rounded-full animate-pulse"></span>}
+                        <TabsTrigger value="selections" className="rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-orange-600 px-6">
+                            Seleções {selections.filter(s => !s.read).length > 0 && <span className="ml-2 h-1.5 w-1.5 rounded-full bg-orange-500" />}
                         </TabsTrigger>
                     </TabsList>
 
                     <div className="relative w-full sm:w-1/2 md:w-1/3">
-                        <Label htmlFor="search-messages" className="sr-only">Buscar</Label>
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" aria-hidden="true" />
-                        <Input id="search-messages" placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-black/70 border-white/20 rounded-xl h-12 pl-12" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                        <Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-white border-zinc-200 rounded-none pl-9 focus-visible:ring-orange-500" />
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                    <TabsContent value="messages" className="mt-0">
-                        {isLoading ? <Skeleton className="h-40 w-full mt-4 bg-black/60 rounded-3xl" /> : filteredMessages.length > 0 ? (
-                            <Accordion type="single" collapsible className="w-full space-y-4" onValueChange={(id) => handleMarkAsRead(id, 'message')}>
+                <div className="flex-1 overflow-y-auto bg-white border border-zinc-200 shadow-sm p-4">
+                    <TabsContent value="messages" className="mt-0 space-y-2">
+                        {isLoading ? <Skeleton className="h-24 w-full bg-zinc-100" /> : filteredMessages.length > 0 ? (
+                            <Accordion type="single" collapsible className="w-full space-y-2" onValueChange={(id) => handleMarkAsRead(id, 'message')}>
                                 {filteredMessages.map((msg) => (
-                                    <Card key={msg._id} className={`bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 ${!msg.read ? 'border-orange-500/50' : ''}`}>
-                                        <AccordionItem value={msg._id} className="border-b-0">
-                                            <AccordionTrigger className="p-4 hover:no-underline">
-                                                <div className="flex items-center justify-between w-full">
-                                                    <div className="flex items-center gap-3 text-left">
-                                                        {!msg.read && <Circle className="h-3 w-3 text-orange-500 fill-current flex-shrink-0" />}
-                                                        <div className={msg.read ? 'pl-6' : ''}>
-                                                            <p className="font-semibold text-white truncate">{msg.name}</p>
-                                                            <p className="text-sm text-white/80 truncate">{msg.service}</p>
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-xs text-white/70 pl-4 text-right flex-shrink-0">
-                                                        {format(new Date(msg.createdAt), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
-                                                    </p>
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent className="px-4 pb-4">
-                                                <div className="space-y-4 p-4 bg-black/50 rounded-2xl border border-white/10">
-                                                    <p className="whitespace-pre-wrap text-white text-sm">{msg.message}</p>
-                                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-white/10">
-                                                        <div className="flex flex-col sm:flex-row gap-x-4 gap-y-1 text-sm">
-                                                            <a href={`mailto:${msg.email}`} className="flex items-center gap-2 hover:text-orange-500 transition-colors"><Mail className="h-4 w-4" />{msg.email}</a>
-                                                            {msg.phone && <a href={`https://wa.me/${msg.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-orange-500 transition-colors"><Phone className="h-4 w-4" />{msg.phone}</a>}
-                                                        </div>
-                                                        <Button size="icon" variant="ghost" onClick={() => { setItemToDelete({ id: msg._id, type: 'message' }); setIsDeleteDialogOpen(true); }} className="border border-red-500/80 text-red-500 hover:bg-red-500/20 rounded-xl" aria-label={`Excluir mensagem de ${msg.name}`}>
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
+                                    <AccordionItem key={msg._id} value={msg._id} className={`border border-zinc-200 bg-zinc-50/50 px-4 ${!msg.read ? 'border-l-4 border-l-orange-500 bg-white' : ''}`}>
+                                        <AccordionTrigger className="hover:no-underline py-4">
+                                            <div className="flex items-center justify-between w-full pr-4">
+                                                <div className="flex items-center gap-3 text-left">
+                                                    {!msg.read && <Circle className="h-2 w-2 text-orange-500 fill-current" />}
+                                                    <div>
+                                                        <p className={`text-sm ${!msg.read ? 'font-bold text-zinc-900' : 'font-medium text-zinc-600'}`}>{msg.name}</p>
+                                                        <p className="text-xs text-zinc-400">{msg.service}</p>
                                                     </div>
                                                 </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    </Card>
+                                                <p className="text-xs text-zinc-400 font-mono">{format(new Date(msg.createdAt), "dd/MM HH:mm", { locale: ptBR })}</p>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="pt-2 pb-4 border-t border-zinc-100 mt-2">
+                                            <p className="whitespace-pre-wrap text-zinc-700 text-sm mb-6 leading-relaxed font-light">{msg.message}</p>
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex gap-4 text-xs text-zinc-500">
+                                                    <a href={`mailto:${msg.email}`} className="flex items-center gap-1 hover:text-orange-600"><Mail className="h-3 w-3" /> {msg.email}</a>
+                                                    {msg.phone && <a href={`https://wa.me/${msg.phone.replace(/\D/g, '')}`} target="_blank" className="flex items-center gap-1 hover:text-orange-600"><Phone className="h-3 w-3" /> {msg.phone}</a>}
+                                                </div>
+                                                <Button size="sm" variant="ghost" onClick={() => { setItemToDelete({ id: msg._id, type: 'message' }); setIsDeleteDialogOpen(true); }} className="text-red-500 hover:bg-red-50 h-8 px-2"><Trash2 className="h-4 w-4" /></Button>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
                                 ))}
                             </Accordion>
-                        ) : <p className="text-center text-white/70 pt-12">Nenhuma mensagem de contato encontrada.</p>}
+                        ) : <p className="text-center text-zinc-400 pt-12 font-serif italic">Nenhuma mensagem.</p>}
                     </TabsContent>
 
-                    <TabsContent value="selections" className="mt-0">
-                        {isLoading ? <Skeleton className="h-40 w-full mt-4 bg-black/60 rounded-3xl" /> : filteredSelections.length > 0 ? (
-                            <div className="space-y-4">
+                    <TabsContent value="selections" className="mt-0 space-y-2">
+                        {isLoading ? <Skeleton className="h-24 w-full bg-zinc-100" /> : filteredSelections.length > 0 ? (
+                            <div className="space-y-2">
                                 {filteredSelections.map((gallery) => (
-                                    <Card key={gallery._id} className={`bg-black/70 backdrop-blur-md rounded-3xl shadow-md border border-white/10 ${!gallery.read ? 'border-orange-500/50' : ''}`}>
-                                        <div className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                            <div className="flex items-center gap-3 text-left">
-                                                {!gallery.read && <Circle className="h-3 w-3 text-orange-500 fill-current flex-shrink-0" />}
-                                                <div className={gallery.read ? 'pl-6' : ''}>
-                                                    <p className="font-semibold text-white">Seleção de {gallery.clientInfo?.name || 'Cliente'}</p>
-                                                    <p className="text-sm text-white/80">Galeria: "{gallery.name}"</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
-                                                <p className="text-xs text-white/70">
-                                                    {format(new Date(gallery.selectionDate), "dd/MM/yyyy", { locale: ptBR })}
-                                                </p>
-                                                <Button onClick={() => openViewDialog(gallery)} className="bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold" aria-label={`Ver seleção de ${gallery.clientInfo?.name}`}>
-                                                    <Eye className="mr-2 h-4 w-4" /> Ver Fotos
-                                                </Button>
+                                    <div key={gallery._id} className={`p-4 border border-zinc-200 flex justify-between items-center ${!gallery.read ? 'border-l-4 border-l-orange-500 bg-white' : 'bg-zinc-50/50'}`}>
+                                        <div className="flex items-center gap-3">
+                                            {!gallery.read && <Circle className="h-2 w-2 text-orange-500 fill-current" />}
+                                            <div>
+                                                <p className="font-bold text-zinc-900 text-sm">Seleção de {gallery.clientInfo?.name || 'Cliente'}</p>
+                                                <p className="text-xs text-zinc-500">Galeria: <span className="italic">"{gallery.name}"</span></p>
                                             </div>
                                         </div>
-                                    </Card>
+                                        <Button onClick={() => { setSelectedGallery(gallery); setIsViewDialogOpen(true); handleMarkAsRead(gallery._id, 'selection'); }} variant="outline" size="sm" className="rounded-none border-zinc-300 text-zinc-600 hover:text-orange-600 text-xs font-bold uppercase tracking-wider">
+                                            <Eye className="mr-2 h-3 w-3" /> Ver Fotos
+                                        </Button>
+                                    </div>
                                 ))}
                             </div>
-                        ) : <p className="text-center text-white/70 pt-12">Nenhuma seleção de cliente foi finalizada ainda.</p>}
+                        ) : <p className="text-center text-zinc-400 pt-12 font-serif italic">Nenhuma seleção recebida.</p>}
                     </TabsContent>
                 </div>
             </Tabs>
 
             {selectedGallery && <ViewSelectionsDialog galleryName={selectedGallery.name} selectedImages={selectedGallery.selections} open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen} />}
+
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl border-white/10 text-white">
-                    <DialogHeader>
-                        <DialogTitle>Excluir Mensagem</DialogTitle>
-                    </DialogHeader>
-                    <p className="text-white/80">Deseja realmente excluir esta mensagem? Esta ação não pode ser desfeita.</p>
-                    <DialogFooter className="!mt-6">
-                        <DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                        <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12" onClick={handleDelete}><Trash2 className="h-4 w-4 mr-2" />Excluir</Button>
-                    </DialogFooter>
+                <DialogContent className="bg-white border-zinc-200 text-zinc-900 rounded-none">
+                    <DialogHeader><DialogTitle className="font-serif">Excluir Mensagem</DialogTitle></DialogHeader>
+                    <p className="text-zinc-500">Tem certeza? Essa ação é irreversível.</p>
+                    <DialogFooter className="mt-4"><Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="rounded-none">Cancelar</Button><Button onClick={handleDelete} className="rounded-none bg-red-600 text-white hover:bg-red-700">Excluir</Button></DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

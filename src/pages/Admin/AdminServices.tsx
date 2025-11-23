@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Upload, Plus, Loader2, Save, Trash2, GripVertical } from 'lucide-react';
+import { Edit, Upload, Plus, Loader2, GripVertical, Trash2 } from 'lucide-react';
 import {
     DndContext,
     closestCenter,
@@ -23,7 +23,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Skeleton } from '@/components/ui/skeleton';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useForm } from "react-hook-form";
@@ -66,144 +66,63 @@ const handleCloudinaryUpload = async (file: File): Promise<string> => {
     formData.append('folder', 'borges-captures/portfolio-services');
     const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
     const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
-    if (!uploadResponse.ok) throw new Error('Falha no upload para Cloudinary.');
+    if (!uploadResponse.ok) throw new Error('Falha no upload.');
     const uploadData = await uploadResponse.json();
     return uploadData.secure_url;
 };
 
-const saveServiceAPI = async (data: {
-    formData: z.infer<typeof serviceSchema>,
-    imageUrl: string | null,
-    editingId: string | null
-}) => {
+const saveServiceAPI = async (data: { formData: any, imageUrl: string | null, editingId: string | null }) => {
     const { formData, imageUrl, editingId } = data;
-    if (!editingId) throw new Error("A criação de serviço não está implementada.");
-
     const token = localStorage.getItem('authToken');
-    const method = 'PUT';
+    const method = 'PUT'; // Assumindo edição por enquanto, já que criação não foi pedida no original
     const url = `/api/services?id=${editingId}`;
+    const body = { ...formData, alt: formData.alt || formData.title, ...(imageUrl && { imageUrl }) };
 
-    const body: Partial<Service> = {
-        ...formData,
-        alt: formData.alt || formData.title,
-        features: Array.isArray(formData.features) ? formData.features : (formData.features as string).split(',').map((f: string) => f.trim()).filter((f: string) => f),
-    };
-
-    if (imageUrl) {
-        body.imageUrl = imageUrl;
-    }
-
-    const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(body),
-    });
-
-    if (!response.ok) throw new Error('Falha ao salvar o serviço.');
+    const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+    if (!response.ok) throw new Error('Falha ao salvar.');
     return response.json();
 };
 
 const reorderServicesAPI = async (serviceIds: string[]) => {
     const token = localStorage.getItem('authToken');
-    const response = await fetch('/api/services', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        },
-        // 2. O body agora envia uma "action"
-        body: JSON.stringify({ action: "reorder", serviceIds }),
-    });
-    if (!response.ok) throw new Error('Falha ao reordenar os serviços.');
+    const response = await fetch('/api/services', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ action: "reorder", serviceIds }) });
+    if (!response.ok) throw new Error('Falha ao reordenar.');
     return response.json();
 };
 
-const deleteServicesAPI = async (serviceIds: string[]) => {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch('/api/services', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ serviceIds }),
-    });
-    if (!response.ok) throw new Error('Falha ao excluir.');
-    return response.json();
-};
+function SortableServiceItem({ service, onEdit, isMobile }: { service: Service, onEdit: (service: Service) => void, isMobile: boolean }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: service._id });
 
-function SortableServiceItem({ service, onEdit }: { service: Service, onEdit: (service: Service) => void }) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: service._id });
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
+        zIndex: isDragging ? 99 : undefined,
         opacity: isDragging ? 0.5 : 1,
-        background: isDragging ? 'rgba(255,255,255,0.04)' : undefined,
+        backgroundColor: isDragging ? '#f4f4f5' : undefined,
     };
-    return (
-        <TableRow
-            ref={setNodeRef}
-            style={style}
-            className="border-white/10"
-            {...attributes}
-        >
-            <TableCell className="w-10 align-middle cursor-grab select-none" {...listeners}>
-                <GripVertical className="text-white/70 mx-auto" />
-            </TableCell>
-            <TableCell>
-                <img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={service.alt || service.title} className="h-16 w-16 object-cover rounded-xl" />
-            </TableCell>
-            <TableCell className="font-medium text-white">{service.title}</TableCell>
-            <TableCell className="text-white/80">{service.price}</TableCell>
-            <TableCell className="text-right">
-                <Button size="icon" variant="ghost" className="bg-white/10 rounded-xl hover:bg-white/20" onClick={() => onEdit(service)} aria-label={`Editar ${service.title}`}>
-                    <Edit className="h-4 w-4" />
-                </Button>
-            </TableCell>
-        </TableRow>
-    );
-}
 
-function SortableServiceCard({ service, onEdit }: { service: Service, onEdit: (service: Service) => void }) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: service._id });
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        background: isDragging ? 'rgba(255,255,255,0.04)' : undefined,
-    };
-    return (
-        <Card
-            ref={setNodeRef}
-            style={style}
-            className="bg-black/70 backdrop-blur-md rounded-3xl p-4 flex gap-4 border border-white/10 relative"
-            {...attributes}
-        >
-            <div className="flex flex-col items-center justify-center cursor-grab select-none" {...listeners}>
-                <GripVertical className="text-white/70" />
-            </div>
-            <img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1,g_auto")} alt={service.alt || service.title} className="h-24 w-24 object-cover rounded-2xl flex-shrink-0" />
-            <div className="flex-1 flex flex-col justify-center">
-                <h3 className="font-semibold text-white text-lg">{service.title}</h3>
-                <p className="text-sm text-orange-400 font-semibold">{service.price}</p>
-                <div className="mt-2 flex space-x-2">
-                    <Button size="icon" className="bg-white/10 text-white rounded-xl hover:bg-white/20" onClick={() => onEdit(service)} aria-label={`Editar ${service.title}`}>
-                        <Edit className="h-4 w-4" />
-                    </Button>
+    if (isMobile) {
+        return (
+            <div ref={setNodeRef} style={style} className="bg-white border border-zinc-200 p-4 flex gap-4 mb-3 relative shadow-sm">
+                <div className="absolute top-4 left-4 cursor-grab text-zinc-400" {...attributes} {...listeners}><GripVertical className="h-5 w-5" /></div>
+                <img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1")} alt={service.title} className="h-20 w-20 object-cover ml-8 bg-zinc-100" />
+                <div className="flex-1">
+                    <h3 className="font-serif text-lg text-zinc-900">{service.title}</h3>
+                    <p className="text-xs font-bold text-orange-600 uppercase tracking-widest">{service.price}</p>
+                    <Button size="icon" variant="outline" className="mt-2 h-8 w-8 rounded-none border-zinc-300 text-zinc-500" onClick={() => onEdit(service)}><Edit className="h-4 w-4" /></Button>
                 </div>
             </div>
-        </Card>
+        );
+    }
+
+    return (
+        <TableRow ref={setNodeRef} style={style} className="border-b border-zinc-100 hover:bg-zinc-50 bg-white">
+            <TableCell className="w-10"><span {...attributes} {...listeners} className="cursor-grab text-zinc-400 hover:text-zinc-900 flex justify-center"><GripVertical className="h-4 w-4" /></span></TableCell>
+            <TableCell><img src={optimizeCloudinaryUrl(service.imageUrl, "f_auto,q_auto,w_200,c_fill,ar_1:1")} alt={service.title} className="h-16 w-16 object-cover bg-zinc-100" /></TableCell>
+            <TableCell className="font-serif text-zinc-900 text-base">{service.title}</TableCell>
+            <TableCell className="text-zinc-500 font-light">{service.price}</TableCell>
+            <TableCell className="text-right"><Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-none" onClick={() => onEdit(service)}><Edit className="h-4 w-4" /></Button></TableCell>
+        </TableRow>
     );
 }
 
@@ -216,14 +135,7 @@ const AdminServices = () => {
     const isMobile = useIsMobile();
     const queryClient = useQueryClient();
 
-    const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: { distance: 8 },
-        })
-    );
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
     const form = useForm<z.infer<typeof serviceSchema>>({
         resolver: zodResolver(serviceSchema),
@@ -232,29 +144,11 @@ const AdminServices = () => {
 
     const imagePreviewUrl = selectedImageFile ? URL.createObjectURL(selectedImageFile) : editingService?.imageUrl;
 
-    const { data: servicesData, isLoading, isError, error } = useQuery<Service[], Error>({
-        queryKey: ['services'],
-        queryFn: fetchServicesAPI,
-    });
+    const { data: servicesData, isLoading } = useQuery<Service[], Error>({ queryKey: ['services'], queryFn: fetchServicesAPI });
 
-    useEffect(() => {
-        if (servicesData) {
-            setServices(servicesData);
-        }
-    }, [servicesData]);
+    useEffect(() => { if (servicesData) setServices(servicesData); }, [servicesData]);
 
-    useEffect(() => {
-        if (isError) {
-            toast({ variant: 'destructive', title: 'Erro', description: error?.message || 'Não foi possível carregar os serviços.' });
-        }
-    }, [isError, error, toast]);
-
-
-    const resetForm = () => {
-        form.reset();
-        setEditingService(null);
-        setSelectedImageFile(null);
-    };
+    const resetForm = () => { form.reset(); setEditingService(null); setSelectedImageFile(null); };
 
     const handleOpenDialog = (service: Service | null = null) => {
         resetForm();
@@ -274,132 +168,60 @@ const AdminServices = () => {
     const saveMutation = useMutation({
         mutationFn: saveServiceAPI,
         onSuccess: () => {
-            toast({ title: 'Sucesso!', variant: "success", description: `Serviço atualizado com sucesso.` });
-            resetForm();
-            setIsDialogOpen(false);
-            queryClient.invalidateQueries({ queryKey: ['services'] });
+            toast({ title: 'Salvo!', description: 'Serviço atualizado.' });
+            resetForm(); setIsDialogOpen(false); queryClient.invalidateQueries({ queryKey: ['services'] });
         },
-        onError: (error: Error) => {
-            toast({ variant: 'destructive', title: 'Erro', description: error.message || 'Não foi possível salvar as alterações.' });
-        }
+        onError: (e) => toast({ variant: 'destructive', title: 'Erro', description: e.message })
     });
 
     const onSubmit = async (data: z.infer<typeof serviceSchema>) => {
         if (!editingService) return;
-
         let imageUrl: string | null = null;
         if (selectedImageFile) {
-            try {
-                imageUrl = await handleCloudinaryUpload(selectedImageFile);
-            } catch (error: unknown) {
-                const msg = error instanceof Error ? error.message : 'Erro no upload';
-                toast({ variant: 'destructive', title: 'Erro no Upload', description: msg });
-                return;
-            }
+            try { imageUrl = await handleCloudinaryUpload(selectedImageFile); }
+            catch (e: any) { toast({ variant: 'destructive', title: 'Erro Upload', description: e.message }); return; }
         }
-
         saveMutation.mutate({ formData: data, imageUrl, editingId: editingService._id });
     };
 
-    const deleteMutation = useMutation({
-        mutationFn: deleteServicesAPI,
-        onSuccess: (data, variables) => {
-            toast({ title: 'Sucesso', variant: "success", description: `${variables.length} serviço(s) excluído(s).` });
-            queryClient.invalidateQueries({ queryKey: ['services'] });
-        },
-        onError: (error: Error) => {
-            toast({ variant: 'destructive', title: 'Erro', description: error.message });
-        },
-        onSettled: () => {
-            setIsDeleteModalOpen(false);
-            setSelectedServices(new Set());
-        }
-    });
-
-    const handleDelete = () => {
-        if (selectedServices.size === 0) return;
-        deleteMutation.mutate(Array.from(selectedServices));
-    };
-
-    const handleSelectionChange = (id: string, checked: boolean) => {
-        const newSet = new Set(selectedServices);
-        if (checked) newSet.add(id);
-        else newSet.delete(id);
-        setSelectedServices(newSet);
-    };
-
-    const reorderMutation = useMutation({
-        mutationFn: reorderServicesAPI,
-        onMutate: async (newOrderIds: string[]) => {
-            await queryClient.cancelQueries({ queryKey: ['services'] });
-            const previousServices = queryClient.getQueryData<Service[]>(['services']);
-            const newOrder = newOrderIds.map(id => services.find(s => s._id === id)).filter(Boolean) as Service[];
-            queryClient.setQueryData(['services'], newOrder);
-            return { previousServices };
-        },
-        onError: (err, newOrderIds, context) => {
-            if (context?.previousServices) {
-                queryClient.setQueryData(['services'], context.previousServices);
-                setServices(context.previousServices);
-            }
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível reordenar. Revertendo.' });
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['services'] });
-        }
-    });
+    const reorderMutation = useMutation({ mutationFn: reorderServicesAPI, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }) });
 
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
-
         const oldIndex = services.findIndex(s => s._id === active.id);
         const newIndex = services.findIndex(s => s._id === over.id);
-        if (oldIndex === -1 || newIndex === -1) return;
-
         const newOrder = arrayMove(services, oldIndex, newIndex);
         setServices(newOrder);
-
         reorderMutation.mutate(newOrder.map(s => s._id));
     };
 
     const renderContent = () => {
-        if (isLoading) {
-            return isMobile
-                ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-black/60 rounded-3xl" />)
-                : Array.from({ length: 4 }).map((_, i) => <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-20 w-full bg-black/60 rounded-2xl" /></TableCell></TableRow>);
-        }
-        if (services.length === 0) {
-            return isMobile
-                ? <div className="text-center text-white/60 pt-12 col-span-full">Nenhum serviço encontrado.</div>
-                : <TableRow><TableCell colSpan={5} className="text-center text-white/60 pt-12">Nenhum serviço encontrado.</TableCell></TableRow>;
-        }
+        if (isLoading) return Array.from({ length: 3 }).map((_, i) => isMobile ? <Skeleton key={i} className="h-32 w-full bg-zinc-100 mb-3" /> : <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-16 w-full bg-zinc-100" /></TableCell></TableRow>);
 
-        if (isMobile) {
-            return (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={services.map(s => s._id)} strategy={verticalListSortingStrategy}>
-                        {services.map(service => (
-                            <SortableServiceCard
-                                key={service._id}
-                                service={service}
-                                onEdit={handleOpenDialog}
-                            />
-                        ))}
-                    </SortableContext>
-                </DndContext>
-            );
-        }
         return (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={services.map(s => s._id)} strategy={verticalListSortingStrategy}>
-                    {services.map(service => (
-                        <SortableServiceItem
-                            key={service._id}
-                            service={service}
-                            onEdit={handleOpenDialog}
-                        />
-                    ))}
+                    {isMobile ? (
+                        services.map(service => <SortableServiceItem key={service._id} service={service} onEdit={handleOpenDialog} isMobile={true} />)
+                    ) : (
+                        <div className="bg-white border border-zinc-200 shadow-sm">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-zinc-50 border-b border-zinc-200 hover:bg-zinc-50">
+                                        <TableHead className="w-10"></TableHead>
+                                        <TableHead className="w-20 text-zinc-900 font-bold uppercase tracking-widest text-xs">Imagem</TableHead>
+                                        <TableHead className="text-zinc-900 font-bold uppercase tracking-widest text-xs">Título</TableHead>
+                                        <TableHead className="text-zinc-900 font-bold uppercase tracking-widest text-xs">Preço</TableHead>
+                                        <TableHead className="text-right text-zinc-900 font-bold uppercase tracking-widest text-xs">Ações</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {services.map(service => <SortableServiceItem key={service._id} service={service} onEdit={handleOpenDialog} isMobile={false} />)}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
                 </SortableContext>
             </DndContext>
         );
@@ -407,72 +229,37 @@ const AdminServices = () => {
 
     return (
         <div className="flex flex-col h-full animate-fade-in">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Gerir Serviços</h1>
-                    <p className="text-white/80">Edite as informações dos serviços oferecidos no seu site.</p>
-                </div>
+            <div className="mb-8 shrink-0">
+                <h1 className="text-3xl font-serif text-zinc-900 mb-1">Gerir Serviços</h1>
+                <p className="text-zinc-500 font-light text-sm">Edite os pacotes oferecidos.</p>
             </div>
 
-            <div className={`flex-1 overflow-y-auto pr-2 -mr-2 ${isMobile ? 'space-y-4' : ''}`}>
-                {isMobile ? (
-                    renderContent()
-                ) : (
-                    <div className="bg-black/70 backdrop-blur-md rounded-3xl border border-white/10 p-2">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="border-white/10 hover:bg-transparent">
-                                    <TableHead className="w-10"></TableHead>
-                                    <TableHead className="w-[100px] text-white">Imagem</TableHead>
-                                    <TableHead className="text-white">Título</TableHead>
-                                    <TableHead className="text-white">Preço</TableHead>
-                                    <TableHead className="text-right text-white">Ações</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>{renderContent()}</TableBody>
-                        </Table>
-                    </div>
-                )}
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                {renderContent()}
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); setIsDialogOpen(isOpen); }}>
-                <DialogContent className="bg-black/80 backdrop-blur-md rounded-3xl shadow-md border-white/10 text-white max-h-[90vh] overflow-y-auto">
-                    <DialogHeader><DialogTitle className="text-white">Editar Serviço</DialogTitle></DialogHeader>
+                <DialogContent className="bg-white border-zinc-200 text-zinc-900 rounded-none max-w-lg p-8">
+                    <DialogHeader><DialogTitle className="font-serif text-2xl text-zinc-900">Editar Serviço</DialogTitle><DialogDescription>Altere os detalhes do pacote.</DialogDescription></DialogHeader>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 mt-4">
                             <div>
-                                <Label className="text-white mb-2 font-semibold block">Imagem do Serviço</Label>
+                                <Label className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Imagem</Label>
                                 <div className="flex items-center gap-4">
-                                    {imagePreviewUrl && <img src={optimizeCloudinaryUrl(imagePreviewUrl, 'f_auto,q_auto,w_200')} alt={form.watch('alt') || form.watch('title')} className="w-24 h-24 object-cover rounded-2xl" />}
-                                    <Input id="image-upload" type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { setSelectedImageFile(file); } }} className="hidden" />
-                                    <Label htmlFor="image-upload" className="cursor-pointer text-white bg-white/10 rounded-xl hover:bg-white/20 transition-all px-4 py-2 flex items-center gap-2"><Upload className="h-4 w-4" />{imagePreviewUrl ? 'Trocar' : 'Escolher'}</Label>
+                                    {imagePreviewUrl && <img src={optimizeCloudinaryUrl(imagePreviewUrl, 'f_auto,q_auto,w_200')} className="w-20 h-20 object-cover bg-zinc-100" />}
+                                    <Label htmlFor="image-upload" className="cursor-pointer bg-zinc-100 hover:bg-zinc-200 text-zinc-900 px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 border border-zinc-300"><Upload className="h-4 w-4" /> {imagePreviewUrl ? 'Trocar' : 'Escolher'}</Label>
+                                    <Input id="image-upload" type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) setSelectedImageFile(file); }} className="hidden" />
                                 </div>
                             </div>
-                            <FormField control={form.control} name="title" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Título</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" {...field} /></FormControl><FormMessage />
-                            </FormItem>)} />
-                            <FormField control={form.control} name="alt" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Texto Alternativo (ALT)</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" placeholder={form.watch('title') || "Descreva a imagem"} {...field} /></FormControl><FormMessage />
-                            </FormItem>)} />
-                            <FormField control={form.control} name="description" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Descrição</Label><FormControl><Textarea className="bg-black/70 border-white/20 rounded-xl" rows={4} {...field} /></FormControl><FormMessage />
-                            </FormItem>)} />
-                            <FormField control={form.control} name="features" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Características (separadas por vírgula)</Label>
-                                <FormControl><Textarea className="bg-black/70 border-white/20 rounded-xl" rows={3} placeholder="Ex: Sessão de 2 horas, Galeria online..." value={Array.isArray(field.value) ? field.value.join(', ') : ''} onChange={(e) => field.onChange(e.target.value.split(',').map(f => f.trim()))} /></FormControl><FormMessage />
-                            </FormItem>)} />
-                            <FormField control={form.control} name="price" render={({ field }) => (<FormItem>
-                                <Label className="text-white mb-1 font-semibold">Preço</Label><FormControl><Input className="bg-black/70 border-white/20 rounded-xl h-12" placeholder="Ex: A partir de 500€" {...field} /></FormControl><FormMessage />
-                            </FormItem>)} />
-                            <DialogFooter className="!mt-6"><DialogClose asChild><Button type="button" variant="secondary" className="rounded-xl h-12">Cancelar</Button></DialogClose>
-                                <Button type="submit" disabled={saveMutation.isPending} className="bg-orange-500 hover:bg-orange-600 rounded-xl text-white h-12">
-                                    {saveMutation.isPending ? <Loader2 className="animate-spin" /> : 'Guardar'}
-                                </Button></DialogFooter>
+                            <FormField control={form.control} name="title" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Título</Label><FormControl><Input className="border-zinc-300 rounded-none" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="description" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Descrição</Label><FormControl><Textarea className="border-zinc-300 rounded-none" rows={3} {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="features" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Itens (separados por vírgula)</Label><FormControl><Textarea className="border-zinc-300 rounded-none" rows={3} placeholder="Ex: 2h de ensaio, 50 fotos..." value={Array.isArray(field.value) ? field.value.join(', ') : ''} onChange={(e) => field.onChange(e.target.value.split(',').map(f => f.trim()))} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="price" render={({ field }) => (<FormItem><Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Preço</Label><FormControl><Input className="border-zinc-300 rounded-none" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <DialogFooter className="pt-4"><DialogClose asChild><Button type="button" variant="outline" className="rounded-none border-zinc-300 text-zinc-600">Cancelar</Button></DialogClose><Button type="submit" disabled={saveMutation.isPending} className="rounded-none bg-zinc-900 hover:bg-orange-600 text-white font-bold uppercase tracking-widest">{saveMutation.isPending ? <Loader2 className="animate-spin" /> : 'Salvar'}</Button></DialogFooter>
                         </form>
                     </Form>
                 </DialogContent>
             </Dialog>
-
         </div>
     );
 };
