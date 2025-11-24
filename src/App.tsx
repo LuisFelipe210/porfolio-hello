@@ -74,7 +74,7 @@ const AppContent = () => {
                             <Route element={<PublicLayout />}>
                                 <Route path="/" element={<Index />} />
                                 <Route path="/sobre" element={<AboutPage />} />
-                                <Route path="/investimentos" element={<ServicesPage />} />
+                                <Route path="/investimento" element={<ServicesPage />} />
                                 <Route path="/journal" element={<BlogPage />} />
                                 <Route path="/journal/:slug" element={<BlogPostPage />} />
                                 <Route path="/portfolio" element={<PortfolioPage />} />
