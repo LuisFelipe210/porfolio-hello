@@ -59,7 +59,6 @@ const BlogPostPage = () => {
 
     const galleryImages = post?.galleryImages || [];
 
-    // Lightbox Logic
     useEffect(() => {
         if (selectedIndex === null) return;
         const handleKey = (e: KeyboardEvent) => {
@@ -86,7 +85,7 @@ const BlogPostPage = () => {
             navigator.share({ title: post?.title, url: window.location.href }).catch(console.error);
         } else {
             navigator.clipboard.writeText(window.location.href);
-            toast({ title: "Link copiado!", description: "O link do artigo foi copiado para a área de transferência." });
+            toast({ title: "Link copiado!", description: "Link copiado para a área de transferência." });
         }
     };
 
@@ -114,61 +113,30 @@ const BlogPostPage = () => {
                     </div>
                 ) : post ? (
                     <article>
-                        {/* --- CABEÇALHO --- */}
                         <header className="container mx-auto max-w-4xl px-6 mb-12 text-center">
                             <div className="flex items-center justify-center gap-3 mb-6">
                                 <span className="h-px w-8 bg-orange-500"></span>
                                 <span className="text-xs font-bold uppercase tracking-[0.25em] text-orange-600">Journal</span>
                                 <span className="h-px w-8 bg-orange-500"></span>
                             </div>
-
-                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-medium text-black leading-tight mb-8">
-                                {post.title}
-                            </h1>
-
+                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-medium text-black leading-tight mb-8">{post.title}</h1>
                             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-sm text-zinc-500 font-light border-y border-zinc-100 py-6">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-serif italic text-black">Por Hellô Borges</span>
-                                </div>
+                                <div className="flex items-center gap-2"><span className="font-serif italic text-black">Por Hellô Borges</span></div>
                                 <div className="hidden md:block w-px h-4 bg-zinc-300"></div>
-                                <div className="flex items-center gap-2 text-black">
-                                    <Calendar size={14} />
-                                    {format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                                </div>
+                                <div className="flex items-center gap-2 text-black"><Calendar size={14} />{format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</div>
                                 <div className="hidden md:block w-px h-4 bg-zinc-300"></div>
-                                <div className="flex items-center gap-2 text-black">
-                                    <Clock size={14} />
-                                    {post.readTime || "Leitura de 5 min"}
-                                </div>
+                                <div className="flex items-center gap-2 text-black"><Clock size={14} />{post.readTime || "Leitura de 5 min"}</div>
                             </div>
                         </header>
 
-                        {/* --- IMAGEM CAPA --- */}
                         <div className="container mx-auto max-w-5xl px-4 md:px-6 mb-16">
                             <div className="aspect-[21/9] w-full overflow-hidden bg-zinc-100">
-                                <img
-                                    src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_1600")}
-                                    alt={post.alt || post.title}
-                                    className="w-full h-full object-cover"
-                                />
+                                <img src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_1600")} alt={post.alt || post.title} className="w-full h-full object-cover" />
                             </div>
-                            {post.alt && (
-                                <p className="text-center text-xs text-zinc-400 mt-3 font-sans tracking-wide uppercase">
-                                    {post.alt}
-                                </p>
-                            )}
+                            {post.alt && <p className="text-center text-xs text-zinc-400 mt-3 font-sans tracking-wide uppercase">{post.alt}</p>}
                         </div>
 
-                        {/* --- CONTEÚDO (TEXTO FIEL AO EDITOR) --- */}
                         <div className="container mx-auto max-w-[800px] px-6 mb-24">
-
-                            {/* AQUI ESTÁ A MÁGICA:
-                                1. 'prose' básico para espaçamento.
-                                2. '!text-black' para garantir cor visível.
-                                3. Classes específicas para imagens e vídeos RESPONSIVOS.
-                                4. NADA de regras forçadas de fonte ou alinhamento no CSS,
-                                   deixando o style inline do editor comandar (justificado, centralizado, etc).
-                            */}
                             <div
                                 className="prose prose-lg max-w-none !text-black
                                 prose-a:!text-orange-600 prose-a:!font-bold hover:prose-a:underline
@@ -176,21 +144,16 @@ const BlogPostPage = () => {
                                 prose-video:w-full prose-video:aspect-video prose-video:my-8
                                 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:my-8
                                 [&_p]:!text-black [&_span]:!text-black [&_li]:!text-black
-                                [&_*]:!text-black
-                                "
+                                [&_*]:!text-black"
                                 dangerouslySetInnerHTML={{ __html: post.content }}
                             />
 
-                            {/* COMPARTILHAR */}
                             <div className="mt-12 pt-8 border-t border-zinc-200 flex justify-between items-center">
                                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-400">Gostou? Compartilhe:</span>
-                                <Button variant="outline" onClick={sharePost} className="rounded-full h-10 w-10 p-0 border-zinc-300 text-zinc-600 hover:text-orange-600 hover:border-orange-600">
-                                    <Share2 size={16} />
-                                </Button>
+                                <Button variant="outline" onClick={sharePost} className="rounded-full h-10 w-10 p-0 border-zinc-300 text-zinc-600 hover:text-orange-600 hover:border-orange-600"><Share2 size={16} /></Button>
                             </div>
                         </div>
 
-                        {/* --- GALERIA EXTRA --- */}
                         {galleryImages.length > 0 && (
                             <div className="bg-zinc-50 py-24 border-t border-zinc-100">
                                 <div className="container mx-auto px-6">
@@ -198,20 +161,12 @@ const BlogPostPage = () => {
                                         <span className="text-orange-600 text-xs font-bold tracking-[0.2em] uppercase block mb-3">Galeria</span>
                                         <h2 className="text-3xl md:text-4xl font-serif text-black">Mais deste dia</h2>
                                     </div>
-
                                     <Carousel opts={{ loop: true, align: "start" }} className="w-full max-w-6xl mx-auto">
                                         <CarouselContent className="-ml-4">
                                             {galleryImages.map((url, index) => (
                                                 <CarouselItem key={index} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                                                    <div
-                                                        className="aspect-[4/5] cursor-pointer group relative overflow-hidden bg-zinc-200"
-                                                        onClick={() => setSelectedIndex(index)}
-                                                    >
-                                                        <img
-                                                            src={optimizeCloudinaryUrl(url, "f_auto,q_auto,w_600,h_750,c_fill")}
-                                                            alt={`Galeria ${index + 1}`}
-                                                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                                                        />
+                                                    <div className="aspect-[4/5] cursor-pointer group relative overflow-hidden bg-zinc-200" onClick={() => setSelectedIndex(index)}>
+                                                        <img src={optimizeCloudinaryUrl(url, "f_auto,q_auto,w_600,h_750,c_fill")} alt={`Galeria ${index + 1}`} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
                                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
                                                     </div>
                                                 </CarouselItem>
@@ -226,10 +181,10 @@ const BlogPostPage = () => {
                             </div>
                         )}
 
-                        {/* VOLTAR */}
                         <div className="container mx-auto px-6 py-16 text-center">
+                            {/* CORREÇÃO DO LINK AQUI */}
                             <Button asChild variant="link" className="text-zinc-400 hover:text-black uppercase tracking-widest text-xs font-bold">
-                                <Link to="/blog" className="flex items-center gap-2">
+                                <Link to="/journal" className="flex items-center gap-2">
                                     <ArrowLeft size={14} /> Voltar para o Journal
                                 </Link>
                             </Button>
@@ -238,14 +193,14 @@ const BlogPostPage = () => {
                 ) : (
                     <div className="text-center py-40 container mx-auto">
                         <h1 className="text-4xl font-serif text-black mb-4">Artigo não encontrado</h1>
+                        {/* CORREÇÃO DO LINK AQUI TAMBÉM */}
                         <Button asChild className="rounded-none bg-black text-white hover:bg-orange-600 uppercase tracking-widest px-8 py-6">
-                            <Link to="/blog">Voltar ao Início</Link>
+                            <Link to="/journal">Voltar ao Journal</Link>
                         </Button>
                     </div>
                 )}
             </main>
 
-            {/* LIGHTBOX */}
             {selectedIndex !== null && (
                 <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col animate-in fade-in duration-300" onClick={() => setSelectedIndex(null)}>
                     <div className="absolute top-0 left-0 w-full p-6 flex justify-end z-[10001]">

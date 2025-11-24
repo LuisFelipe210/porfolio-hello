@@ -109,8 +109,9 @@ const BlogPage = () => {
                         ) : filteredPosts.length > 0 ? (
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
                                 {filteredPosts.map((post) => (
-                                    <Link to={`/blog/${post.slug}`} key={post._id} className="group flex flex-col h-full cursor-pointer">
-                                        {/* IMAGEM COLORIDA E CORTADA */}
+                                    // --- CORREÇÃO DO LINK AQUI (De /blog para /journal) ---
+                                    <Link to={`/journal/${post.slug}`} key={post._id} className="group flex flex-col h-full cursor-pointer">
+                                        {/* IMAGEM */}
                                         <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100 mb-6">
                                             <img
                                                 src={optimizeCloudinaryUrl(post.coverImage || "", "f_auto,q_auto,w_800,h_600,c_fill")}
