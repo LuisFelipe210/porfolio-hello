@@ -33,7 +33,7 @@ const FineArtPolaroid = ({ text, author, source, imageUrl, alt, index }: any) =>
     return (
         <div className={`group relative bg-white p-3 pb-5 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.15)] transition-all duration-500 transform hover:-translate-y-2 hover:rotate-0 ${rotationClass} w-full max-w-[380px] mx-auto border border-zinc-100`}>
 
-            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-20 h-5 bg-orange-100/40 backdrop-blur-sm rotate-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-20 h-5 bg-orange-500/30 backdrop-blur-sm rotate-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
             <div className="aspect-[4/3] overflow-hidden bg-zinc-100 mb-4 relative border-b border-zinc-50">
                 <img
