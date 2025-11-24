@@ -72,11 +72,12 @@ const AppContent = () => {
                     <MessagesProvider>
                         <Routes>
                             <Route element={<PublicLayout />}>
-                                <Route path="/sobre" element={<AboutPage />} />          {/* Era /about */}
-                                <Route path="/portfolio" element={<PortfolioPage />} />   {/* Portfolio serve pros dois */}
-                                <Route path="/investimento" element={<ServicesPage />} /> {/* Era /services */}
-                                <Route path="/journal" element={<BlogPage />} />          {/* Era /blog */}
-                                <Route path="/journal/:slug" element={<BlogPostPage />} /> {/* Era /blog/:slug */}
+                                <Route path="/" element={<Index />} />
+                                <Route path="/sobre" element={<AboutPage />} />
+                                <Route path="/investimentos" element={<ServicesPage />} />
+                                <Route path="/journal" element={<BlogPage />} />
+                                <Route path="/journal/:slug" element={<BlogPostPage />} />
+                                <Route path="/portfolio" element={<PortfolioPage />} />
                                 <Route path="/termos-de-uso" element={<TermosDeUsoPage />} />
                                 <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidadePage />} />
                             </Route>
