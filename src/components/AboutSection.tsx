@@ -59,7 +59,7 @@ const AboutSection = () => {
                                 <Skeleton className="h-4 w-full" />
                             </div>
                         ) : (
-                            <div className="space-y-6 text-base md:text-lg font-light leading-relaxed text-primary/80 max-w-xl text-justify">
+                            <div className="space-y-6 text-base md:text-lg font-light leading-relaxed text-primary/80 max-w-xl">
                                 <p>{content.paragraph1}</p>
                                 <p>{content.paragraph2}</p>
                             </div>
