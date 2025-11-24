@@ -48,22 +48,14 @@ const BlogPage = () => {
         const title = post.title || "";
         const excerpt = post.excerpt || "";
         const search = searchTerm.toLowerCase();
-
-        return title.toLowerCase().includes(search) ||
-            excerpt.toLowerCase().includes(search);
+        return title.toLowerCase().includes(search) || excerpt.toLowerCase().includes(search);
     });
 
     const formatDate = (dateString: string) => {
         if (!dateString) return "";
         try {
-            return new Date(dateString).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
-        } catch (e) {
-            return "";
-        }
+            return new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) { return ""; }
     };
 
     return (
@@ -76,37 +68,35 @@ const BlogPage = () => {
             <Header />
 
             <main className="pt-32 md:pt-40">
-                {/* 1. HERO SECTION - Editorial */}
+                {/* HERO SECTION */}
                 <section className="container mx-auto px-6 mb-20 md:mb-32 text-center animate-fade-in-up">
-                    <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
+                    <span className="text-orange-600 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
                         Journal & Dicas
                     </span>
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-8 leading-[0.9]">
+                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-black mb-8 leading-[0.9]">
                         Histórias, dicas e <br />
-                        <span className="italic font-light text-zinc-400">inspirações.</span>
+                        <span className="italic font-light text-zinc-500">inspirações.</span>
                     </h1>
+                    <div className="w-px h-16 bg-zinc-300 mx-auto mb-10"></div>
 
-                    <div className="w-px h-16 bg-zinc-200 mx-auto mb-10"></div>
-
-                    {/* BARRA DE BUSCA MINIMALISTA */}
+                    {/* BUSCA */}
                     <div className="max-w-md mx-auto relative group">
                         <Input
                             type="text"
                             placeholder="Buscar no journal..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full border-b border-zinc-300 rounded-none px-0 py-4 text-center text-lg bg-transparent placeholder:text-zinc-300 focus-visible:ring-0 focus-visible:border-orange-500 transition-all"
+                            className="w-full border-b border-zinc-300 rounded-none px-0 py-4 text-center text-lg bg-transparent placeholder:text-zinc-300 focus-visible:ring-0 focus-visible:border-orange-600 transition-all text-black"
                         />
-                        <Search className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-hover:text-orange-500 transition-colors" />
+                        <Search className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-hover:text-orange-600 transition-colors" />
                     </div>
                 </section>
 
-                {/* 2. GRID DE POSTS */}
+                {/* GRID DE POSTS */}
                 <section className="mb-24 border-t border-zinc-100 py-16">
                     <div className="container mx-auto px-6">
-
                         {isLoading ? (
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
                                 {Array.from({ length: 6 }).map((_, i) => (
                                     <div key={i} className="space-y-4">
                                         <Skeleton className="h-[300px] w-full bg-zinc-100 rounded-none" />
@@ -119,26 +109,19 @@ const BlogPage = () => {
                         ) : filteredPosts.length > 0 ? (
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
                                 {filteredPosts.map((post) => (
-                                    <Link
-                                        to={`/blog/${post.slug}`}
-                                        key={post._id}
-                                        className="group flex flex-col h-full cursor-pointer"
-                                    >
-                                        {/* Imagem - AGORA COLORIDA SEMPRE */}
+                                    <Link to={`/blog/${post.slug}`} key={post._id} className="group flex flex-col h-full cursor-pointer">
+                                        {/* IMAGEM COLORIDA E CORTADA */}
                                         <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100 mb-6">
                                             <img
-                                                src={optimizeCloudinaryUrl(post.coverImage || "", "f_auto,q_auto,w_600")}
-                                                alt={post.title || "Imagem do post"}
-                                                // Removi 'filter grayscale' e 'group-hover:grayscale-0'. Mantive só o scale.
+                                                src={optimizeCloudinaryUrl(post.coverImage || "", "f_auto,q_auto,w_800,h_600,c_fill")}
+                                                alt={post.title}
                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                                             />
-                                            {/* Linha de hover */}
-                                            <div className="absolute bottom-0 left-0 w-full h-1 bg-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
                                         </div>
 
-                                        {/* Metadados */}
+                                        {/* METADADOS */}
                                         <div className="flex items-center gap-3 mb-3">
-                                            <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">
+                                            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
                                                 {formatDate(post.createdAt)}
                                             </span>
                                             <span className="w-px h-3 bg-zinc-300"></span>
@@ -147,18 +130,18 @@ const BlogPage = () => {
                                             </span>
                                         </div>
 
-                                        {/* Título */}
-                                        <h3 className="text-2xl font-serif text-zinc-900 mb-3 leading-tight group-hover:text-orange-600 transition-colors">
+                                        {/* TÍTULO */}
+                                        <h3 className="text-2xl font-serif text-black mb-3 leading-tight group-hover:text-orange-600 transition-colors">
                                             {post.title || "Sem título"}
                                         </h3>
 
-                                        {/* Resumo */}
-                                        <p className="text-zinc-500 font-light text-sm leading-relaxed mb-6 line-clamp-3 flex-grow">
+                                        {/* RESUMO */}
+                                        <p className="text-zinc-600 font-light text-sm leading-relaxed mb-6 line-clamp-3 flex-grow">
                                             {post.excerpt}
                                         </p>
 
-                                        {/* Link "Ler mais" */}
-                                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-900 group-hover:text-orange-600 transition-colors mt-auto">
+                                        {/* LINK */}
+                                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-black group-hover:text-orange-600 transition-colors mt-auto">
                                             Ler Artigo <ArrowRight className="w-4 h-4" />
                                         </div>
                                     </Link>
@@ -173,30 +156,21 @@ const BlogPage = () => {
                     </div>
                 </section>
 
-                {/* 3. CTA INSTAGRAM - Clean */}
+                {/* INSTAGRAM CTA */}
                 <section className="py-24 container mx-auto px-6 text-center border-t border-zinc-100 bg-zinc-50">
                     <div className="max-w-2xl mx-auto">
                         <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-4 block">
                             Bastidores & Dia a Dia
                         </span>
-
-                        <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 mb-8">
+                        <h2 className="text-3xl md:text-5xl font-serif text-black mb-8">
                             Acompanhe no Instagram
                         </h2>
-
-                        <p className="text-lg text-zinc-500 font-light mb-10 leading-relaxed">
+                        <p className="text-lg text-zinc-600 font-light mb-10 leading-relaxed">
                             Prévias em tempo real, dicas rápidas nos stories e avisos de agenda aberta.
                         </p>
-
-                        <Button asChild size="lg" className="rounded-none text-sm uppercase tracking-widest px-10 py-8 bg-zinc-900 hover:bg-orange-600 text-white transition-all duration-300">
-                            <a
-                                href="https://www.instagram.com/hello.borges.fotografia"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3"
-                            >
-                                <Instagram className="w-5 h-5" />
-                                Seguir @hello.borges
+                        <Button asChild size="lg" className="rounded-none text-sm uppercase tracking-widest px-10 py-8 bg-black hover:bg-orange-600 text-white transition-all duration-300">
+                            <a href="https://www.instagram.com/hello.borges.fotografia" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+                                <Instagram className="w-5 h-5" /> Seguir @hello.borges
                             </a>
                         </Button>
                     </div>
