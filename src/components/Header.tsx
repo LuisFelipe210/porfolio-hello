@@ -35,10 +35,10 @@ const Header = () => {
 
     const navLinks = [
         { id: "", label: "Início" },
-        { id: "about", label: "Sobre" },
+        { id: "sobre", label: "Sobre" },
         { id: "portfolio", label: "Portfólio" },
-        { id: "services", label: "Investimento" },
-        { id: "blog", label: "Journal" },
+        { id: "investimento", label: "Investimento" },
+        { id: "journal", label: "Journal" },
     ];
 
     const isTransparentState = isDarkHeroPage && !scrolled && !isMenuOpen;

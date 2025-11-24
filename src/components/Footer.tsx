@@ -114,9 +114,9 @@ const Footer = () => {
                         <div className="space-y-2">
                             <FooterLink to="/">Início</FooterLink>
                             <FooterLink to="/portfolio">Portfólio</FooterLink>
-                            <FooterLink to="/about">Sobre Mim</FooterLink>
-                            <FooterLink to="/services">Investimento</FooterLink>
-                            <FooterLink to="/blog">Blog</FooterLink>
+                            <FooterLink to="/sobre">Sobre Mim</FooterLink>
+                            <FooterLink to="/investimento">Investimento</FooterLink>
+                            <FooterLink to="/journal">Journal</FooterLink>
                         </div>
                     </div>
 
