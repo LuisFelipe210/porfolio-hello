@@ -1,112 +1,162 @@
-# Hellô Borges - Portfólio de Fotografia
+# Hellô Borges - Plataforma de Fotografia Full-Stack
 
-![Prévia do Projeto](https://imgur.com/G4IpUf5.png)
-
-Este é um projeto full-stack completo para um portfólio de fotógrafa, desenvolvido com React, TypeScript, e Node.js. A plataforma oferece uma experiência de usuário elegante para visitantes e um painel de administração robusto para gerenciamento de conteúdo.
-
-## ✨ Funcionalidades
-
-### 🏛️ Área Pública
-
--   **Página Inicial Dinâmica:** Uma landing page com título e subtítulo personalizáveis através do painel de administração.
--   **Sobre Mim:** Seção com texto e imagens de apresentação, totalmente gerenciável.
--   **Portfólio com Filtros:** Galeria de imagens no estilo masonry, com categorias filtráveis (Retratos, Casamentos, etc.). As imagens podem ser visualizadas em um lightbox.
--   **Serviços Detalhados:** Apresentação dos serviços oferecidos, com descrições, listas de características e imagens.
--   **Depoimentos de Clientes:** Uma seção de depoimentos em carrossel para exibir o feedback de clientes.
--   **Blog:** Uma página de blog com artigos, incluindo uma página de detalhes para cada post.
--   **Contato Flutuante:** Botões de contato rápido para WhatsApp e e-mail.
--   **Tema Claro/Escuro:** Suporte para alternância entre temas.
--   **Design Responsivo:** Totalmente adaptado para dispositivos móveis, tablets e desktops.
-
-### 🔐 Portal do Cliente
-
--   **Login Seguro:** Área de login para clientes acessarem suas galerias privadas.
--   **Seleção de Fotos:** Os clientes podem visualizar suas galerias e selecionar suas fotos favoritas.
--   **Envio de Seleção:** Após a seleção, o cliente pode enviar a lista de fotos escolhidas para a fotógrafa.
-
-### ⚙️ Painel de Administração
-
--   **Dashboard:** Uma visão geral com estatísticas, atalhos rápidos, e atividades recentes.
--   **Gerenciamento de Clientes:** Crie, edite e exclua clientes, e gerencie o acesso ao portal.
--   **Gerenciamento de Galerias:** Crie galerias, faça upload de fotos e associe-as a clientes.
--   **Mensagens:** Visualize mensagens de contato e notificações de seleção de fotos.
--   **Gerenciamento de Portfólio:** Adicione, edite e exclua itens do portfólio público.
--   **Gerenciamento de Serviços:** Atualize as informações dos serviços oferecidos.
--   **Gerenciamento "Sobre Mim":** Edite os textos e imagens da seção "Sobre".
--   **Gerenciamento de Depoimentos:** Adicione, edite e remova depoimentos de clientes.
--   **Gerenciamento de Disponibilidade:** Marque datas como ocupadas em um calendário interativo.
--   **Gerenciamento de Blog:** Crie, edite e exclua artigos para o blog.
--   **Configurações Gerais:** Personalize textos do site, informações de contato e horários.
-
-## 🛠️ Tecnologias Utilizadas
-
--   **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui
--   **Backend:** Node.js (com APIs serverless Vercel)
--   **Banco de Dados:** MongoDB
--   **Hospedagem de Imagens:** Cloudinary
--   **Autenticação:** JWT (JSON Web Tokens)
--   **Envio de E-mail:** Nodemailer
-
-## 🚀 Como Executar o Projeto
-
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://[URL_DO_SEU_REPOSITÓRIO]
-    ```
-2.  **Instale as dependências:**
-    ```bash
-    npm install
-    ```
-3.  **Configure as variáveis de ambiente:**
-    Crie um arquivo `.env` na raiz do projeto e adicione as seguintes variáveis:
-
-    ```env
-    VITE_API_URL=http://localhost:3000/api
-    ADMIN_USER=seu_usuario_admin
-    ADMIN_PASSWORD=sua_senha_admin
-    JWT_SECRET=sua_chave_secreta_jwt
-    CLIENT_JWT_SECRET=sua_chave_secreta_cliente_jwt
-    MONGODB_URI=sua_string_de_conexao_mongodb
-    EMAIL_HOST=seu_host_de_email
-    EMAIL_PORT=sua_porta_de_email
-    EMAIL_USER=seu_usuario_de_email
-    EMAIL_PASS=sua_senha_de_email
-    EMAIL_FROM_NAME="Seu Nome"
-    EMAIL_TO=seu_email_de_destino
-    CLOUDINARY_CLOUD_NAME=seu_cloud_name
-    CLOUDINARY_UPLOAD_PRESET=seu_upload_preset
-    ENCRYPTION_KEY=sua_chave_de_criptografia
-    ENCRYPTION_IV=seu_iv_de_criptografia
-    ```
-
-4.  **Execute o projeto:**
-    ```bash
-    npm run dev
-    ```
-
-## 📸 Screenshots
-
-### Página Inicial
-![Página Inicial](https://imgur.com/9LxRrNd.png)
-
-### Portfólio
-![Portfólio](https://imgur.com/u8uMXRW.png)
-
-### Serviços
-![Serviços](https://imgur.com/x2EC5XI.png)
-
-### Testemunhos
-![Testemunhos](https://imgur.com/444r7sZ.png)
-
-### Blog
-![Blog](https://imgur.com/z7r49sa.png)
-
-### Painel de Administração
-![Painel de Administração](https://imgur.com/HnSqn4c.png)
-
-### Portal do Cliente
-![Portal do Cliente](https://imgur.com/NYkkAsT.png)
+Uma plataforma robusta e elegante desenvolvida para gestão de um estúdio de fotografia. O sistema combina um portfólio público de alta performance com um painel administrativo completo (CMS) e uma área exclusiva para clientes realizarem a seleção de fotos.
 
 ---
 
-* Imagens usadas apenas para fins de desenvolvimento *
+## 🚀 Visão Geral da Stack
+
+O projeto foi construído utilizando as tecnologias mais modernas do ecossistema React, focado em performance, SEO e experiência do usuário.
+
+### Frontend
+
+- **Core:** React 18, TypeScript, Vite
+- **UI & Estilização:** Tailwind CSS, shadcn/ui (Radix Primitives), Lucide Icons
+- **Gerenciamento de Estado:** TanStack Query (React Query) v5 para estado assíncrono e cache
+- **Formulários:** React Hook Form + Zod para validação robusta
+- **Rotas:** React Router DOM v6 com suporte a Lazy Loading
+- **Gráficos:** Recharts (Dashboard administrativo)
+- **SEO:** React Helmet Async
+
+### Backend (Serverless)
+
+- **Runtime:** Node.js (Vercel Serverless Functions)
+- **Banco de Dados:** MongoDB (Native Driver)
+- **Autenticação:** JWT (JSON Web Tokens) com estratégias separadas para Admin e Clientes
+- **Mídia/Uploads:** Integração direta com Cloudinary
+- **Emails:** Suporte a Resend/Nodemailer para notificações e recuperação de senha
+
+---
+
+## ✨ Funcionalidades do Sistema
+
+### 🏛️ Área Pública (Visitantes)
+
+- **Design Responsivo:** Layout fluido adaptado para Mobile, Tablet e Desktop
+- **Portfólio Masonry:** Galeria de imagens dinâmica com filtros por categoria (Casamentos, Ensaios, Eventos, etc.)
+- **Blog (Journal):** Sistema completo de postagens para contar histórias dos eventos
+- **Páginas Institucionais:** Sobre Mim, Investimento (Serviços), Contato e Políticas
+- **Performance:** Carregamento otimizado de imagens e componentes
+
+### 🔐 Portal do Cliente
+
+- **Acesso Restrito:** Login seguro via email e senha
+- **Seleção de Fotos:** Interface intuitiva para o cliente visualizar galerias privadas e selecionar suas fotos favoritas
+- **Feedback Visual:** O cliente pode revisar a seleção antes de enviar a lista final para o fotógrafo
+- **Segurança:** Recuperação de senha via token de email
+
+### ⚙️ Painel Administrativo (CMS)
+
+- **Dashboard Analítico:** Visão geral com métricas de mensagens, clientes ativos e status de seleções
+- **Gestão de Portfólio:** Upload de imagens (Cloudinary), edição de legendas e reordenação
+- **Gestão de Clientes:** Criação de contas, acompanhamento de progresso e visualização das seleções feitas
+- **Calendário:** Ferramenta para gerenciar datas ocupadas/livres
+- **CMS Completo:**
+    - Editor de Blog (Journal)
+    - Gestão de Depoimentos
+    - Edição da página "Sobre Mim"
+    - Configuração de Serviços e Preços
+    - Ajustes globais do site (textos, contatos)
+- **Caixa de Entrada:** Centralização de mensagens recebidas pelo formulário de contato
+
+---
+
+## 🛠️ Configuração e Instalação
+
+### 1. Pré-requisitos
+
+- Node.js (v18 ou superior)
+- Conta no MongoDB Atlas
+- Conta no Cloudinary
+
+### 2. Instalação
+
+Clone o repositório e instale as dependências:
+```bash
+git clone https://github.com/seu-usuario/seu-repo.git
+cd porfolio-hello
+npm install
+```
+
+### 3. Variáveis de Ambiente (.env)
+
+Crie um arquivo `.env` na raiz do projeto. As variáveis necessárias baseadas no código atual são:
+```bash
+# --- API & Banco de Dados ---
+VITE_API_URL=/api
+MONGODB_URI=mongodb+srv://<usuario>:<senha>@cluster.mongodb.net/helloborges_portfolio
+
+# --- Autenticação Admin ---
+ADMIN_USER=seu_usuario_admin
+ADMIN_PASSWORD=sua_senha_admin
+JWT_SECRET=chave_secreta_para_admin_jwt_muito_longa
+
+# --- Autenticação Clientes ---
+CLIENT_JWT_SECRET=chave_secreta_para_clientes_jwt_muito_longa
+
+# --- Cloudinary (Upload de Imagens) ---
+CLOUDINARY_CLOUD_NAME=dohdgkzdu
+CLOUDINARY_UPLOAD_PRESET=borges_direct_upload
+# Nota: A API Key/Secret pode ser necessária no backend dependendo da implementação de deleção
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+# --- Serviço de Email (Recuperação de Senha/Notificações) ---
+# Exemplo usando SMTP ou API (Resend/Sendgrid)
+EMAIL_HOST=smtp.exemplo.com
+EMAIL_PORT=587
+EMAIL_USER=seu_email@dominio.com
+EMAIL_PASS=sua_senha_email
+EMAIL_FROM_NAME="Hellô Borges Fotografia"
+EMAIL_TO=email_da_hello@dominio.com
+```
+
+### 4. Rodando o Projeto
+
+Para iniciar o ambiente de desenvolvimento (Frontend + Serverless Functions via Vercel ou Proxy):
+```bash
+npm run dev
+```
+
+O projeto estará rodando em `http://localhost:8080` (conforme configurado no `vite.config.ts`).
+
+### 5. Build para Produção
+
+Para gerar a versão otimizada para deploy:
+```bash
+npm run build
+```
+
+---
+
+## 📂 Estrutura de Pastas Principal
+```
+/api            # Backend (Serverless Functions) - Cada arquivo é uma rota
+  /admin        # Rotas protegidas do admin
+  /portal       # Rotas protegidas do cliente
+  auth.js       # Autenticação
+  portfolio.js  # CRUD de portfólio
+
+/src
+  /assets       # Imagens estáticas, logos, SVGs
+  /components   # Componentes React
+    /ui         # Componentes base do shadcn/ui (Button, Card, Input...)
+  /context      # Context API (MessagesContext)
+  /hooks        # Custom Hooks (useDashboardData, use-toast)
+  /lib          # Utilitários e helpers
+  /pages        # Páginas da aplicação
+    /Admin      # Telas do Painel Administrativo
+    /Portal     # Telas da Área do Cliente
+```
+
+---
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT.
+
+---
+
+## 👤 Autor
+
+Desenvolvido com ❤️ para Hellô Borges Fotografia
