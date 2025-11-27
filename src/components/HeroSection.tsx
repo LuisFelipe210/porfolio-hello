@@ -1,6 +1,5 @@
 import { ArrowDown } from "lucide-react";
 import { optimizeCloudinaryUrl, generateCloudinarySrcSet } from "@/lib/utils";
-// Importando as logos
 import LogoDesktop from "../assets/logo-hero1.svg";
 import LogoMobile from "../assets/logo-hero2.svg";
 

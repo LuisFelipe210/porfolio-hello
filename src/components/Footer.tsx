@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from "../assets/logo.svg";
+// Importando a nova logo
+import LogoDesktop from "../assets/logo-hero1.svg";
 import { Instagram, Mail, MapPin, Clock, Phone, ArrowRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { Skeleton } from './ui/skeleton';
@@ -69,13 +71,8 @@ const Footer = () => {
 
                     <div className="lg:col-span-4 space-y-6">
                         <div className="flex items-center mb-4">
-                            <img src={Logo} alt="Hellô Borges" className="h-10 sm:h-12 w-auto mr-4" />
-                            <div className="flex flex-col">
-                                <h2 className="text-2xl sm:text-3xl font-title leading-none text-white">Hellô Borges</h2>
-                                <p className="text-xs sm:text-sm tracking-[0.20em] uppercase mt-0 font-light text-orange-500">
-                                    Fotografia
-                                </p>
-                            </div>
+                            <img src={Logo} alt="Hellô Borges" className="h-10 sm:h-12 w-auto mr-3" />
+                            <img src={LogoDesktop} alt="Hellô Borges Nova" className="h-10 sm:h-12 w-auto mr-4 brightness-0 invert" />
                         </div>
 
                         <p className="text-zinc-500 text-sm leading-relaxed max-w-xs font-light">
