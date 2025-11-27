@@ -89,7 +89,6 @@ const PortfolioSection = () => {
         <section className="py-24 bg-white border-t border-zinc-100">
             <div className="container mx-auto px-6">
 
-                {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-end mb-12 md:mb-20 gap-6">
                     <div className="max-w-2xl">
                         <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-4 block">
@@ -126,14 +125,13 @@ const PortfolioSection = () => {
                                     className="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105"
                                 />
 
-                                {/* Overlay do Card (Aqui mantém a descrição resumida se quiser, ou tira também) */}
+                                {/* Overlay do Card */}
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
                                     <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                                         <span className="text-orange-400 text-[10px] font-bold uppercase tracking-widest mb-1 block">
                                             {categoryNames[item.category] || item.category}
                                         </span>
                                         <h3 className="text-white text-xl font-serif italic mb-2">{item.title}</h3>
-                                        {/* Mantive aqui só pro card não ficar vazio, mas no modal sumiu */}
                                         {item.description && (
                                             <p className="text-zinc-300 text-xs font-light line-clamp-2 leading-relaxed">
                                                 {item.description}
@@ -146,10 +144,15 @@ const PortfolioSection = () => {
                     </div>
                 )}
 
-                <div className="mt-12 md:hidden text-center">
-                    <Button asChild variant="outline" className="w-full rounded-none border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white uppercase tracking-widest py-6">
-                        <Link to="/portfolio">
+                <div className="mt-16 text-center">
+                    <Button
+                        asChild
+                        variant="outline"
+                        className="w-full md:w-auto md:px-12 rounded-none border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white uppercase tracking-widest py-6 transition-all duration-300 group"
+                    >
+                        <Link to="/portfolio" className="flex items-center justify-center gap-3">
                             Ver Galeria Completa
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </Button>
                 </div>
@@ -228,14 +231,7 @@ const PortfolioSection = () => {
                                 {categoryNames[items[selectedIndex].category] || items[selectedIndex].category}
                             </p>
                         </div>
-                        <div className="hidden md:block">
-                            <Link to="/portfolio" className="group flex items-center gap-3 text-sm tracking-widest uppercase hover:text-orange-600 transition-colors pb-1 border-b border-zinc-200 hover:border-orange-600">
-                                Ver Galeria Completa
-                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                            </Link>
-                        </div>
                     </div>,
-
                     document.body
                 )
             }
