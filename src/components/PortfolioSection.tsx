@@ -100,13 +100,6 @@ const PortfolioSection = () => {
                             <span className="italic text-zinc-500">duram para sempre.</span>
                         </h2>
                     </div>
-
-                    <div className="hidden md:block">
-                        <Link to="/portfolio" className="group flex items-center gap-3 text-sm tracking-widest uppercase hover:text-orange-600 transition-colors pb-1 border-b border-zinc-200 hover:border-orange-600">
-                            Ver Galeria Completa
-                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
-                    </div>
                 </div>
 
                 {/* GRID */}
@@ -235,7 +228,14 @@ const PortfolioSection = () => {
                                 {categoryNames[items[selectedIndex].category] || items[selectedIndex].category}
                             </p>
                         </div>
+                        <div className="hidden md:block">
+                            <Link to="/portfolio" className="group flex items-center gap-3 text-sm tracking-widest uppercase hover:text-orange-600 transition-colors pb-1 border-b border-zinc-200 hover:border-orange-600">
+                                Ver Galeria Completa
+                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                        </div>
                     </div>,
+
                     document.body
                 )
             }
