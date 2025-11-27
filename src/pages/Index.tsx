@@ -63,6 +63,8 @@ const Index = () => {
             <main>
                 <HeroSection />
 
+                <PortfolioSection />
+
                 {/* SEÇÃO SOBRE MIM */}
                 <section className="py-24 md:py-32 container mx-auto px-6">
                     <div className="flex flex-col md:flex-row items-center gap-12 md:gap-24">
@@ -110,8 +112,6 @@ const Index = () => {
                         </div>
                     </div>
                 </section>
-
-                <PortfolioSection />
 
                 {/* --- ÁREAS DE ATUAÇÃO (AQUI QUE EU MEXI) --- */}
                 <section className="py-24 bg-zinc-50">
