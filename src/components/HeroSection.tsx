@@ -1,5 +1,8 @@
 import { ArrowDown } from "lucide-react";
 import { optimizeCloudinaryUrl, generateCloudinarySrcSet } from "@/lib/utils";
+// Importando as logos
+import LogoDesktop from "../assets/logo-hero1.svg";
+import LogoMobile from "../assets/logo-hero2.svg";
 
 const HeroSection = () => {
 
@@ -43,10 +46,19 @@ const HeroSection = () => {
                             </p>
                         </div>
 
-                        <h1 className="text-[5rem] leading-[0.85] md:text-[7rem] lg:text-[8rem] xl:text-[10rem] font-noto font-extralight text-white mix-blend-overlay opacity-90 animate-fade-in-up delay-100 tracking-tight">
-                            Hellô <br className="md:hidden" />
-                            <span className="font-extralight ml-2 md:ml-0">Borges</span>
-                        </h1>
+                        <div className="animate-fade-in-up delay-100">
+                            <img
+                                src={LogoDesktop}
+                                alt="Hellô Borges"
+                                className="block md:hidden h-40 sm:h-56 w-auto object-contain brightness-0 invert opacity-90"
+                            />
+
+                            <img
+                                src={LogoDesktop}
+                                alt="Hellô Borges"
+                                className="hidden md:block md:h-56 lg:h-72 xl:h-[240px] w-auto object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-500"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex flex-col items-start md:items-end gap-8 md:gap-12 animate-fade-in-up delay-300 w-full md:w-auto border-t border-white/20 md:border-t-0 pt-8 md:pt-0">

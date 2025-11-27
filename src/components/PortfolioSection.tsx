@@ -36,7 +36,7 @@ const PortfolioSection = () => {
                 const response = await fetch('/api/portfolio');
                 if (!response.ok) throw new Error('Falha ao buscar portfólio');
                 const data = await response.json();
-                setItems(data.slice(0, 8));
+                setItems(data.slice(0, 12));
             } catch (error) {
                 console.error(error);
             } finally {
