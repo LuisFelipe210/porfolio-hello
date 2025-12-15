@@ -118,7 +118,9 @@ export default {
         "slide-in-right": "slide-in-right 0.6s ease-out",
         "scale-in": "scale-in 0.4s ease-out",
         "float": "float 3s ease-in-out infinite",
-        "teleportScroll": "teleportScroll 70s linear infinite"
+        "teleportScroll": "teleportScroll 70s linear infinite",
+          'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+
       },
     },
   },
