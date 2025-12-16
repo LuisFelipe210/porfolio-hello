@@ -11,6 +11,9 @@ import ScrollToTop from "./components/ScrollToTop.tsx";
 import { Loader2 } from "lucide-react";
 import PublicLayout from "./pages/PublicLayout.tsx";
 
+// IMPORTA O COMPONENTE DE COOKIES
+import CookieConsentBanner from "./components/CookieConsentBanner";
+
 const Index = lazy(() => import("./pages/Index.tsx"));
 const AboutPage = lazy(() => import("./pages/AboutPage.tsx"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage.tsx"));
@@ -51,20 +54,44 @@ const PageLoader = () => (
 );
 
 const AppContent = () => {
+    // 1. O Preloader começa rodando
     const [isLoading, setIsLoading] = useState(true);
+    // 2. O Cookie começa ESCONDIDO (false)
+    const [canShowCookies, setCanShowCookies] = useState(false);
+
     const location = useLocation();
 
+    // LÓGICA DO PRELOADER
     useEffect(() => {
+        // Roda o preloader por 2.5 segundos (aumentei um tico pra garantir)
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 2000);
+        }, 2500);
 
         return () => clearTimeout(timer);
     }, []);
 
+    // LÓGICA DO COOKIE (SÓ DISPARA QUANDO O PRELOADER MORRE)
+    useEffect(() => {
+        // Se o preloader acabou (!isLoading)
+        if (!isLoading) {
+            // Espera mais 800ms (tempo pro preloader sumir visualmente com fade-out)
+            const cookieDelay = setTimeout(() => {
+                setCanShowCookies(true); // AGORA libera o cookie
+            }, 800);
+
+            return () => clearTimeout(cookieDelay);
+        }
+    }, [isLoading]);
+
     return (
         <>
-            {isLoading && location.pathname === '/' && <ShutterPreloader />}
+            {/* O Preloader tem z-index altíssimo pra cobrir tudo */}
+            {isLoading && location.pathname === '/' && (
+                <div className="fixed inset-0 z-[99999]">
+                    <ShutterPreloader />
+                </div>
+            )}
 
             <div className="site-content">
                 <ScrollToTop />
@@ -109,6 +136,11 @@ const AppContent = () => {
                         </Routes>
                     </MessagesProvider>
                 </Suspense>
+
+                {/* AQUI É A TRAVA: O componente SÓ é montado no DOM se canShowCookies for true */}
+                {/* Como canShowCookies só vira true depois do delay, o banner não existe antes disso */}
+                {canShowCookies && <CookieConsentBanner />}
+
             </div>
         </>
     );
@@ -117,16 +149,14 @@ const AppContent = () => {
 const App = () => {
     return (
         <QueryClientProvider client={queryClient}>
-
-                <TooltipProvider>
-                    <Toaster />
-                    <HelmetProvider>
-                        <BrowserRouter>
-                            <AppContent />
-                        </BrowserRouter>
-                    </HelmetProvider>
-                </TooltipProvider>
-
+            <TooltipProvider>
+                <Toaster />
+                <HelmetProvider>
+                    <BrowserRouter>
+                        <AppContent />
+                    </BrowserRouter>
+                </HelmetProvider>
+            </TooltipProvider>
         </QueryClientProvider>
     );
 };
