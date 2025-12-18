@@ -1,28 +1,26 @@
+import React from "react";
 import { ArrowUpRight, Check } from "lucide-react";
-import { useQuery } from '@tanstack/react-query';
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import { Skeleton } from "./ui/skeleton";
 
-interface Service {
+// 1. Exporto a interface pra o Pai (ServicesPage) poder usar se precisar
+export interface Service {
     _id: string;
     title: string;
     description: string;
-    icon: string;
+    icon: string; // Se não estiver usando o ícone vindo do banco, pode remover depois
     features: string[];
     imageUrl: string;
 }
 
-const fetchServices = async (): Promise<Service[]> => {
-    const response = await fetch('/api/services');
-    if (!response.ok) throw new Error('Falha ao buscar serviços');
-    return response.json();
-};
+// 2. Defino o que esse componente aceita receber
+interface ServicesSectionProps {
+    data: Service[];
+    isLoading: boolean;
+}
 
-const ServicesSection = () => {
-    const { data: services = [], isLoading } = useQuery<Service[], Error>({
-        queryKey: ['services'],
-        queryFn: fetchServices,
-    });
+const ServicesSection = ({ data, isLoading }: ServicesSectionProps) => {
+    // 3. NÃO TEM MAIS FETCH AQUI DENTRO. O componente ficou "burro" (só exibe).
 
     return (
         <section id="services" className="py-24 bg-white border-t border-zinc-100">
@@ -40,21 +38,24 @@ const ServicesSection = () => {
 
                 {isLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <Skeleton className="h-[500px] w-full rounded-none" />
-                        <Skeleton className="h-[500px] w-full rounded-none" />
+                        <Skeleton className="h-[500px] w-full rounded-none bg-zinc-100" />
+                        <Skeleton className="h-[500px] w-full rounded-none bg-zinc-100" />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
-                        {services.map((service, index) => (
+                        {/* Mapeia a prop 'data' que veio do pai */}
+                        {data.map((service, index) => (
                             <div
                                 key={service._id}
                                 className="group relative bg-white h-auto min-h-[500px] flex flex-col justify-between p-8 md:p-12 hover:bg-zinc-50 transition-colors duration-500"
                             >
+                                {/* Imagem de fundo no Hover */}
                                 <div className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-700 pointer-events-none">
                                     <img
                                         src={optimizeCloudinaryUrl(service.imageUrl, 'f_auto,q_auto,w_800')}
                                         className="w-full h-full object-cover grayscale opacity-90"
                                         alt=""
+                                        loading="lazy"
                                     />
                                 </div>
 

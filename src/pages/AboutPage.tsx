@@ -2,14 +2,41 @@ import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ArrowRight, Quote } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { optimizeCloudinaryUrl } from "@/lib/utils";
 
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import AboutSection from "../components/AboutSection.tsx";
 import { Button } from "../components/ui/button.tsx";
 
+// Interface dos dados
+interface AboutContent {
+    paragraph1: string;
+    paragraph2: string;
+    profileImage: { src: string; alt: string; };
+    stats: { sessions: number; weddings: number; families: number; };
+}
+
+// Função de busca
+const fetchAboutContent = async (): Promise<AboutContent> => {
+    const response = await fetch('/api/about');
+    if (!response.ok) throw new Error('Falha ao buscar dados do Sobre');
+    return response.json();
+};
+
 const AboutPage = () => {
     const [hoveredPillar, setHoveredPillar] = useState<number | null>(null);
+
+    // Textura de fundo (mesma que usamos no Services)
+    const heroBgTexture = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
+
+    // React Query puxando os dados
+    const { data: aboutData, isLoading } = useQuery({
+        queryKey: ['aboutContent'],
+        queryFn: fetchAboutContent,
+        staleTime: 1000 * 60 * 60,
+    });
 
     return (
         <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
@@ -20,30 +47,41 @@ const AboutPage = () => {
 
             <Header />
 
-            <main className="pt-32 md:pt-40">
-                {/* 1. HERO SECTION - Editorial e Minimalista */}
-                <section className="container mx-auto px-6 mb-20 md:mb-32 text-center animate-fade-in-up">
-                    <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
-                        Minha Essência
-                    </span>
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-8 leading-[0.9]">
-                        Mais que fotografia, <br />
-                        <span className="italic font-light text-zinc-400">conexão humana.</span>
-                    </h1>
-                    <div className="w-px h-24 bg-orange-500 mx-auto mb-8"></div>
-                    <p className="max-w-xl mx-auto text-lg md:text-xl text-zinc-600 font-light leading-relaxed italic font-serif">
-                        "Cada clique é uma tentativa de congelar o tempo e guardar pra sempre o que a memória, uma hora ou outra, pode deixar escapar."
-                    </p>
+            <main>
+                {/* 1. HERO SECTION COM TEXTURA */}
+                <section className="relative pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+                    {/* Background Texture */}
+                    <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none grayscale">
+                        <img
+                            src={optimizeCloudinaryUrl(heroBgTexture, "f_auto,q_auto,w_1200")}
+                            alt=""
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <div className="container mx-auto px-6 text-center relative z-10 animate-fade-in-up">
+                        <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
+                            Minha Essência
+                        </span>
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-8 leading-[0.9]">
+                            Mais que fotografia, <br />
+                            <span className="italic font-light text-zinc-400">conexão humana.</span>
+                        </h1>
+                        <div className="w-px h-24 bg-orange-500 mx-auto mb-8"></div>
+                        <p className="max-w-xl mx-auto text-lg md:text-xl text-zinc-600 font-light leading-relaxed italic font-serif">
+                            "Cada clique é uma tentativa de congelar o tempo e guardar pra sempre o que a memória, uma hora ou outra, pode deixar escapar."
+                        </p>
+                    </div>
                 </section>
 
-                {/* 2. ABOUT SECTION (Wrapper Limpo) */}
+                {/* 2. ABOUT SECTION OTIMIZADA */}
                 <div className="mb-24 border-y border-zinc-100 py-16 bg-zinc-50/50">
                     <div className="container mx-auto px-6">
-                        <AboutSection />
+                        <AboutSection data={aboutData} isLoading={isLoading} />
                     </div>
                 </div>
 
-                {/* 3. FILOSOFIA DE TRABALHO - Cards Estilo Galeria (Sem ícones infantis) */}
+                {/* 3. FILOSOFIA DE TRABALHO */}
                 <section className="container mx-auto px-6 mb-32 max-w-6xl">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-16 border-b border-zinc-200 pb-6">
                         <div>
@@ -81,7 +119,6 @@ const AboutPage = () => {
                                 onMouseEnter={() => setHoveredPillar(index)}
                                 onMouseLeave={() => setHoveredPillar(null)}
                             >
-                                {/* Número grande no fundo */}
                                 <span className="text-9xl font-serif text-zinc-50 absolute top-4 right-4 pointer-events-none select-none group-hover:text-orange-50 transition-colors duration-500">
                                     {item.number}
                                 </span>
@@ -95,15 +132,13 @@ const AboutPage = () => {
                                         {item.desc}
                                     </p>
                                 </div>
-
-                                {/* Detalhe visual no bottom */}
                                 <div className="w-full h-1 bg-transparent group-hover:bg-orange-500 absolute bottom-0 left-0 transition-colors duration-500 transform scale-x-0 group-hover:scale-x-100 origin-left"></div>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                {/* 4. QUOTE INTERMEDIÁRIA (Diferencial) */}
+                {/* 4. QUOTE */}
                 <section className="py-24 bg-zinc-900 text-white text-center relative overflow-hidden">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-16 bg-orange-500"></div>
                     <div className="container mx-auto px-6 relative z-10">
@@ -115,7 +150,7 @@ const AboutPage = () => {
                     </div>
                 </section>
 
-                {/* 5. CTA FINAL - Elegante e Direto */}
+                {/* 5. CTA FINAL */}
                 <section className="py-32 container mx-auto px-6 text-center bg-white">
                     <div className="max-w-3xl mx-auto">
                         <h2 className="text-4xl md:text-6xl font-serif text-zinc-900 mb-8">

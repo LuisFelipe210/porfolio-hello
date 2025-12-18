@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Search, ArrowRight, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 
 import Header from "../components/Header.tsx";
@@ -20,29 +21,40 @@ interface BlogPost {
     readTime?: string;
 }
 
+const fetchBlogPosts = async (): Promise<BlogPost[]> => {
+    const response = await fetch('/api/blog');
+    if (!response.ok) {
+        throw new Error('Falha ao buscar posts');
+    }
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+};
+
 const BlogPage = () => {
-    const [posts, setPosts] = useState<BlogPost[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch('/api/blog');
-                if (!response.ok) throw new Error('Falha ao buscar posts');
-                const data = await response.json();
-                setPosts(Array.isArray(data) ? data : []);
-            } catch (error) {
-                console.error("Erro:", error);
-                setPosts([]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    // Textura de fundo
+    const heroBgTexture = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
 
-        fetchPosts();
-    }, []);
+    const { data: posts = [], isLoading, isError } = useQuery({
+        queryKey: ['blog-posts'],
+        queryFn: fetchBlogPosts,
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
+    });
+
+    const prefetchPost = (slug: string) => {
+        queryClient.prefetchQuery({
+            queryKey: ['blogPost', slug],
+            queryFn: async () => {
+                const res = await fetch(`/api/blog?slug=${slug}`);
+                if (!res.ok) throw new Error('Erro no prefetch do post');
+                return res.json();
+            },
+            staleTime: 1000 * 60 * 30,
+        });
+    };
 
     const filteredPosts = posts.filter(post => {
         const title = post.title || "";
@@ -67,28 +79,39 @@ const BlogPage = () => {
 
             <Header />
 
-            <main className="pt-32 md:pt-40">
-                {/* HERO SECTION */}
-                <section className="container mx-auto px-6 mb-20 md:mb-32 text-center animate-fade-in-up">
-                    <span className="text-orange-600 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
-                        Journal & Dicas
-                    </span>
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-black mb-8 leading-[0.9]">
-                        Histórias, dicas e <br />
-                        <span className="italic font-light text-zinc-500">inspirações.</span>
-                    </h1>
-                    <div className="w-px h-16 bg-zinc-300 mx-auto mb-10"></div>
-
-                    {/* BUSCA */}
-                    <div className="max-w-md mx-auto relative group">
-                        <Input
-                            type="text"
-                            placeholder="Buscar no journal..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full border-b border-zinc-300 rounded-none px-0 py-4 text-center text-lg bg-transparent placeholder:text-zinc-300 focus-visible:ring-0 focus-visible:border-orange-600 transition-all text-black"
+            <main>
+                {/* HERO SECTION COM TEXTURA */}
+                <section className="relative pt-32 md:pt-40 pb-20 overflow-hidden text-center">
+                    {/* Background Texture */}
+                    <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none grayscale">
+                        <img
+                            src={optimizeCloudinaryUrl(heroBgTexture, "f_auto,q_auto,w_1200")}
+                            alt=""
+                            className="w-full h-full object-cover"
                         />
-                        <Search className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-hover:text-orange-600 transition-colors" />
+                    </div>
+
+                    <div className="container mx-auto px-6 relative z-10 animate-fade-in-up">
+                        <span className="text-orange-600 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
+                            Journal & Dicas
+                        </span>
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-black mb-8 leading-[0.9]">
+                            Histórias, dicas e <br />
+                            <span className="italic font-light text-zinc-500">inspirações.</span>
+                        </h1>
+                        <div className="w-px h-16 bg-zinc-300 mx-auto mb-10"></div>
+
+                        {/* BUSCA */}
+                        <div className="max-w-md mx-auto relative group">
+                            <Input
+                                type="text"
+                                placeholder="Buscar no journal..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full border-b border-zinc-300 rounded-none px-0 py-4 text-center text-lg bg-transparent placeholder:text-zinc-300 focus-visible:ring-0 focus-visible:border-orange-600 transition-all text-black"
+                            />
+                            <Search className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-hover:text-orange-600 transition-colors" />
+                        </div>
                     </div>
                 </section>
 
@@ -106,21 +129,30 @@ const BlogPage = () => {
                                     </div>
                                 ))}
                             </div>
+                        ) : isError ? (
+                            <div className="text-center py-32">
+                                <h3 className="text-xl font-serif text-red-500 mb-2">Erro ao carregar posts</h3>
+                                <p className="text-zinc-500 text-sm">Por favor, recarregue a página.</p>
+                            </div>
                         ) : filteredPosts.length > 0 ? (
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
                                 {filteredPosts.map((post) => (
-                                    // --- CORREÇÃO DO LINK AQUI (De /blog para /journal) ---
-                                    <Link to={`/journal/${post.slug}`} key={post._id} className="group flex flex-col h-full cursor-pointer">
-                                        {/* IMAGEM */}
+                                    <Link
+                                        to={`/journal/${post.slug}`}
+                                        key={post._id}
+                                        onMouseEnter={() => prefetchPost(post.slug)}
+                                        className="group flex flex-col h-full cursor-pointer"
+                                    >
                                         <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100 mb-6">
                                             <img
                                                 src={optimizeCloudinaryUrl(post.coverImage || "", "f_auto,q_auto,w_800,h_600,c_fill")}
                                                 alt={post.title}
+                                                loading="lazy"
+                                                decoding="async"
                                                 className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                                             />
                                         </div>
 
-                                        {/* METADADOS */}
                                         <div className="flex items-center gap-3 mb-3">
                                             <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
                                                 {formatDate(post.createdAt)}
@@ -131,17 +163,14 @@ const BlogPage = () => {
                                             </span>
                                         </div>
 
-                                        {/* TÍTULO */}
                                         <h3 className="text-2xl font-serif text-black mb-3 leading-tight group-hover:text-orange-600 transition-colors">
                                             {post.title || "Sem título"}
                                         </h3>
 
-                                        {/* RESUMO */}
                                         <p className="text-zinc-600 font-light text-sm leading-relaxed mb-6 line-clamp-3 flex-grow">
                                             {post.excerpt}
                                         </p>
 
-                                        {/* LINK */}
                                         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-black group-hover:text-orange-600 transition-colors mt-auto">
                                             Ler Artigo <ArrowRight className="w-4 h-4" />
                                         </div>

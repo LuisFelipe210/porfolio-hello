@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Header from "../components/Header.tsx";
@@ -10,46 +9,43 @@ import { Button } from "@/components/ui/button.tsx";
 import { optimizeCloudinaryUrl } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+
+// URLs de segurança
+const FALLBACK_IMAGE = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
+const ABOUT_IMAGE = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1763705762/Captura_de_Tela_2025-11-21_a%CC%80s_02.26.14_ueboid.png";
 
 const Index = () => {
-    const bgImageFallback = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
-    const aboutSectionImage = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1763705762/Captura_de_Tela_2025-11-21_a%CC%80s_02.26.14_ueboid.png";
 
-    const [categoryImages, setCategoryImages] = useState({
-        wedding: bgImageFallback,
-        portrait: bgImageFallback,
-        events: bgImageFallback
+    // 1. Hook do React Query
+    const { data, isLoading } = useQuery({
+        queryKey: ['home-category-images-portfolio'],
+        queryFn: async () => {
+            const response = await fetch('/api/portfolio');
+            if (!response.ok) throw new Error('Erro na API');
+            const result = await response.json();
+            // Garante que é array
+            return Array.isArray(result) ? result : [];
+        },
+        staleTime: 1000 * 60 * 60, // 1 hora
     });
 
-    const [isLoading, setIsLoading] = useState(true);
+    // 2. Lógica de extração das imagens (IGUALZINHA À SUA)
+    // Se 'data' não existir ainda, usa array vazio pra não quebrar
+    const portfolioItems = data || [];
 
-    useEffect(() => {
-        const fetchCategoryImages = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch('/api/portfolio');
-                if (!response.ok) return;
-                const data = await response.json();
+    const findImg = (cat: string) => {
+        const item = portfolioItems.find((i: any) => i.category === cat);
+        return item ? item.image : null;
+    };
 
-                const findImg = (cat: string) => {
-                    const item = data.find((i: any) => i.category === cat);
-                    return item ? item.image : null;
-                };
-
-                setCategoryImages({
-                    wedding: findImg('wedding') || bgImageFallback,
-                    portrait: findImg('portrait') || findImg('maternity') || findImg('family') || bgImageFallback,
-                    events: findImg('events') || bgImageFallback
-                });
-            } catch (error) {
-                console.error("Erro ao carregar imagens", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchCategoryImages();
-    }, []);
+    // 3. Monta o objeto final garantindo o fallback
+    // Se 'isLoading' for true, ou se não achar a foto, usa o FALLBACK
+    const finalImages = {
+        wedding: findImg('wedding') || FALLBACK_IMAGE,
+        portrait: findImg('portrait') || findImg('maternity') || findImg('family') || FALLBACK_IMAGE,
+        events: findImg('events') || FALLBACK_IMAGE
+    };
 
     return (
         <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
@@ -71,7 +67,7 @@ const Index = () => {
                         <div className="w-full md:w-5/12 relative group">
                             <div className="relative overflow-hidden aspect-[3/4]">
                                 <img
-                                    src={optimizeCloudinaryUrl(aboutSectionImage, "f_auto,q_auto,w_800,c_fill,g_face")}
+                                    src={optimizeCloudinaryUrl(ABOUT_IMAGE, "f_auto,q_auto,w_800,c_fill,g_face")}
                                     alt="Hellô Borges"
                                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
                                 />
@@ -113,7 +109,7 @@ const Index = () => {
                     </div>
                 </section>
 
-                {/* --- ÁREAS DE ATUAÇÃO (AQUI QUE EU MEXI) --- */}
+                {/* --- ÁREAS DE ATUAÇÃO --- */}
                 <section className="py-24 bg-zinc-50">
                     <div className="container mx-auto px-6">
                         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
@@ -140,20 +136,17 @@ const Index = () => {
                             ) : (
                                 // CARDS OTIMIZADOS
                                 [
-                                    { title: "Casamentos", img: categoryImages.wedding, desc: "O início de uma nova história." },
-                                    { title: "Ensaios", img: categoryImages.portrait, desc: "A sua melhor versão, registrada." },
-                                    { title: "Eventos", img: categoryImages.events, desc: "Celebrações que merecem memória." }
+                                    { title: "Casamentos", img: finalImages.wedding, desc: "O início de uma nova história." },
+                                    { title: "Ensaios", img: finalImages.portrait, desc: "A sua melhor versão, registrada." },
+                                    { title: "Eventos", img: finalImages.events, desc: "Celebrações que merecem memória." }
                                 ].map((cat, idx) => (
                                     <Link key={idx} to="/portfolio" className="group relative h-[500px] overflow-hidden block bg-zinc-100">
                                         {/* IMAGEM DE FUNDO */}
                                         <div className="absolute inset-0 bg-zinc-200">
                                             <img
-                                                // w_800: Tamanho ideal (nem gigante, nem pixelado)
-                                                // c_fill: Garante que preencha o card todo sem esticar
-                                                // q_auto: Cloudinary decide a melhor compressão
                                                 src={optimizeCloudinaryUrl(cat.img, "f_auto,q_auto,w_800,h_1000,c_fill")}
                                                 alt={cat.title}
-                                                loading="lazy" // Carregamento preguiçoso pra site rápido
+                                                loading="lazy"
                                                 className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 filter grayscale-[30%] group-hover:grayscale-0"
                                             />
                                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"></div>

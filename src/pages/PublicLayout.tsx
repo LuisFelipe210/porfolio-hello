@@ -12,7 +12,6 @@ const PublicLayout = () => {
                 <Outlet />
             </main>
             <FloatingContact />
-            <CookieConsentBanner />
             <SonnerToaster position="bottom-right" richColors />
         </>
     );

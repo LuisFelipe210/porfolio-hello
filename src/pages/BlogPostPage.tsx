@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, TouchEvent } from 'react'; // <--- Adicionei TouchEvent
 import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -45,12 +45,50 @@ const BlogPostPage = () => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [isLightboxImageLoading, setIsLightboxImageLoading] = useState(true);
 
+    // --- LÓGICA DE SWIPE (ARRASTAR O DEDO) ---
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const minSwipeDistance = 50; // Mínimo de pixels pra considerar que arrastou
+
+    const onTouchStart = (e: TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        const galleryLength = post?.galleryImages?.length || 0;
+
+        if (isLeftSwipe && selectedIndex !== null && selectedIndex < galleryLength - 1) {
+            // Arrastou pra esquerda -> Próxima foto
+            setSelectedIndex(selectedIndex + 1);
+        }
+        if (isRightSwipe && selectedIndex !== null && selectedIndex > 0) {
+            // Arrastou pra direita -> Foto anterior
+            setSelectedIndex(selectedIndex - 1);
+        }
+    };
+    // ------------------------------------------
+
+    const heroBgTexture = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
+
     useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
-    const { data: post, isLoading, isError, error } = useQuery<Post, Error>({
+    const { data: post, isLoading, isError } = useQuery<Post, Error>({
         queryKey: ['blogPost', slug],
         queryFn: () => fetchPostBySlugAPI(slug!),
         enabled: !!slug,
+        staleTime: 1000 * 60 * 30,
+        refetchOnWindowFocus: false,
     });
 
     useEffect(() => {
@@ -79,6 +117,22 @@ const BlogPostPage = () => {
         }
         return () => { document.body.style.overflow = 'unset'; };
     }, [selectedIndex]);
+
+    // Preload Lightbox
+    useEffect(() => {
+        if (selectedIndex === null) return;
+        const nextIndex = selectedIndex + 1;
+        const prevIndex = selectedIndex - 1;
+
+        if (nextIndex < galleryImages.length) {
+            const img = new Image();
+            img.src = optimizeCloudinaryUrl(galleryImages[nextIndex], "f_auto,q_auto,w_1600");
+        }
+        if (prevIndex >= 0) {
+            const img = new Image();
+            img.src = optimizeCloudinaryUrl(galleryImages[prevIndex], "f_auto,q_auto,w_1600");
+        }
+    }, [selectedIndex, galleryImages]);
 
     const sharePost = () => {
         if (navigator.share) {
@@ -113,29 +167,46 @@ const BlogPostPage = () => {
                     </div>
                 ) : post ? (
                     <article>
-                        <header className="container mx-auto max-w-4xl px-6 mb-12 text-center">
-                            <div className="flex items-center justify-center gap-3 mb-6">
-                                <span className="h-px w-8 bg-orange-500"></span>
-                                <span className="text-xs font-bold uppercase tracking-[0.25em] text-orange-600">Journal</span>
-                                <span className="h-px w-8 bg-orange-500"></span>
+                        {/* HEADER */}
+                        <header className="relative container mx-auto max-w-4xl px-6 mb-12 text-center overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-[500px] z-0 opacity-[0.03] pointer-events-none grayscale">
+                                <img
+                                    src={optimizeCloudinaryUrl(heroBgTexture, "f_auto,q_auto,w_1200")}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
-                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-medium text-black leading-tight mb-8">{post.title}</h1>
-                            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-sm text-zinc-500 font-light border-y border-zinc-100 py-6">
-                                <div className="flex items-center gap-2"><span className="font-serif italic text-black">Por Hellô Borges</span></div>
-                                <div className="hidden md:block w-px h-4 bg-zinc-300"></div>
-                                <div className="flex items-center gap-2 text-black"><Calendar size={14} />{format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</div>
-                                <div className="hidden md:block w-px h-4 bg-zinc-300"></div>
-                                <div className="flex items-center gap-2 text-black"><Clock size={14} />{post.readTime || "Leitura de 5 min"}</div>
+
+                            <div className="relative z-10">
+                                <div className="flex items-center justify-center gap-3 mb-6">
+                                    <span className="h-px w-8 bg-orange-500"></span>
+                                    <span className="text-xs font-bold uppercase tracking-[0.25em] text-orange-600">Journal</span>
+                                    <span className="h-px w-8 bg-orange-500"></span>
+                                </div>
+                                <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-medium text-black leading-tight mb-8">{post.title}</h1>
+                                <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-sm text-zinc-500 font-light border-y border-zinc-100 py-6">
+                                    <div className="flex items-center gap-2"><span className="font-serif italic text-black">Por Hellô Borges</span></div>
+                                    <div className="hidden md:block w-px h-4 bg-zinc-300"></div>
+                                    <div className="flex items-center gap-2 text-black"><Calendar size={14} />{format(new Date(post.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}</div>
+                                    <div className="hidden md:block w-px h-4 bg-zinc-300"></div>
+                                    <div className="flex items-center gap-2 text-black"><Clock size={14} />{post.readTime || "Leitura de 5 min"}</div>
+                                </div>
                             </div>
                         </header>
 
+                        {/* COVER IMAGE */}
                         <div className="container mx-auto max-w-5xl px-4 md:px-6 mb-16">
                             <div className="aspect-[21/9] w-full overflow-hidden bg-zinc-100">
-                                <img src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_1600")} alt={post.alt || post.title} className="w-full h-full object-cover" />
+                                <img
+                                    src={optimizeCloudinaryUrl(post.coverImage, "f_auto,q_auto,w_1600")}
+                                    alt={post.alt || post.title}
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
                             {post.alt && <p className="text-center text-xs text-zinc-400 mt-3 font-sans tracking-wide uppercase">{post.alt}</p>}
                         </div>
 
+                        {/* CONTENT */}
                         <div className="container mx-auto max-w-[800px] px-6 mb-24">
                             <div
                                 className="prose prose-lg max-w-none !text-black
@@ -154,6 +225,7 @@ const BlogPostPage = () => {
                             </div>
                         </div>
 
+                        {/* GALERIA (CAROUSEL) */}
                         {galleryImages.length > 0 && (
                             <div className="bg-zinc-50 py-24 border-t border-zinc-100">
                                 <div className="container mx-auto px-6">
@@ -182,7 +254,6 @@ const BlogPostPage = () => {
                         )}
 
                         <div className="container mx-auto px-6 py-16 text-center">
-                            {/* CORREÇÃO DO LINK AQUI */}
                             <Button asChild variant="link" className="text-zinc-400 hover:text-black uppercase tracking-widest text-xs font-bold">
                                 <Link to="/journal" className="flex items-center gap-2">
                                     <ArrowLeft size={14} /> Voltar para o Journal
@@ -193,7 +264,6 @@ const BlogPostPage = () => {
                 ) : (
                     <div className="text-center py-40 container mx-auto">
                         <h1 className="text-4xl font-serif text-black mb-4">Artigo não encontrado</h1>
-                        {/* CORREÇÃO DO LINK AQUI TAMBÉM */}
                         <Button asChild className="rounded-none bg-black text-white hover:bg-orange-600 uppercase tracking-widest px-8 py-6">
                             <Link to="/journal">Voltar ao Journal</Link>
                         </Button>
@@ -201,18 +271,42 @@ const BlogPostPage = () => {
                 )}
             </main>
 
+            {/* LIGHTBOX FULLSCREEN (AGORA COM SWIPE) */}
             {selectedIndex !== null && (
-                <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col animate-in fade-in duration-300" onClick={() => setSelectedIndex(null)}>
+                <div
+                    className="fixed inset-0 bg-black/95 z-[9999] flex flex-col animate-in fade-in duration-300 touch-none" // Adicionei touch-none pra evitar scroll do body
+                    onClick={() => setSelectedIndex(null)}
+                    // EVENTS DE SWIPE NO CONTAINER PRINCIPAL
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                >
                     <div className="absolute top-0 left-0 w-full p-6 flex justify-end z-[10001]">
                         <button onClick={(e) => { e.stopPropagation(); setSelectedIndex(null); }} className="text-white/70 hover:text-white transition-colors p-2"><X size={32} strokeWidth={1} /></button>
                     </div>
+
                     <div className="flex-1 relative flex items-center justify-center w-full h-full p-4 md:p-12">
+                        {/* SETA ESQUERDA (Só Desktop) */}
                         <button onClick={(e) => { e.stopPropagation(); if(selectedIndex > 0) setSelectedIndex(selectedIndex - 1); }} className="absolute left-2 md:left-8 text-white/30 hover:text-white transition-colors disabled:opacity-0 z-[10001] hidden sm:block"><ChevronLeft size={48} strokeWidth={0.5} /></button>
-                        <div className="relative w-full h-full flex items-center justify-center">
+
+                        <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
+                            {/* pointer-events-none na div interna pra garantir que o touch vá pro container pai se clicar fora */}
                             {isLightboxImageLoading && <Loader2 className="w-8 h-8 text-orange-500 animate-spin absolute" />}
-                            <img src={optimizeCloudinaryUrl(galleryImages[selectedIndex], "f_auto,q_auto,w_1600")} alt="" onLoad={() => setIsLightboxImageLoading(false)} className={`max-h-[85vh] max-w-full object-contain shadow-2xl transition-opacity duration-300 ${isLightboxImageLoading ? 'opacity-0' : 'opacity-100'}`} />
+                            <img
+                                src={optimizeCloudinaryUrl(galleryImages[selectedIndex], "f_auto,q_auto,w_1600")}
+                                alt=""
+                                onLoad={() => setIsLightboxImageLoading(false)}
+                                className={`max-h-[85vh] max-w-full object-contain shadow-2xl transition-opacity duration-300 select-none ${isLightboxImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                            />
                         </div>
+
+                        {/* SETA DIREITA (Só Desktop) */}
                         <button onClick={(e) => { e.stopPropagation(); if(selectedIndex < galleryImages.length - 1) setSelectedIndex(selectedIndex + 1); }} className="absolute right-2 md:right-8 text-white/30 hover:text-white transition-colors disabled:opacity-0 z-[10001] hidden sm:block"><ChevronRight size={48} strokeWidth={0.5} /></button>
+                    </div>
+
+                    {/* DICA DE NAVEGAÇÃO MOBILE (Opcional, mas ajuda) */}
+                    <div className="absolute bottom-6 left-0 w-full text-center sm:hidden pointer-events-none">
+                        <span className="text-white/30 text-[10px] uppercase tracking-widest">Arraste para navegar</span>
                     </div>
                 </div>
             )}

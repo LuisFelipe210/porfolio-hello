@@ -43,7 +43,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@sendgrid/mail": "^8.1.6",
-    "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@types/react-lazy-load-image-component": "^1.6.4",
     "bcryptjs": "^3.0.2",

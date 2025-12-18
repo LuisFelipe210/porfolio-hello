@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "./ui/button.tsx";
 import Logo from "../assets/logo.svg";
 
@@ -8,6 +9,7 @@ const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const location = useLocation();
+    const queryClient = useQueryClient();
 
     const isDarkHeroPage = location.pathname === "/";
 
@@ -33,6 +35,74 @@ const Header = () => {
         setIsMenuOpen(false);
     };
 
+    // --- PREFETCH BLOG (JOURNAL) ---
+    const prefetchJournal = () => {
+        queryClient.prefetchQuery({
+            queryKey: ['blog-posts'],
+            queryFn: async () => {
+                const res = await fetch('/api/blog');
+                if (!res.ok) throw new Error('Erro prefetch blog');
+                return res.json();
+            },
+            staleTime: 1000 * 60 * 5,
+        });
+    };
+
+    // --- PREFETCH ABOUT (SOBRE) ---
+    const prefetchAbout = () => {
+        queryClient.prefetchQuery({
+            queryKey: ['aboutContent'], // TEM QUE SER IGUAL AO DO AboutPage
+            queryFn: async () => {
+                const res = await fetch('/api/about');
+                if (!res.ok) throw new Error('Erro prefetch about');
+                return res.json();
+            },
+            staleTime: 1000 * 60 * 60, // 1 hora
+        });
+    };
+
+    const prefetchServices = () => {
+        queryClient.prefetchQuery({
+            queryKey: ['services-list'], // Mesma key do ServicesPage
+            queryFn: async () => {
+                const res = await fetch('/api/services');
+                if (!res.ok) throw new Error('Erro prefetch services');
+                return res.json();
+            },
+            staleTime: 1000 * 60 * 60,
+        });
+    };
+
+    const prefetchPortfolio = () => {
+        queryClient.prefetchQuery({
+            queryKey: ['portfolio-items'],
+            queryFn: async () => {
+                const res = await fetch('/api/portfolio');
+                if (!res.ok) throw new Error('Erro prefetch portfolio');
+                return res.json();
+            },
+            staleTime: 1000 * 60 * 10, // 10 min
+        });
+    };
+
+    const prefetchHome = () => {
+        queryClient.prefetchQuery({
+            queryKey: ['home-featured-images'],
+            queryFn: async () => {
+                const response = await fetch('/api/portfolio');
+                if (!response.ok) throw new Error('Falha ao buscar imagens');
+                const data = await response.json();
+                const findImg = (cat: string) => data.find((i: any) => i.category === cat)?.image;
+                return {
+                    wedding: findImg('wedding') || "url_fallback",
+                    portrait: findImg('portrait') || "url_fallback",
+                    events: findImg('events') || "url_fallback"
+                };
+            },
+            staleTime: 1000 * 60 * 60,
+        });
+    };
+
     const navLinks = [
         { id: "", label: "Início" },
         { id: "sobre", label: "Sobre" },
@@ -51,6 +121,14 @@ const Header = () => {
 
     const textColorClass = isTransparentState ? "text-white" : "text-zinc-900";
     const hoverColorClass = isTransparentState ? "hover:text-orange-400" : "hover:text-orange-600";
+
+    // Helper pra decidir qual prefetch usar
+    const handleMouseEnter = (id: string) => {
+        if (id === "journal") prefetchJournal();
+        if (id === "sobre") prefetchAbout();
+        if (id === "portfolio") prefetchPortfolio();
+        if (id === "investimento") prefetchServices();
+    };
 
     return (
         <>
@@ -79,6 +157,7 @@ const Header = () => {
                                         key={id}
                                         to={id === "" ? "/" : `/${id}`}
                                         onClick={scrollToTop}
+                                        onMouseEnter={() => handleMouseEnter(id)} // <--- CHAMA A FUNÇÃO DE PREFETCH
                                         className={`text-xs font-bold uppercase tracking-[0.2em] transition-colors relative group py-2 ${
                                             isActive
                                                 ? "text-orange-500"
@@ -113,6 +192,7 @@ const Header = () => {
                         </Button>
                     </div>
 
+                    {/* MOBILE TOGGLE */}
                     <div className="flex items-center lg:hidden shrink-0 z-50">
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -124,16 +204,19 @@ const Header = () => {
                 </nav>
             </header>
 
+            {/* MOBILE MENU */}
             <div
                 className={`fixed inset-0 z-40 lg:hidden transition-all duration-700 bg-white flex flex-col justify-center ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             >
                 <div className="relative z-10 flex flex-col items-center space-y-8 p-6">
                     {navLinks.map(({ id, label }, index) => {
                         const isActive = location.pathname === (id === "" ? "/" : `/${id}`);
+
                         return (
                             <Link
                                 key={id}
                                 to={id === "" ? "/" : `/${id}`}
+                                onMouseEnter={() => handleMouseEnter(id)} // <--- PREFETCH NO MOBILE TBM
                                 onClick={() => { setIsMenuOpen(false); scrollToTop(); }}
                                 className={`
                                     text-4xl font-serif transition-all duration-500 

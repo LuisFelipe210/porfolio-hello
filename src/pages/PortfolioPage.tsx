@@ -6,6 +6,8 @@ import Masonry from 'react-masonry-css';
 import { Loader2, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
 import ReactDOM from "react-dom";
+import { useQuery } from "@tanstack/react-query";
+
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
@@ -28,23 +30,24 @@ const categoryNames: Record<string, string> = {
     events: "Eventos"
 };
 
-// --- COMPONENTE DE IMAGEM TURBINADO ---
+const fetchPortfolio = async (): Promise<PortfolioItem[]> => {
+    const response = await fetch('/api/portfolio');
+    if (!response.ok) throw new Error('Falha ao buscar portfólio.');
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+};
+
+// Componente de Imagem Otimizada
 const PortfolioImage = ({ src, alt, priority = false }: { src: string; alt?: string, priority?: boolean }) => {
     const [loaded, setLoaded] = useState(false);
-
-    // URLs OTIMIZADAS PELO CLOUDINARY
-    // w_600 é suficiente para a grade (card), q_auto ajusta a qualidade automaticamente
     const thumbnailSrc = optimizeCloudinaryUrl(src, "f_auto,q_auto,w_600,c_limit");
 
     return (
         <div className="relative w-full bg-zinc-100 overflow-hidden min-h-[200px]">
-            {/* Skeleton some quando a imagem carrega */}
             <div className={`absolute inset-0 bg-zinc-200 animate-pulse transition-opacity duration-500 ${loaded ? 'opacity-0' : 'opacity-100'}`} />
-
             <img
                 src={thumbnailSrc}
                 alt={alt}
-                // Se for priority (as primeiras fotos), carrega Eager. Se não, Lazy.
                 loading={priority ? "eager" : "lazy"}
                 onLoad={() => setLoaded(true)}
                 className={`w-full h-auto object-cover transition-all duration-700 transform ${
@@ -55,9 +58,8 @@ const PortfolioImage = ({ src, alt, priority = false }: { src: string; alt?: str
     );
 };
 
-// Card Desktop
+// Card do Grid
 const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioItem, index: number, setSelectedIndex: (index: number | null) => void }) => {
-    // As primeiras 6 fotos carregam com prioridade pra dar sensação de velocidade
     const isPriority = index < 6;
 
     return (
@@ -66,8 +68,6 @@ const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioIt
             onClick={() => setSelectedIndex(index)}
         >
             <PortfolioImage src={item.image} alt={item.title} priority={isPriority} />
-
-            {/* Overlay Editorial */}
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
                 <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-75">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-1 block">
@@ -76,7 +76,6 @@ const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioIt
                     <h3 className="text-xl font-serif italic text-white mb-2">
                         {item.title}
                     </h3>
-                    {/* Descrição Resumida no Hover */}
                     {item.description && (
                         <p className="text-white/80 text-xs font-light leading-relaxed line-clamp-3">
                             {item.description}
@@ -89,32 +88,21 @@ const MasonryPhotoCard = ({ item, index, setSelectedIndex }: { item: PortfolioIt
 };
 
 const PortfolioPage = () => {
-    const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // Textura de fundo
+    const heroBgTexture = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
+
+    const { data: portfolioItems = [], isLoading } = useQuery({
+        queryKey: ['portfolio-items'],
+        queryFn: fetchPortfolio,
+        staleTime: 1000 * 60 * 10,
+    });
+
     const [activeCategory, setActiveCategory] = useState("all");
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [isLightboxImageLoading, setIsLightboxImageLoading] = useState(true);
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, []);
-
-    useEffect(() => {
-        const fetchPortfolioItems = async () => {
-            try {
-                setIsLoading(true);
-                // DICA: Se puder, limite a quantidade na API (ex: ?limit=50)
-                const response = await fetch('/api/portfolio');
-                if (!response.ok) throw new Error('Falha ao buscar portfólio.');
-                const data = await response.json();
-                setPortfolioItems(data);
-            } catch (error) {
-                console.error("Erro:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchPortfolioItems();
     }, []);
 
     const filteredItems = activeCategory === "all"
@@ -152,7 +140,7 @@ const PortfolioPage = () => {
         return () => { document.body.style.overflow = 'unset'; };
     }, [selectedIndex]);
 
-    // Pré-carregamento das próximas imagens do Lightbox (UX foda)
+    // Preload Lightbox
     useEffect(() => {
         if (selectedIndex === null) return;
         const nextIndex = selectedIndex + 1;
@@ -184,21 +172,32 @@ const PortfolioPage = () => {
 
             <Header />
 
-            <main className="pt-32 md:pt-40 pb-20">
+            <main>
+                {/* HERO SECTION COM TEXTURA */}
+                <section className="relative pt-32 md:pt-40 pb-20 overflow-hidden">
+                    {/* Background Texture */}
+                    <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none grayscale">
+                        <img
+                            src={optimizeCloudinaryUrl(heroBgTexture, "f_auto,q_auto,w_1200")}
+                            alt=""
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
 
-                <section className="container mx-auto px-6 mb-16 md:mb-24 text-center animate-fade-in-up">
-                    <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
-                        Trabalhos Selecionados
-                    </span>
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-6 leading-[0.9]">
-                        Histórias contadas <br />
-                        <span className="italic font-light text-zinc-400">através da luz.</span>
-                    </h1>
+                    <div className="container mx-auto px-6 relative z-10 text-center animate-fade-in-up">
+                        <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
+                            Trabalhos Selecionados
+                        </span>
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-6 leading-[0.9]">
+                            Histórias contadas <br />
+                            <span className="italic font-light text-zinc-400">através da luz.</span>
+                        </h1>
+                    </div>
                 </section>
 
-                {/* FILTROS */}
-                <section className="container mx-auto px-6 mb-12 sticky top-24 z-30 bg-white/95 backdrop-blur-sm py-4 md:static md:bg-transparent md:py-0 border-b border-zinc-100 md:border-none">
-                    <div className="flex flex-wrap justify-center gap-6 md:gap-10 pb-2 md:pb-6">
+                {/* FILTROS (Mudei aqui: Tirei o Sticky e background, agora é static e limpo) */}
+                <section className="container mx-auto px-6 mb-12">
+                    <div className="flex flex-wrap justify-center gap-6 md:gap-10 border-b border-zinc-100 pb-6 md:border-none">
                         {categories.map((category) => (
                             <button
                                 key={category.id}
@@ -249,7 +248,7 @@ const PortfolioPage = () => {
                 </section>
 
                 {/* CTA */}
-                <section className="mt-32 container mx-auto px-6 text-center">
+                <section className="mt-32 container mx-auto px-6 text-center pb-20">
                     <div className="max-w-2xl mx-auto border-t border-zinc-100 pt-16">
                         <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 mb-6">
                             Gostou do que viu?
@@ -265,7 +264,7 @@ const PortfolioPage = () => {
                     </div>
                 </section>
 
-                {/* LIGHTBOX OTIMIZADO */}
+                {/* LIGHTBOX */}
                 {selectedIndex !== null &&
                     ReactDOM.createPortal(
                         <div
@@ -306,7 +305,6 @@ const PortfolioPage = () => {
                                         </div>
                                     )}
                                     <img
-                                        // AQUI PEDE A FOTO GRANDE SÓ QUANDO ABRE
                                         src={optimizeCloudinaryUrl(filteredItems[selectedIndex].image, "f_auto,q_auto,w_1600")}
                                         alt={filteredItems[selectedIndex].title}
                                         onLoad={() => setIsLightboxImageLoading(false)}
@@ -328,7 +326,6 @@ const PortfolioPage = () => {
                                 </button>
                             </div>
 
-                            {/* LEGENDAS */}
                             <div className="absolute bottom-0 left-0 w-full p-6 text-center bg-gradient-to-t from-black/90 to-transparent pb-10">
                                 <h3 className="text-white text-xl font-serif italic mb-1">
                                     {filteredItems[selectedIndex].title}

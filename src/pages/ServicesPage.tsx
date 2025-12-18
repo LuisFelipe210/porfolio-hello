@@ -1,11 +1,14 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { Camera, Clock, Sparkles, ArrowRight } from "lucide-react";
+import { Camera, Clock, Sparkles, ArrowRight, HeartHandshake, Palette, Hourglass } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { optimizeCloudinaryUrl } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
-import ServicesSection from "../components/ServicesSection.tsx";
+// Importa o componente E a interface (se você exportou ela lá)
+import ServicesSection, { Service } from "../components/ServicesSection.tsx";
 import { Button } from "../components/ui/button.tsx";
 import {
     Accordion,
@@ -13,10 +16,37 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "../components/ui/accordion.tsx";
-import { optimizeCloudinaryUrl } from "@/lib/utils";
+
+// Se não conseguiu exportar a interface do ServicesSection, descomenta essa aqui:
+/*
+interface Service {
+    _id: string;
+    title: string;
+    description: string;
+    icon: string;
+    features: string[];
+    imageUrl: string;
+}
+*/
+
+const fetchServices = async (): Promise<Service[]> => {
+    const response = await fetch('/api/services');
+    if (!response.ok) throw new Error('Erro ao buscar serviços');
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+};
 
 const ServicesPage = () => {
+    // Imagens de apoio (Hero e Destaque)
+    const heroBgTexture = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
     const featureImage = "https://res.cloudinary.com/dohdgkzdu/image/upload/v1760542515/hero-portrait_cenocs.jpg";
+
+    // React Query buscando os dados aqui no Pai
+    const { data: services = [], isLoading } = useQuery({
+        queryKey: ['services-list'], // Essa chave tem que bater com o prefetch do Header
+        queryFn: fetchServices,
+        staleTime: 1000 * 60 * 60, // 1 hora de cache
+    });
 
     return (
         <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
@@ -27,42 +57,58 @@ const ServicesPage = () => {
 
             <Header />
 
-            <main className="pt-32 md:pt-40">
-                {/* 1. HERO SECTION */}
-                <section className="container mx-auto px-6 mb-20 md:mb-32 text-center animate-fade-in-up">
-                    <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-6 block">
-                        Experiências & Investimento
-                    </span>
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-8 leading-[0.9]">
-                        Memórias que duram <br />
-                        <span className="italic font-light text-zinc-400">uma vida inteira.</span>
-                    </h1>
-                    <div className="w-px h-24 bg-orange-500 mx-auto mb-8"></div>
-                    <p className="max-w-xl mx-auto text-lg md:text-xl text-zinc-600 font-light leading-relaxed">
-                        Do "sim" no altar ao sorriso espontâneo num ensaio.
-                        Cada serviço é pensado para capturar a sua essência da forma mais autêntica possível.
-                    </p>
+            <main>
+                {/* 1. HERO SECTION COM TEXTURA SUTIL */}
+                <section className="relative pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+                    {/* Background Texture (Foto PB bem clarinha) */}
+                    <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none grayscale">
+                        <img
+                            src={optimizeCloudinaryUrl(heroBgTexture, "f_auto,q_auto,w_1200")}
+                            alt=""
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <div className="container mx-auto px-6 text-center relative z-10 animate-fade-in-up">
+                        <span className="text-orange-600/80 text-xs font-bold tracking-[0.25em] uppercase mb-6 block">
+                            Experiências & Investimento
+                        </span>
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-zinc-900 mb-8 leading-[0.95] tracking-tight">
+                            Memórias que duram <br />
+                            <span className="italic font-light text-zinc-400">uma vida inteira.</span>
+                        </h1>
+                        <div className="w-px h-24 bg-orange-400/70 mx-auto mb-8"></div>
+                        <p className="max-w-xl mx-auto text-lg md:text-xl text-zinc-600 font-light leading-relaxed">
+                            Do "sim" no altar ao sorriso espontâneo num ensaio.
+                            Cada serviço é pensado para capturar a sua essência da forma mais autêntica possível.
+                        </p>
+                    </div>
                 </section>
 
-                {/* 2. SEÇÃO DE SERVIÇOS */}
-                <div className="mb-24 border-y border-zinc-100 py-16 bg-zinc-50/50">
-                    <div className="container mx-auto px-6">
-                        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
-                            <div>
-                                <h2 className="text-3xl font-serif text-zinc-900">Pacotes Disponíveis</h2>
-                                <p className="text-zinc-500 font-light mt-2">Escolha a experiência ideal para o seu momento.</p>
+                {/* 2. SEÇÃO DE SERVIÇOS (Aqui a gente injeta os dados) */}
+                {/* O ServicesSection já tem padding interno, então não precisa de container aqui */}
+                <ServicesSection data={services} isLoading={isLoading} />
+
+                {/* 3. DIFERENCIAIS - DESIGN EDITORIAL (Sobreposição) */}
+                <section className="container mx-auto px-6 mb-32 pt-24">
+                    <div className="flex flex-col md:flex-row items-center relative">
+
+                        {/* Coluna da Imagem (Fica atrás) */}
+                        <div className="w-full md:w-1/2 relative z-0 mb-12 md:mb-0">
+                            <div className="relative overflow-hidden aspect-[3/4] md:aspect-[4/5] shadow-2xl bg-zinc-100">
+                                <img
+                                    src={optimizeCloudinaryUrl(featureImage, "f_auto,q_auto,w_800,c_fill")}
+                                    alt="Bastidores"
+                                    loading="lazy"
+                                    className="w-full h-full object-cover transition-transform duration-[1.5s] filter grayscale-[20%] hover:grayscale-0"
+                                />
+                                {/* Borda interna fina */}
+                                <div className="absolute top-6 right-6 bottom-6 left-6 border-[0.5px] border-white/30 pointer-events-none"></div>
                             </div>
                         </div>
-                        <ServicesSection />
-                    </div>
-                </div>
 
-                {/* 3. DIFERENCIAIS - FOTO MENOR AQUI */}
-                <section className="container mx-auto px-6 mb-32">
-                    <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-
-                        {/* Texto */}
-                        <div className="order-2 md:order-1">
+                        {/* Coluna de Texto (Sobrepõe a imagem no desktop) */}
+                        <div className="w-full md:w-3/5 relative z-10 md:-ml-24 lg:-ml-32 bg-white p-8 md:p-12 lg:p-16 shadow-xl md:shadow-none border border-zinc-100 md:border-none">
                             <span className="text-orange-600/80 text-xs font-bold tracking-[0.2em] uppercase mb-4 block">
                                 O Processo
                             </span>
@@ -74,80 +120,47 @@ const ServicesPage = () => {
                                 Meu processo é leve, para que você se sinta à vontade.
                             </p>
 
-                            <div className="space-y-10">
-                                <div className="flex gap-6 group">
-                                    <div className="mt-1 text-zinc-300 group-hover:text-orange-500 transition-colors">
-                                        <Camera size={32} strokeWidth={1} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-serif text-xl text-zinc-900 mb-2 italic">Direção Descontraída</h3>
-                                        <p className="text-sm text-zinc-500 leading-relaxed">Nada de poses robóticas. Eu guio você para movimentos naturais e sorrisos reais, sem rigidez.</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-6 group">
-                                    <div className="mt-1 text-zinc-300 group-hover:text-orange-500 transition-colors">
-                                        <Sparkles size={32} strokeWidth={1} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-serif text-xl text-zinc-900 mb-2 italic">Edição Autoral</h3>
-                                        <p className="text-sm text-zinc-500 leading-relaxed">Tratamento de cor exclusivo que valoriza a luz e as cores do momento, com estética de cinema.</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-6 group">
-                                    <div className="mt-1 text-zinc-300 group-hover:text-orange-500 transition-colors">
-                                        <Clock size={32} strokeWidth={1} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-serif text-xl text-zinc-900 mb-2 italic">Entrega Ágil</h3>
-                                        <p className="text-sm text-zinc-500 leading-relaxed">Ansiedade controlada. Prévias em até 48h e galeria completa rigorosamente no prazo.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Imagem Editorial - AJUSTADA AQUI */}
-                        <div className="order-1 md:order-2 flex justify-center md:justify-end">
-                            {/* Adicionei 'max-w-md' e mudei aspect para 'aspect-[4/5]' */}
-                            <div className="relative group w-full max-w-md">
-                                <div className="relative overflow-hidden aspect-[4/5] shadow-2xl">
-                                    <img
-                                        src={optimizeCloudinaryUrl(featureImage, "f_auto,q_auto,w_600,c_fill")}
-                                        alt="Bastidores"
-                                        className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105 filter grayscale group-hover:grayscale-0"
-                                    />
-                                    {/* Linha de contorno */}
-                                    <div className="absolute top-4 right-4 bottom-4 left-4 border border-white/20 pointer-events-none"></div>
-                                </div>
-                                <div className="absolute -bottom-6 -left-6 bg-white p-6 shadow-xl hidden md:block z-10">
-                                    <p className="font-serif italic text-zinc-900 text-lg">"Feito com a alma."</p>
-                                </div>
+                            <div className="space-y-12">
+                                <DifferenceItem
+                                    icon={<HeartHandshake size={28} strokeWidth={0.75} />}
+                                    title="Direção Descontraída"
+                                    description="Nada de poses robóticas. Eu guio você para movimentos naturais e sorrisos reais, sem rigidez."
+                                />
+                                <DifferenceItem
+                                    icon={<Palette size={28} strokeWidth={0.75} />}
+                                    title="Edição Autoral"
+                                    description="Tratamento de cor exclusivo que valoriza a luz e as cores do momento, com estética de cinema."
+                                />
+                                <DifferenceItem
+                                    icon={<Hourglass size={28} strokeWidth={0.75} />}
+                                    title="Entrega Ágil & Organizada"
+                                    description="Prévias em até 48h e galeria completa entregue rigorosamente no prazo combinado."
+                                />
                             </div>
                         </div>
                     </div>
                 </section>
 
                 {/* 4. FAQ */}
-                <section className="py-24 bg-zinc-50 border-t border-zinc-100">
+                <section className="py-24 bg-zinc-50/50 border-t border-zinc-100">
                     <div className="container mx-auto px-6 max-w-3xl">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl md:text-4xl font-serif text-zinc-900 mb-4">Dúvidas Frequentes</h2>
-                            <p className="text-zinc-500 font-light">Tudo explicadinho pra não ter erro.</p>
+                            <p className="text-zinc-500 font-light text-lg">Tudo explicado com clareza.</p>
                         </div>
 
                         <Accordion type="single" collapsible className="w-full">
                             {[
                                 { q: "Como reservo minha data?", a: "Para garantir a data, é necessário assinar o contrato e efetuar o pagamento do sinal (reserva). O restante pode ser parcelado até o dia do evento." },
                                 { q: "Quantas fotos vou receber?", a: "Isso depende do pacote escolhido. Para ensaios, a média é de 40 a 60 fotos editadas. Casamentos variam de 400 a 800 fotos, dependendo das horas de cobertura." },
-                                { q: "Você entrega fotos sem edição?", a: "Não. A edição faz parte da minha identidade artística. Entrego apenas as fotos finalizadas com meu tratamento de cor e luz (RAWs não são entregues)." },
+                                { q: "Você entrega fotos sem edição (RAW)?", a: "Não. A edição faz parte fundamental da minha identidade artística. Entrego apenas as fotos finalizadas com meu tratamento de cor e luz. Os arquivos RAW não refletem o trabalho final." },
                                 { q: "E se chover no dia do ensaio?", a: "A gente remarca! Sem custo adicional. Quero que suas fotos tenham a melhor luz possível, e se o tempo não ajudar, a gente espera o sol voltar." }
                             ].map((item, idx) => (
-                                <AccordionItem key={idx} value={`item-${idx}`} className="border-b border-zinc-200 px-0 py-2">
-                                    <AccordionTrigger className="text-lg md:text-xl font-serif text-zinc-900 hover:text-orange-600 hover:no-underline py-6 text-left transition-colors">
+                                <AccordionItem key={idx} value={`item-${idx}`} className="border-b border-zinc-100 px-0 py-3">
+                                    <AccordionTrigger className="text-xl font-serif text-zinc-900 hover:text-orange-600 hover:no-underline py-6 text-left transition-colors pr-4">
                                         {item.q}
                                     </AccordionTrigger>
-                                    <AccordionContent className="text-zinc-500 pb-6 text-base font-light leading-relaxed">
+                                    <AccordionContent className="text-zinc-500 pb-8 text-lg font-light leading-relaxed pr-8">
                                         {item.a}
                                     </AccordionContent>
                                 </AccordionItem>
@@ -181,5 +194,18 @@ const ServicesPage = () => {
         </div>
     );
 };
+
+// Componentezinho auxiliar pra limpar o código
+const DifferenceItem = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
+    <div className="flex gap-5 group">
+        <div className="mt-1 text-zinc-400 group-hover:text-orange-500 transition-colors duration-300">
+            {icon}
+        </div>
+        <div>
+            <h3 className="font-serif text-xl text-zinc-900 mb-3 italic">{title}</h3>
+            <p className="text-[15px] text-zinc-500 leading-relaxed font-light">{description}</p>
+        </div>
+    </div>
+);
 
 export default ServicesPage;
