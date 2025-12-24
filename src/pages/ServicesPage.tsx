@@ -49,7 +49,7 @@ const ServicesPage = () => {
     });
 
     return (
-        <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background text-zinc-900 font-sans selection:bg-orange-200">
             <Helmet>
                 <title>Investimento | Hellô Borges Fotografia</title>
                 <meta name="description" content="Conheça nossos pacotes de fotografia: Casamentos, Ensaios e Eventos." />
@@ -85,11 +85,8 @@ const ServicesPage = () => {
                     </div>
                 </section>
 
-                {/* 2. SEÇÃO DE SERVIÇOS (Aqui a gente injeta os dados) */}
-                {/* O ServicesSection já tem padding interno, então não precisa de container aqui */}
                 <ServicesSection data={services} isLoading={isLoading} />
 
-                {/* 3. DIFERENCIAIS - DESIGN EDITORIAL (Sobreposição) */}
                 <section className="container mx-auto px-6 mb-32 pt-24">
                     <div className="flex flex-col md:flex-row items-center relative">
 

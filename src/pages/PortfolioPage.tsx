@@ -164,7 +164,7 @@ const PortfolioPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background text-zinc-900 font-sans selection:bg-orange-200">
             <Helmet>
                 <title>Portfólio | Hellô Borges Fotografia</title>
                 <meta name="description" content="Galeria de fotos: Casamentos, Retratos, Família e Eventos por Hellô Borges." />
@@ -248,7 +248,7 @@ const PortfolioPage = () => {
                 </section>
 
                 {/* CTA */}
-                <section className="mt-32 container mx-auto px-6 text-center pb-20">
+                <section className="mt-32 container mx-auto px-6 text-center pb-20 " >
                     <div className="max-w-2xl mx-auto border-t border-zinc-100 pt-16">
                         <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 mb-6">
                             Gostou do que viu?

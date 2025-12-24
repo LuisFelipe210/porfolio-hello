@@ -5,7 +5,7 @@ import Footer from "../components/Footer.tsx";
 
 const TermosDeUsoPage = () => {
     return (
-        <div className="min-h-screen bg-white font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background font-sans selection:bg-orange-200">
             <Helmet>
                 <title>Termos de Uso | Hellô Borges Fotografia</title>
                 <meta name="description" content="Termos e condições de uso do site Hellô Borges Fotografia." />

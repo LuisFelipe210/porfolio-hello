@@ -12,7 +12,7 @@ const NotFound = () => {
     }, [location.pathname]);
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-white text-zinc-900 font-sans selection:bg-orange-200 relative overflow-hidden">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background text-zinc-900 font-sans selection:bg-orange-200 relative overflow-hidden">
 
             {/* Borda decorativa fina em volta da tela inteira */}
             <div className="fixed inset-4 border border-zinc-100 pointer-events-none"></div>

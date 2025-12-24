@@ -71,7 +71,7 @@ const BlogPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background text-zinc-900 font-sans selection:bg-orange-200">
             <Helmet>
                 <title>Journal | Hellô Borges Fotografia</title>
                 <meta name="description" content="Dicas, histórias de ensaios e inspirações sobre fotografia." />

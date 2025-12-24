@@ -39,7 +39,7 @@ const AboutPage = () => {
     });
 
     return (
-        <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background text-zinc-900 font-sans selection:bg-orange-200">
             <Helmet>
                 <title>Sobre | Hellô Borges Fotografia</title>
                 <meta name="description" content="Conheça a história, a filosofia e o amor por trás de cada clique da Hellô Borges." />

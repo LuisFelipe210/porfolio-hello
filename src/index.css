@@ -10,7 +10,7 @@
        ========================================================================== */
     :root {
         /* Core neutral palette for Light Mode */
-        --background: 0 0% 98%;      /* Fundo principal (quase branco) */
+        --background: 24 60% 99%;      /* Fundo principal (quase branco) */
         --foreground: 0 0% 15%;      /* Texto principal (cinza escuro) */
 
         /* System Components */

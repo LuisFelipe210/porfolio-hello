@@ -97,7 +97,7 @@ const TestimonialsSection = () => {
     }, [emblaApi, onSelect]);
 
     return (
-        <section id="testimonials" className="py-24 bg-zinc-50 border-t border-zinc-100 overflow-hidden relative">
+        <section id="testimonials" className="py-24 bg-background border-t border-zinc-100 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-200 to-transparent"></div>
 
             <div className="container mx-auto px-6">

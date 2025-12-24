@@ -5,7 +5,7 @@ import Footer from "../components/Footer.tsx";
 
 const PoliticaDePrivacidadePage = () => {
     return (
-        <div className="min-h-screen bg-white font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background font-sans selection:bg-orange-200">
             <Helmet>
                 <title>Política de Privacidade | Hellô Borges Fotografia</title>
                 <meta name="description" content="Saiba como tratamos seus dados e protegemos sua privacidade." />

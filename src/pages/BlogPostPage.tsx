@@ -144,7 +144,7 @@ const BlogPostPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-black font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background text-black font-sans selection:bg-orange-200">
             <Header />
 
             {post && (

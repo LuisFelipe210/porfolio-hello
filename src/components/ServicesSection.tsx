@@ -23,7 +23,7 @@ const ServicesSection = ({ data, isLoading }: ServicesSectionProps) => {
     // 3. NÃO TEM MAIS FETCH AQUI DENTRO. O componente ficou "burro" (só exibe).
 
     return (
-        <section id="services" className="py-24 bg-white border-t border-zinc-100">
+        <section id="services" className="py-24 bg-background border-t border-zinc-100">
             <div className="container mx-auto px-6">
 
                 <div className="mb-16 flex flex-col md:flex-row justify-between items-end border-b border-zinc-200 pb-8">

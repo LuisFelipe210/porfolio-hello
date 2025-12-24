@@ -48,7 +48,7 @@ const Index = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-orange-200">
+        <div className="min-h-screen bg-background text-zinc-900 font-sans selection:bg-orange-200">
             <Helmet>
                 <title>Hellô Borges | Fotografia Atemporal</title>
                 <meta name="description" content="Fotografia profissional com sensibilidade artística. Casamentos, ensaios e eventos." />
@@ -110,7 +110,7 @@ const Index = () => {
                 </section>
 
                 {/* --- ÁREAS DE ATUAÇÃO --- */}
-                <section className="py-24 bg-zinc-50">
+                <section className="py-24 bg-background">
                     <div className="container mx-auto px-6">
                         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
                             <div>
@@ -124,7 +124,7 @@ const Index = () => {
                             </Button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white border border-white">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-background border border-white">
 
                             {isLoading ? (
                                 // Skeletons enquanto carrega
